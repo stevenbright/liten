@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.truward.brikar</groupId>
+    <artifactId>brikar</artifactId>
+    <version>1.5.26</version>
+  </parent>
+
+  <groupId>liten</groupId>
+  <artifactId>liten</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <name>Liten Application</name>
+
+  <description>
+    Liten Parent Module
+  </description>
+
+  <modules>
+    <module>liten-dao</module>
+    <module>liten-static-content</module>
+    <module>liten-website</module>
+  </modules>
+
+  <properties>
+    <!-- common libraries -->
+    <slf4j.version>1.7.12</slf4j.version>
+    <commons-logging.version>1.1.1</commons-logging.version>
+
+    <awssdk.version>1.9.13</awssdk.version>
+
+    <brikar.version>1.5.26</brikar.version>
+
+    <user-service.version>1.0.4</user-service.version>
+
+    <utc-time.version>1.0.6</utc-time.version>
+
+    <!--  compiler settings -->
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+  </properties>
+
+  <dependencyManagement>
+
+    <dependencies>
+      <!-- User Service Model -->
+      <dependency>
+        <groupId>com.truward.orion</groupId>
+        <artifactId>user-service-model</artifactId>
+        <version>${user-service.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.truward.orion</groupId>
+        <artifactId>user-service-spring-security</artifactId>
+        <version>${user-service.version}</version>
+      </dependency>
+
+      <!-- Brikar -->
+      <dependency>
+        <groupId>com.truward.brikar.protobuf</groupId>
+        <artifactId>brikar-protobuf-http-bin</artifactId>
+        <version>${brikar.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.truward.brikar.protobuf</groupId>
+        <artifactId>brikar-protobuf-jackson</artifactId>
+        <version>${brikar.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.truward.brikar.protobuf</groupId>
+        <artifactId>brikar-protobuf-http-json</artifactId>
+        <version>${brikar.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.truward.brikar</groupId>
+        <artifactId>brikar-common</artifactId>
+        <version>${brikar.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.truward.brikar</groupId>
+        <artifactId>brikar-client</artifactId>
+        <version>${brikar.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.truward.brikar</groupId>
+        <artifactId>brikar-server</artifactId>
+        <version>${brikar.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.truward.brikar</groupId>
+        <artifactId>brikar-error-response</artifactId>
+        <version>${brikar.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.truward.brikar</groupId>
+        <artifactId>brikar-rpc-explorer-support</artifactId>
+        <version>${brikar.version}</version>
+      </dependency>
+
+      <!-- UTC time -->
+      <dependency>
+        <groupId>com.truward.time</groupId>
+        <artifactId>utc-time</artifactId>
+        <version>${utc-time.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.truward.time</groupId>
+        <artifactId>utc-time-sql</artifactId>
+        <version>${utc-time.version}</version>
+      </dependency>
+
+      <!-- AWS SDK -->
+      <dependency>
+        <groupId>com.amazonaws</groupId>
+        <artifactId>aws-java-sdk-s3</artifactId>
+        <version>${awssdk.version}</version>
+      </dependency>
+
+      <!-- Spring Persistence -->
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-tx</artifactId>
+        <version>${spring.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-jdbc</artifactId>
+        <version>${spring.version}</version>
+      </dependency>
+
+      <!-- DB Drivers -->
+      <dependency>
+        <groupId>com.h2database</groupId>
+        <artifactId>h2</artifactId>
+        <version>1.4.190</version>
+      </dependency>
+      <dependency> <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
+        <groupId>org.postgresql</groupId>
+        <artifactId>postgresql</artifactId>
+        <version>9.4.1209.jre7</version>
+      </dependency>
+
+      <!-- Connection Pooling -->
+      <dependency>
+        <groupId>com.mchange</groupId>
+        <artifactId>c3p0</artifactId>
+        <version>0.9.5</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+</project>
+

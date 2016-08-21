@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+             xmlns:beans="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="
+                http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.1.xsd">
+
+  <!-- User Service -->
+  <beans:bean id="litenWebsite.remote.userServiceBuilder" factory-bean="litenWebsite.restBinder" factory-method="newClient">
+    <beans:constructor-arg value="com.truward.orion.user.service.model.UserRestService"/>
+    <beans:property name="username" value="${usus.remote.userService.username}"/>
+    <beans:property name="password" value="${usus.remote.userService.password}"/>
+    <beans:property name="uri" value="${usus.remote.userService.uri}"/>
+  </beans:bean>
+  <beans:bean id="litenWebsite.remote.userServiceClient" factory-bean="litenWebsite.userServiceBuilder" factory-method="build"/>
+
+
+  <!-- Password Encoder -->
+  <beans:bean id="litenWebsite.sec.passwordEncoder"
+              class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"/>
+
+  <!-- Spring's UserProfileService that uses Orion user service client -->
+  <beans:bean id="litenWebsite.sec.userProfileService" class="com.truward.orion.user.service.spring.UserProfileService">
+    <beans:constructor-arg ref="litenWebsite.remote.userServiceClient"/>
+  </beans:bean>
+
+  <!-- Authentication -->
+  <beans:bean id="litenWebsite.sec.remoteAuthenticationProvider"
+              class="org.springframework.security.authentication.dao.DaoAuthenticationProvider">
+    <beans:property name="passwordEncoder" ref="b6Website.sec.passwordEncoder" />
+    <beans:property name="userDetailsService" ref="b6Website.sec.userProfileService" />
+  </beans:bean>
+
+  <authentication-manager>
+    <authentication-provider ref="litenWebsite.sec.remoteAuthenticationProvider"/>
+  </authentication-manager>
+</beans:beans>

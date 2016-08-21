@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /rest/
+Disallow: /g/admin/
+Disallow: /g/profile/

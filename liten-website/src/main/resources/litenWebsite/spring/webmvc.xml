@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+  <import resource="classpath:/spring/default-webmvc-base.xml"/>
+
+  <context:annotation-config/>
+  <context:property-placeholder/>
+
+  <!-- Controllers -->
+  <bean class="liten.website.controller.PublicPageController" autowire="constructor"/>
+
+  <!-- Converters for RPC -->
+  <bean id="litenWebsite.webmvc.protobufConverter"
+        class="com.truward.brikar.protobuf.http.ProtobufHttpMessageConverter" />
+  <bean id="litenWebsite.webmvc.jsonProtobufConverter"
+        class="com.truward.brikar.protobuf.http.json.ProtobufJsonHttpMessageConverter" />
+
+  <!-- Annotation driven support for MVC controllers -->
+  <mvc:annotation-driven>
+    <!-- custom marshallers -->
+    <mvc:message-converters>
+      <ref bean="litenWebsite.webmvc.protobufConverter"/>
+      <ref bean="litenWebsite.webmvc.jsonProtobufConverter"/>
+    </mvc:message-converters>
+  </mvc:annotation-driven>
+
+  <!-- freemarker config -->
+  <bean id="freemarkerConfig" class="org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer">
+    <property name="templateLoaderPath" value="${litenWebsite.web.freemarkerPath}"/>
+    <property name="defaultEncoding" value="UTF-8"/>
+    <property name="freemarkerSettings">
+      <props>
+        <prop key="url_escaping_charset">UTF-8</prop>
+      </props>
+    </property>
+  </bean>
+
+  <!-- Spring MVC view resolver -->
+  <bean id="viewResolver" class="org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver">
+    <property name="cache" value="true"/>
+    <property name="prefix" value=""/>
+    <property name="suffix" value=".ftl"/>
+    <property name="contentType" value="text/html; charset=UTF-8" />
+  </bean>
+</beans>

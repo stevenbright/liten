@@ -1,0 +1,30 @@
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+             xmlns:beans="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="
+                http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.1.xsd">
+  <http security="none" pattern="/"/>
+  <http security="none" pattern="/assets/**"/>
+  <http security="none" pattern="/robots.txt"/>
+  <http security="none" pattern="/index.html"/>
+  <http security="none" pattern="/favicon.ico"/>
+  <http security="none" pattern="/g/login"/>
+
+  <http use-expressions="true" auto-config="true" disable-url-rewriting="true">
+    <csrf disabled="true"/>
+    <headers disabled="true"/>
+
+    <access-denied-handler error-page="/assets/403.html"/>
+
+    <intercept-url pattern="/g/**" access="hasRole('ROLE_GENERIC_USER')" />
+
+    <form-login login-page="/g/login"
+                login-processing-url="/g/execlogin"
+                default-target-url="/g/index"
+                authentication-failure-url="/g/login?error=1" />
+    <remember-me remember-me-parameter="remember-me"/>
+
+    <logout logout-url="/g/logout"
+            logout-success-url="/g/login" />
+  </http>
+</beans:beans>

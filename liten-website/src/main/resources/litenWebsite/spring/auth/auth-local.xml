@@ -1,0 +1,16 @@
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+             xmlns:beans="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="
+                http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.1.xsd">
+
+  <authentication-manager>
+    <authentication-provider>
+      <password-encoder hash="md5"/>
+      <user-service>
+        <!-- Password - test -->
+        <user name="testonly" password="098f6bcd4621d373cade4e832627b4f6" authorities="ROLE_GENERIC_USER,ROLE_ID_1029" />
+      </user-service>
+    </authentication-provider>
+  </authentication-manager>
+</beans:beans>

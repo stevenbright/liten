@@ -1,0 +1,164 @@
+
+body {
+    padding-top: 70px;
+    /* Required padding for .navbar-fixed-top. Remove if using .navbar-static-top. Change if height of navigation changes. */
+}
+
+/* Input forms with inputs in monospace */
+
+.use-monospace {
+  font-family: Consolas, Lucida Console, monospace;
+}
+
+.break-all {
+  word-break: break-all;
+}
+
+/* React Rater */
+/* TODO: move to separate file (or, better, scss) */
+/* Taken from https://github.com/NdYAG/star-rating/blob/master/star-rating.css */
+
+.star-rating {
+  direction: rtl;
+  unicode-bidi: bidi-override;
+  text-align: left;
+  display: inline-block;
+  line-height: normal; }
+  .star-rating a {
+    cursor: pointer;
+    color: #ccc; }
+    .star-rating a:hover {
+      color: #707070; }
+      .star-rating a:hover ~ a {
+        color: #707070; }
+    .star-rating a.is-active {
+      color: #000 !important; }
+      .star-rating a.is-active ~ a {
+        color: #000; }
+    .star-rating a.is-disabled {
+      color: #ccc !important;
+      cursor: not-allowed; }
+
+/* Sign In Form */
+
+form.signin-form div {
+  min-height: 2rem;
+}
+
+form.signin-form > div.button-holder {
+  padding-top: 0.2rem;
+  padding-bottom: 0.2rem;
+}
+
+
+/* Navbar icon */
+.navbar-brand .glyphicon {
+  color: #ff9900;
+}
+
+/* Custom */
+.retell-entry {
+  margin-top: 1em;
+  /*border-top: 1px solid #d3d7cf;*/
+  padding-top: 0.5rem;
+}
+
+.star-rating {
+  color: #f0ad4e;
+}
+
+
+
+/* Related Items, see DetailPage */
+
+.related-items {
+  border-radius: 0.2rem;
+  margin-right: 1.1rem;
+}
+
+.related-items-header {
+  padding-left: 1rem;
+  font-weight: bold;
+}
+
+/* CatalogList */
+
+ul.catalog-list {
+  list-style: none outside none;
+  padding: 0;
+}
+
+ul.catalog-list > li {
+  border-top: 1px solid #eee;
+  padding-bottom: 1rem;
+}
+
+/* GenericCatalogItemDetails */
+
+table.item-info > tbody > tr > td {
+  padding: 0.5rem;
+}
+
+table.item-info > tbody > tr > td:first-child {
+  font-weight: bold;
+}
+
+/* Inline Item, see InlineCatalogItem */
+
+.inline-item {
+  padding-left: 0.3rem;
+}
+
+/* Inline CSV (Comma-Separated Value) List */
+
+.csv {
+  display: inline;
+  padding-left: 0;
+}
+
+.csv > li {
+  display: inline;
+}
+
+.csv > li:before {
+  content: ',\0000a0'; /* Non-breaking space */
+}
+
+.csv > li:first-child:before {
+  content: normal;
+}
+
+/* Named Value Element (see InlineCatalogItemWithId) */
+
+.named-value-elem {
+  padding: 0.5rem;
+  display: inline-block;
+}
+
+/* Item Details Table */
+
+.item-details > tbody > tr > td:first-child {
+  font-weight: bold;
+}
+
+.item-details > tbody > tr > td {
+  padding: 0.5rem;
+}
+
+/* Favorites */
+
+.j-fav-link .star {
+  display: none;
+}
+
+.j-fav-link .unstar {
+  display: inline;
+}
+
+.j-fav-link.fav .star {
+  display: inline;
+}
+
+.j-fav-link.fav .unstar {
+  display: none;
+}
