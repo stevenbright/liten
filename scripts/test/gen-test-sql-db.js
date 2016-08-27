@@ -3,6 +3,14 @@
 // node ./gen-test-sql-db.js -authorCount 7 -originsCount 3 -bookCount 25 -fileName /tmp/s1.sql
 // then display contents: cat /tmp/s1.sql
 
+
+// insert into database:
+// java -cp ~/.m2/repository/com/h2database/h2/1.4.190/h2-1.4.190.jar org.h2.tools.RunScript -url jdbc:h2:/tmp/liten1 -user sa -script ../../liten-dao/src/main/resources/litenDao/sql/catalog/catalog-schema.sql
+// rlwrap java -cp ~/.m2/repository/com/h2database/h2/1.4.190/h2-1.4.190.jar org.h2.tools.Shell -url jdbc:h2:/tmp/liten1 -user sa
+
+// add indexes:
+// java -cp ~/.m2/repository/com/h2database/h2/1.4.190/h2-1.4.190.jar org.h2.tools.RunScript -url jdbc:h2:/tmp/liten1 -user sa -script ../../liten-dao/src/main/resources/litenDao/sql/catalog/catalog-indexes.sql
+
 var genUtil = require('./util/gen-util');
 var producerUtil = require('./util/producer-util');
 var data = require('./util/sample-data');
@@ -131,20 +139,60 @@ function insertBooks(context) {
     var next = 1000000;
     for (var i = 0; i < count; ++i) {
         next = next + genUtil.rand(1, 3);
-        var title = randBookName();
         books[getUniqueName(books, randBookName)] = next;
     }
 
     context.books = books;
 }
 
+function insertRelations(context) {
+    var books = genUtil.randShuffle(Object.keys(context.books));
+    var authors = genUtil.randShuffle(Object.keys(context.authors));
+
+    // books w/ one author
+    var oneAuthorIdx = Math.floor(books.length * 0.85);
+    var twoAuthorIdx = oneAuthorIdx + Math.floor(books.length * 0.1);
+
+    var oneAuthorBooks = books.slice(0, oneAuthorIdx);
+    var twoAuthorBooks = books.slice(oneAuthorIdx, twoAuthorIdx);
+    var manyAuthorBooks = books.slice(twoAuthorIdx, books.length); // <- up to 30 authors - 0.05%
+
+    // preparation vars
+    var bookAuthors = {};
+    var bookId;
+    var authorIds;
+
+    for (var i = 0; i < oneAuthorBooks.length; ++i) {
+        bookId = context.books[oneAuthorBooks[i]];
+
+        authorIds = [];
+        authorIds.push(context.authors[authors[genUtil.rand(0, authors.length)]]);
+
+        bookAuthors[bookId] = authorIds;
+    }
+
+    context.bookAuthors = bookAuthors;
+}
+
 function insertBlock(context, block, comment, name, result) {
     comment(name + " entries");
     var typeId = idByEntityTypeName(context, name);
     Object.keys(block).map(function (name) {
-        result.push("INSERT INTO item (id, name, type_id) VALUES (" + block[name] + ", " +
-            producerUtil.sqlStringify(name) + ", " + typeId + ");");
+      result.push("INSERT INTO item (id, name, type_id) VALUES (" + block[name] + ", " +
+        producerUtil.sqlStringify(name) + ", " + typeId + ");");
     });
+}
+
+function insertRelationBlock(context, comment, result) {
+  comment("book relations");
+  var authorTypeId = idByEntityTypeName(context, 'author');
+  Object.keys(context.bookAuthors).forEach(function (bookId) {
+    var authorIds = context.bookAuthors[bookId];
+    authorIds.forEach(function (authorId) {
+      result.push("INSERT INTO item_relation (lhs, rhs, type_id) VALUES (" +
+        authorId + ", " + bookId + ", " + authorTypeId + ");");
+    });
+  });
 }
 
 function generateContent(context, result) {
@@ -165,6 +213,10 @@ function generateContent(context, result) {
     insertBlock(context, context.origins, comment, "book_origin", result);
     insertBlock(context, context.authors, comment, "person", result);
     insertBlock(context, context.books, comment, "book", result);
+
+    insertRelationBlock(context, comment, result);
+
+    result.push('\n');
 }
 
 function generateTestDb(context) {
@@ -179,6 +231,7 @@ function generateTestDb(context) {
     insertSeries(context);
     insertAuthors(context);
     insertBooks(context);
+    insertRelations(context);
 
     generateContent(context, result);
 
