@@ -3,3 +3,4 @@ Disallow: /admin/
 Disallow: /rest/
 Disallow: /g/admin/
 Disallow: /g/profile/
+Disallow: /g/part/

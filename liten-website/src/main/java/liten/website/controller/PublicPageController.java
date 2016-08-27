@@ -27,4 +27,9 @@ public final class PublicPageController {
   public ModelAndView index() {
     return new ModelAndView("page/index", "time", System.currentTimeMillis());
   }
+
+  @RequestMapping("/about")
+  public String about() {
+    return "page/about";
+  }
 }

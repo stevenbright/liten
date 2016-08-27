@@ -27,8 +27,8 @@
   <!-- Authentication -->
   <beans:bean id="litenWebsite.sec.remoteAuthenticationProvider"
               class="org.springframework.security.authentication.dao.DaoAuthenticationProvider">
-    <beans:property name="passwordEncoder" ref="b6Website.sec.passwordEncoder" />
-    <beans:property name="userDetailsService" ref="b6Website.sec.userProfileService" />
+    <beans:property name="passwordEncoder" ref="litenWebsite.sec.passwordEncoder" />
+    <beans:property name="userDetailsService" ref="litenWebsite.sec.userProfileService" />
   </beans:bean>
 
   <authentication-manager>
