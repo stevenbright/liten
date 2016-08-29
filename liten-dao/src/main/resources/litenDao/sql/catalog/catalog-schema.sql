@@ -8,6 +8,7 @@ CREATE TABLE entity_type (
   CONSTRAINT uq_entity_type_name UNIQUE (name)
 );
 
+
 CREATE TABLE item (
   id                INTEGER PRIMARY KEY,
   type_id           INTEGER NOT NULL,
@@ -17,6 +18,12 @@ CREATE TABLE item (
   description       VARCHAR(1024),
   CONSTRAINT fk_item_type FOREIGN KEY (type_id) REFERENCES entity_type(id) ON DELETE CASCADE
 );
+
+--
+-- Book:
+-- lhs(Genre)     -> rhs(Book)      : type(Genre)
+-- lhs(Person)    -> rhs(Book)      : type(Author)
+--
 
 CREATE TABLE item_relation (
   lhs               INTEGER NOT NULL,
