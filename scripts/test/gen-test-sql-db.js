@@ -226,6 +226,8 @@ function insertRelations(context) {
   // preparation vars
   var bookAuthors = generateRelations({}, 1, context.authors, authors, context.books, oneAuthorBooks);
   bookAuthors = generateRelations(bookAuthors, 2, context.authors, authors, context.books, twoAuthorBooks);
+  bookAuthors = generateRelations(bookAuthors, Math.min(70, Math.floor(authors.length / 3)),
+    context.authors, authors, context.books, twoAuthorBooks);
 
   context.bookAuthors = bookAuthors;
   context.bookGenres = generateRelations({}, 1, context.genres, Object.keys(context.genres), context.books, books);
