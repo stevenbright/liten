@@ -1,4 +1,6 @@
 
+'use strict';
+
 // sample run:
 // node ./gen-test-sql-db.js -authorCount 7 -originsCount 3 -bookCount 25 -fileName /tmp/s1.sql
 // then display contents: cat /tmp/s1.sql
@@ -12,6 +14,9 @@
 // add indexes:
 // java -cp ~/.m2/repository/com/h2database/h2/1.4.190/h2-1.4.190.jar org.h2.tools.RunScript -url jdbc:h2:/tmp/liten1 -user sa -script ../../liten-dao/src/main/resources/litenDao/sql/catalog/catalog-indexes.sql
 
+// backup DB after use:
+// SCRIPT TO '/tmp/s2.sql'
+
 var genUtil = require('./util/gen-util');
 var producerUtil = require('./util/producer-util');
 var data = require('./util/sample-data');
@@ -22,64 +27,69 @@ var fs = require('fs');
 //
 
 function randPersonName() {
-    var result = [];
-//    genUtil.appendRandName(result, data.PERSON_NAME_PREFIX);
-    genUtil.appendRandName(result, data.PERSON_LAST_NAME);
-    genUtil.appendRandName(result, data.PERSON_FIRST_NAME);
-//    genUtil.appendRandName(result, data.PERSON_NAME_SUFFIX);
-    return result.join(" ");
+  var result = [];
+//  genUtil.appendRandName(result, data.PERSON_NAME_PREFIX);
+  genUtil.appendRandName(result, data.PERSON_LAST_NAME);
+  genUtil.appendRandName(result, data.PERSON_FIRST_NAME);
+//  genUtil.appendRandName(result, data.PERSON_NAME_SUFFIX);
+  return result.join(" ");
 }
 
 function randBookName(result) {
-    var arr = result || [];
-    genUtil.appendRandName(arr, data.BOOK_NAME_PART, 1, 10);
-    return result == null ? arr.join(" ") : result;
+  var arr = result || [];
+  genUtil.appendRandName(arr, data.BOOK_NAME_PART, 1, 10);
+  return result == null ? arr.join(" ") : result;
 }
 
+var ITEM_INDEX = 1000;
 
 function setUpEntityTypes(context) {
-    context.entityTypes = producerUtil.nameValuePairs(function (ins) {
-        ins(1, 'author');
-        ins(2, 'language');
-        ins(3, 'person');
-        ins(5, 'book');
-        ins(6, 'movie');
-        ins(7, 'series');
-        ins(8, 'genre');
-        ins(9, 'book_origin');
-    });
+  context.entityTypes = producerUtil.nameValuePairs(function (ins) {
+    ins(1, 'author');
+    ins(2, 'language');
+    ins(3, 'person');
+    ins(5, 'book');
+    ins(6, 'movie');
+    ins(7, 'series');
+    ins(8, 'genre');
+    ins(9, 'book_origin');
+  });
 }
 
 function setUpLanguages(context) {
-    context.languages = producerUtil.nameValuePairs(function (ins) {
-        ins(50, "en");
-        ins(51, "ru");
-        ins(52, "cn");
-    });
+  context.languages = producerUtil.nameValuePairs(function (ins) {
+    ins(ITEM_INDEX, "en");
+    ins(ITEM_INDEX + 1, "ru");
+    ins(ITEM_INDEX + 2, "cn");
+  });
+
+  ITEM_INDEX += 3;
 }
 
 function setUpGenres(context) {
-    context.genres = producerUtil.nameValuePairs(function (ins) {
-        ins(101, 'Poetry');
-        ins(102, 'Fantasy');
-        ins(103, 'Science Fiction');
-        ins(105, 'Biography');
-        ins(106, 'Novel');
-        ins(107, 'Drama');
-        ins(114, 'Modern');
-        ins(117, 'Classic');
-        ins(118, 'History');
-        ins(119, 'Adaptation');
-        ins(123, 'Tale');
-        ins(129, 'Short Story');
-        ins(140, 'Realistic Fiction');
-        ins(141, 'Folklore');
-        ins(145, 'Fable');
-        ins(148, 'Speech');
-        ins(150, 'Narrative');
-        ins(185, 'Essay');
-        ins(186, 'Mystery');
-    });
+  context.genres = producerUtil.nameValuePairs(function (ins) {
+    ins(ITEM_INDEX +  0, 'Poetry');
+    ins(ITEM_INDEX +  1, 'Fantasy');
+    ins(ITEM_INDEX +  2, 'Science Fiction');
+    ins(ITEM_INDEX +  3, 'Biography');
+    ins(ITEM_INDEX +  4, 'Novel');
+    ins(ITEM_INDEX +  5, 'Drama');
+    ins(ITEM_INDEX +  6, 'Modern');
+    ins(ITEM_INDEX +  7, 'Classic');
+    ins(ITEM_INDEX +  8, 'History');
+    ins(ITEM_INDEX +  9, 'Adaptation');
+    ins(ITEM_INDEX + 10, 'Tale');
+    ins(ITEM_INDEX + 11, 'Short Story');
+    ins(ITEM_INDEX + 12, 'Realistic Fiction');
+    ins(ITEM_INDEX + 13, 'Folklore');
+    ins(ITEM_INDEX + 14, 'Fable');
+    ins(ITEM_INDEX + 15, 'Speech');
+    ins(ITEM_INDEX + 16, 'Narrative');
+    ins(ITEM_INDEX + 17, 'Essay');
+    ins(ITEM_INDEX + 18, 'Mystery');
+  });
+
+  ITEM_INDEX += 19;
 }
 
 function lookupItemId(itemMap, itemName) {
@@ -95,67 +105,68 @@ function lookupItemId(itemMap, itemName) {
 }
 
 function insertOrigins(context) {
-   var count = context.originsCount || 3;
-    context.origins = producerUtil.nameValuePairs(function (ins) {
-        for (var i = 0; i < count; ++i) {
-            ins(200 + i, "Origin_" + i);
-        }
-    });
+  var count = context.originsCount || 3;
+  context.origins = producerUtil.nameValuePairs(function (ins) {
+    for (var i = 0; i < count; ++i) {
+      ins(ITEM_INDEX + i, "Origin_" + i);
+    }
+  });
 
+  ITEM_INDEX += count;
 }
 
 function insertSeries(context) {
-    var count = context.seriesCount || 5;
-    context.series = producerUtil.nameValuePairs(function (ins) {
-        for (var i = 0; i < count; ++i) {
-            ins(300 + i, "Series_" + i);
-        }
-    });
+  var count = context.seriesCount || 5;
+  context.series = producerUtil.nameValuePairs(function (ins) {
+    for (var i = 0; i < count; ++i) {
+      ins(ITEM_INDEX + i, "Series_" + i);
+    }
+  });
+
+  ITEM_INDEX += count;
 }
 
 function idByEntityTypeName(context, name) {
-    if (name in context.entityTypes) {
-        return context.entityTypes[name];
-    }
+  if (name in context.entityTypes) {
+    return context.entityTypes[name];
+  }
 
-    throw new Error("No entity type with name=" + name);
+  throw new Error("No entity type with name=" + name);
 }
 
 function getUniqueName(entityMap, generatorFn) {
-    var name;
-    for (;;) {
-        name = generatorFn();
-        if (name in entityMap) {
-            continue;
-        }
-        return name;
+  var name;
+  for (;;) {
+    name = generatorFn();
+    if (name in entityMap) {
+        continue;
     }
+    return name;
+  }
 }
 
 function insertAuthors(context) {
-    var authors = {};
-    var count = context.authorCount || 10;
+  var authors = {};
+  var count = context.authorCount || 10;
 
-    var next = 1000;
-    for (var i = 0; i < count; ++i) {
-        next = next + genUtil.rand(1, 3);
-        authors[getUniqueName(authors, randPersonName)] = next;
-    }
+  for (var i = 0; i < count; ++i) {
+    authors[getUniqueName(authors, randPersonName)] = ITEM_INDEX;
+    ITEM_INDEX += genUtil.rand(1, 3);
+  }
 
-    context.authors = authors;
+  context.authors = authors;
 }
 
 function insertBooks(context) {
-    var books = {};
-    var count = context.bookCount || 15;
+  var books = {};
+  var count = context.bookCount || 15;
 
-    var next = 1000000;
-    for (var i = 0; i < count; ++i) {
-        next = next + genUtil.rand(1, 3);
-        books[getUniqueName(books, randBookName)] = next;
-    }
+  for (var i = 0; i < count; ++i) {
+    books[getUniqueName(books, randBookName)] = ITEM_INDEX;
+    ITEM_INDEX += genUtil.rand(1, 3);
+  }
 
-    context.books = books;
+  context.books = books;
 }
 
 function generateRelations(target,

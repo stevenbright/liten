@@ -13,7 +13,7 @@ import java.util.Map;
  */
 @Controller
 @RequestMapping("/g/")
-public final class PublicPageController {
+public final class PublicPageController implements SecurityControllerMixin {
 
   @RequestMapping("/login")
   public ModelAndView login(@RequestParam(value = "error", required = false) String loginError) {
@@ -29,7 +29,10 @@ public final class PublicPageController {
   }
 
   @RequestMapping("/about")
-  public String about() {
-    return "page/about";
+  public ModelAndView about() {
+    final Map<String, Object> params = newMapWithAccount();
+    params.put("userId", hasUserAccount() ? getUserId() : -1L);
+    params.put("currentTime", System.currentTimeMillis());
+    return new ModelAndView("page/about", params);
   }
 }
