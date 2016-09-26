@@ -16,3 +16,7 @@ Sample request with originating request ID ``oid``:
 ```
 OID=`cat /dev/random | head -c 12 | base64` && echo "X-Oid = $OID" && curl -"X-Oid: $OID" -X POST -v http://127.0.0.1:8080/rest/health && echo
 ```
+
+# Links
+
+TBD
