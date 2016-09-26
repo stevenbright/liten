@@ -3,6 +3,14 @@ liten
 
 Website for small reviews/criticism/summary.
 
+# How to build
+
+You'll need:
+
+* JDK 8
+* make
+* nodejs (a.k.a. node)
+
 # Overview
 
 ## URLs
