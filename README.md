@@ -8,8 +8,10 @@ Website for small reviews/criticism/summary.
 You'll need:
 
 * JDK 8
+* maven
 * make
 * nodejs (a.k.a. node)
+
 
 # Overview
 
