@@ -6,12 +6,29 @@
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
         http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
-  <!-- Rest Binder -->
-  <bean id="litenWebsite.restBinder" class="com.truward.brikar.client.rest.support.StandardRestBinder">
+  <bean id="litenWebsite.restOperationsFactory" class="com.truward.brikar.client.rest.RestOperationsFactory">
     <constructor-arg>
       <util:list>
         <bean class="com.truward.brikar.protobuf.http.ProtobufHttpMessageConverter" />
       </util:list>
     </constructor-arg>
+    <property name="credentials">
+      <util:list>
+        <bean class="com.truward.brikar.client.rest.ServiceClientCredentials">
+          <constructor-arg value="${litenWebsite.remote.userService.uri}"/>
+          <constructor-arg value="${litenWebsite.remote.userService.username}"/>
+          <constructor-arg value="${litenWebsite.remote.userService.password}"/>
+        </bean>
+      </util:list>
+    </property>
+  </bean>
+
+  <bean id="litenWebsite.restOperations"
+        factory-bean="litenWebsite.restOperationsFactory"
+        factory-method="getRestOperations"/>
+
+  <!-- Rest Binder -->
+  <bean id="litenWebsite.restBinder" class="com.truward.brikar.client.rest.support.StandardRestServiceBinder">
+    <constructor-arg ref="litenWebsite.restOperations" />
   </bean>
 </beans>

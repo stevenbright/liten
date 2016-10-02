@@ -1,18 +1,21 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <beans:beans xmlns="http://www.springframework.org/schema/security"
-             xmlns:beans="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns:util="http://www.springframework.org/schema/util"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xsi:schemaLocation="
                 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
                 http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-4.1.xsd">
 
   <!-- User Service -->
-  <beans:bean id="litenWebsite.remote.userServiceBuilder" factory-bean="litenWebsite.restBinder" factory-method="newClient">
+  <beans:bean id="litenWebsite.remote.userServiceClient"
+              factory-bean="litenWebsite.restBinder"
+              factory-method="createClient">
+    <beans:constructor-arg value="${litenWebsite.remote.userService.uri}"/>
     <beans:constructor-arg value="com.truward.orion.user.service.model.UserRestService"/>
-    <beans:property name="username" value="${usus.remote.userService.username}"/>
-    <beans:property name="password" value="${usus.remote.userService.password}"/>
-    <beans:property name="uri" value="${usus.remote.userService.uri}"/>
+    <beans:constructor-arg><util:list/></beans:constructor-arg>
   </beans:bean>
-  <beans:bean id="litenWebsite.remote.userServiceClient" factory-bean="litenWebsite.userServiceBuilder" factory-method="build"/>
 
 
   <!-- Password Encoder -->

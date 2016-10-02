@@ -1,5 +1,5 @@
 <#macro common title>
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta name="Author" content="Alex" />
