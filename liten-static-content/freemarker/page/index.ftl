@@ -9,4 +9,10 @@
 </div>
 <p>If you did enable javascript prior to getting this page, please, update your browser.</p>
 
+<div>
+  <#list 0..9 as x>
+    <span><img src="/demo/media/image" width="64" height="64"/></span>
+  </#list>
+</div>
+
 </@page.common>

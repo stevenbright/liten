@@ -38,6 +38,13 @@
       <artifactId>jcl-over-slf4j</artifactId>
     </dependency>
 
+    <!-- Demo image generator -->
+    <dependency>
+      <groupId>com.truward.demo</groupId>
+      <artifactId>demo-media-servlet</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+
     <!-- Web app static content -->
     <dependency>
       <groupId>${project.groupId}</groupId>
