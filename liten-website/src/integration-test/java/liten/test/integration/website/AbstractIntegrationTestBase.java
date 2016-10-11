@@ -58,30 +58,18 @@ public abstract class AbstractIntegrationTestBase {
   }
 
   protected static void initServer(@Nonnull String springConfig) {
-    THREAD = new Thread(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          final String props = StandardLauncher.CONFIG_KEY_PORT + "=" + PORT_NUMBER + "\n" +
-              StandardLauncher.CONFIG_KEY_SHUTDOWN_DELAY + "=100\n" +
-              "\n";
+    THREAD = new Thread(() -> {
+      try {
+        final String props = StandardLauncher.CONFIG_KEY_PORT + "=" + PORT_NUMBER + "\n" +
+            StandardLauncher.CONFIG_KEY_SHUTDOWN_DELAY + "=100\n" +
+            "\n";
 
-          final File tmpFile = File.createTempFile("litenIntegrationTest", ".properties");
-          tmpFile.deleteOnExit();
-          Files.write(Paths.get(tmpFile.toURI()), props.getBytes(StandardCharsets.UTF_8));
-//
-//          ExposureServerLauncher.main(
-//              Collections.singletonList("file:" + tmpFile.getPath()),
-//              new ServerAware() {
-//                @Override
-//                public void setServer(@Nonnull Server server) {
-//                  SERVER = server;
-//                }
-//              },
-//              launchMode);
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
+        final File tmpFile = File.createTempFile("litenIntegrationTest", ".properties");
+        tmpFile.deleteOnExit();
+        Files.write(Paths.get(tmpFile.toURI()), props.getBytes(StandardCharsets.UTF_8));
+
+      } catch (Exception e) {
+        throw new RuntimeException(e);
       }
     });
 
