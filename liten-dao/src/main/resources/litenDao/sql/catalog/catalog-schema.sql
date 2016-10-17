@@ -50,6 +50,48 @@ CREATE TABLE item_download (
 );
 
 --
+-- Catalog model
+--
+
+CREATE TABLE ice_item (
+  id              INTEGER PRIMARY KEY,
+  type_id         INTEGER NOT NULL,
+
+  created         DATE NOT NULL,
+  updated         DATE NOT NULL,
+
+  default_title   VARCHAR(1024),
+
+  CONSTRAINT fk_ice_item_entry_type FOREIGN KEY (type_id) REFERENCES entity_type(id) ON DELETE CASCADE
+);
+
+CREATE TABLE ice_sku (
+  id              INTEGER PRIMARY KEY,
+  item_id         INTEGER NOT NULL,
+  title           VARCHAR(1024) NOT NULL,
+
+  updated         DATE NOT NULL,
+
+  -- locale-specific
+  wikipedia_url   VARCHAR(1024) NOT NULL,
+
+  CONSTRAINT fk_ice_sku_item FOREIGN KEY (item_id) REFERENCES ice_item(id) ON DELETE CASCADE
+);
+
+CREATE TABLE ice_instance (
+  id              INTEGER PRIMARY KEY,
+  sku_id          INTEGER NOT NULL,
+
+  updated         DATE NOT NULL,
+
+  -- book-specific
+  origin_id       INTEGER,
+  download_id     INTEGER,
+
+  CONSTRAINT fk_ice_instance_sku FOREIGN KEY (sku_id) REFERENCES ice_sku(id) ON DELETE CASCADE
+);
+
+--
 -- Sequences
 --
 
