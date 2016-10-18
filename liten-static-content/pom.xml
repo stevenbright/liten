@@ -12,6 +12,15 @@
 
   <name>Liten Website Static Content</name>
 
+  <properties>
+    <b.target>target/release/litenWebsite</b.target>
+    <b.static>${b.target}/web/static</b.static>
+    <b.assets>${b.static}/assets</b.assets>
+    <b.ftl>${b.target}/web/freemarker</b.ftl>
+    <b.nbin>./node_modules/.bin</b.nbin>
+    <b.port>8000</b.port>
+  </properties>
+
   <build>
     <resources>
       <resource>
@@ -29,13 +38,55 @@
             <phase>generate-sources</phase>
             <configuration>
               <tasks>
-                <!-- clean existing artifacts, if any -->
-                <exec executable="make">
-                  <arg value="clean"/>
-                </exec>
+                <!--
+                      TODO: replace with beanshell
+                      http://maven.apache.org/plugin-tools/maven-plugin-plugin/examples/beanshell-mojo.html
+                -->
+                <!--<if>-->
+                  <!--<available file="node_modules" type="dir" />-->
+                  <!--<then>-->
+                    <!--<echo message="Node modules directory exists" />-->
+                  <!--</then>-->
+                  <!--<else>-->
+                    <!-- npm install - - save-dev -->
+                    <!--<echo message="Node modules does not exist" />-->
+                  <!--</else>-->
+                <!--</if>-->
 
-                <!-- build all -->
-                <exec executable="make"/>
+                <!-- Prepare directory structure -->
+                <mkdir dir="${b.ftl}" />
+                <mkdir dir="${b.assets}" />
+                <mkdir dir="${b.assets}/js" />
+                <mkdir dir="${b.assets}/libs/bootstrap" />
+
+                <!-- Copy bootstrap library -->
+                <copy todir="${b.assets}/libs/bootstrap">
+                  <fileset dir="./node_modules/bootstrap/dist/"/>
+                </copy>
+
+                <!-- Copy static files -->
+                <mkdir dir="${b.assets}/css" />
+                <copy todir="${b.assets}/css">
+                  <fileset dir="css"/>
+                </copy>
+                <copy todir="${b.static}">
+                  <fileset dir="root"/>
+                </copy>
+                <copy todir="${b.ftl}">
+                  <fileset dir="freemarker"/>
+                </copy>
+                <copy todir="${b.assets}">
+                  <fileset dir="assets"/>
+                </copy>
+
+                <!-- Browserify -->
+                <exec executable="${b.nbin}/browserify">
+                  <arg value="js/main.js"/>
+                  <arg value="-t"/>
+                  <arg value="babelify"/>
+                  <arg value="-o"/>
+                  <arg value="${b.assets}/js/bundle.js"/>
+                </exec>
               </tasks>
             </configuration>
             <goals>
@@ -46,5 +97,34 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>watch</id>
+
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>watch</id>
+                <phase>test</phase>
+                <configuration>
+                  <tasks>
+                    <!-- TODO: split -->
+                    <exec executable="${b.nbin}/watchify js/main.js -o ${b.assets}/js/bundle.js -v -d -t babelify"/>
+                  </tasks>
+                </configuration>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
 
