@@ -37,21 +37,32 @@
             <id>build-static-web-resources</id>
             <phase>generate-sources</phase>
             <configuration>
-              <tasks>
+
+              <target>
+
                 <!--
                       TODO: replace with beanshell
                       http://maven.apache.org/plugin-tools/maven-plugin-plugin/examples/beanshell-mojo.html
                 -->
-                <!--<if>-->
-                  <!--<available file="node_modules" type="dir" />-->
-                  <!--<then>-->
-                    <!--<echo message="Node modules directory exists" />-->
-                  <!--</then>-->
-                  <!--<else>-->
-                    <!-- npm install - - save-dev -->
-                    <!--<echo message="Node modules does not exist" />-->
-                  <!--</else>-->
-                <!--</if>-->
+                <!--<sequential>-->
+                  <!--<echo message="sdfg,dfjksghkjsdfgh"/>-->
+                  <!--<if>-->
+                    <!--<available file="node_modules" type="dir" />-->
+                    <!--<then>-->
+                      <!--<echo message="Node modules directory exists" />-->
+                    <!--</then>-->
+                    <!--<else>-->
+                      <!--npm install - - save-dev-->
+                      <!--<echo message="Node modules does not exist" />-->
+                    <!--</else>-->
+                  <!--</if>-->
+                <!--</sequential>-->
+
+                <!--<condition property="dirExists">-->
+                  <!--<available file="${b.assets}" type="dir"/>-->
+                <!--</condition>-->
+
+                <!--<exec executable="echo" if="dirExists"/>-->
 
                 <!-- Prepare directory structure -->
                 <mkdir dir="${b.ftl}" />
@@ -87,7 +98,7 @@
                   <arg value="-o"/>
                   <arg value="${b.assets}/js/bundle.js"/>
                 </exec>
-              </tasks>
+              </target>
             </configuration>
             <goals>
               <goal>run</goal>
