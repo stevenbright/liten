@@ -37,32 +37,22 @@
             <id>build-static-web-resources</id>
             <phase>generate-sources</phase>
             <configuration>
-
               <target>
+                <taskdef resource="net/sf/antcontrib/antcontrib.properties"
+                         classpathref="maven.plugin.classpath" />
 
-                <!--
-                      TODO: replace with beanshell
-                      http://maven.apache.org/plugin-tools/maven-plugin-plugin/examples/beanshell-mojo.html
-                -->
-                <!--<sequential>-->
-                  <!--<echo message="sdfg,dfjksghkjsdfgh"/>-->
-                  <!--<if>-->
-                    <!--<available file="node_modules" type="dir" />-->
-                    <!--<then>-->
-                      <!--<echo message="Node modules directory exists" />-->
-                    <!--</then>-->
-                    <!--<else>-->
-                      <!--npm install - - save-dev-->
-                      <!--<echo message="Node modules does not exist" />-->
-                    <!--</else>-->
-                  <!--</if>-->
-                <!--</sequential>-->
-
-                <!--<condition property="dirExists">-->
-                  <!--<available file="${b.assets}" type="dir"/>-->
-                <!--</condition>-->
-
-                <!--<exec executable="echo" if="dirExists"/>-->
+                <if>
+                  <available file="node_modules" type="dir"/>
+                  <then>
+                    <echo message="node_modules exists; skipping installation" />
+                  </then>
+                  <else>
+                    <exec executable="npm">
+                      <arg value="install"/>
+                      <arg value="--save-dev"/>
+                    </exec>
+                  </else>
+                </if>
 
                 <!-- Prepare directory structure -->
                 <mkdir dir="${b.ftl}" />
@@ -105,6 +95,13 @@
             </goals>
           </execution>
         </executions>
+        <dependencies>
+          <dependency>
+            <groupId>ant-contrib</groupId>
+            <artifactId>ant-contrib</artifactId>
+            <version>20020829</version>
+          </dependency>
+        </dependencies>
       </plugin>
     </plugins>
   </build>
