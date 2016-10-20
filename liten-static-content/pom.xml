@@ -13,12 +13,14 @@
   <name>Liten Website Static Content</name>
 
   <properties>
-    <b.target>target/release/litenWebsite</b.target>
+    <b.target>${project.build.directory}/release/litenWebsite</b.target>
     <b.static>${b.target}/web/static</b.static>
     <b.assets>${b.static}/assets</b.assets>
     <b.ftl>${b.target}/web/freemarker</b.ftl>
-    <b.nbin>./node_modules/.bin</b.nbin>
+    <b.nbin>${project.basedir}/node_modules/.bin</b.nbin>
     <b.port>8000</b.port>
+
+    <browserify.extension/>
   </properties>
 
   <build>
@@ -81,7 +83,7 @@
                 </copy>
 
                 <!-- Browserify -->
-                <exec executable="${b.nbin}/browserify">
+                <exec executable="${b.nbin}/browserify${browserify.extension}">
                   <arg value="js/main.js"/>
                   <arg value="-t"/>
                   <arg value="babelify"/>
@@ -107,6 +109,18 @@
   </build>
 
   <profiles>
+    <profile>
+      <id>platform-windows</id>
+      <activation>
+        <os>
+          <family>windows</family>
+        </os>
+      </activation>
+      <properties>
+        <browserify.extension>.cmd</browserify.extension>
+      </properties>
+    </profile>
+
     <profile>
       <id>watch</id>
 
