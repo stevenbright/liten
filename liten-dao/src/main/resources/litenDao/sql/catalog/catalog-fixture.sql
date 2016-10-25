@@ -10,6 +10,12 @@ INSERT INTO entity_type (id, name) VALUES (7, 'series');
 INSERT INTO entity_type (id, name) VALUES (8, 'genre');
 INSERT INTO entity_type (id, name) VALUES (9, 'origin');
 
+--
+-- IceItems
+--
+
+
+
 
 -- genre entries
 INSERT INTO item (id, title, type_id) VALUES (1000, 'Poetry', 8);
