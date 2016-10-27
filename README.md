@@ -9,7 +9,6 @@ You'll need:
 
 * JDK 8
 * maven
-* make
 * nodejs (a.k.a. node)
 
 
