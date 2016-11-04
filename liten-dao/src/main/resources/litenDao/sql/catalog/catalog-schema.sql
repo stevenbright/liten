@@ -72,10 +72,13 @@ CREATE TABLE ice_sku (
 
   updated         DATE NOT NULL,
 
+  language_id     INTEGER NOT NULL,
+
   -- locale-specific
   wikipedia_url   VARCHAR(1024) NOT NULL,
 
-  CONSTRAINT fk_ice_sku_item FOREIGN KEY (item_id) REFERENCES ice_item(id) ON DELETE CASCADE
+  CONSTRAINT fk_ice_sku_item FOREIGN KEY (item_id) REFERENCES ice_item(id) ON DELETE CASCADE,
+  CONSTRAINT fk_ice_sku_language FOREIGN KEY (language_id) REFERENCES ice_item(id) ON DELETE CASCADE
 );
 
 CREATE TABLE ice_instance (
