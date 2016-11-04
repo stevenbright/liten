@@ -9,7 +9,7 @@ You'll need:
 
 * JDK 8
 * maven
-* nodejs (a.k.a. node)
+* nodejs (a.k.a. node) and npm (comes along with node)
 
 
 # Overview
