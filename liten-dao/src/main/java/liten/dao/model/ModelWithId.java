@@ -8,14 +8,22 @@ import java.util.Objects;
  */
 @ParametersAreNonnullByDefault
 public final class ModelWithId<TValue> extends BaseModel {
-  public static final long INVALID_ID = -1;
+  public static final long INVALID_ID = 0;
 
   private final long id;
   private final TValue value;
 
-  public ModelWithId(long id, TValue value) {
+  private ModelWithId(long id, TValue value) {
     this.id = id;
     this.value = Objects.requireNonNull(value, "value");
+  }
+
+  public static <T> ModelWithId<T> from(long id, T value) {
+    return new ModelWithId<T>(id, value);
+  }
+
+  public static <T> ModelWithId<T> from(T value) {
+    return from(INVALID_ID, value);
   }
 
   public long getId() {
@@ -23,7 +31,7 @@ public final class ModelWithId<TValue> extends BaseModel {
   }
 
   public boolean isValidId() {
-    return isValidId(0);
+    return isValidId(id);
   }
 
   public TValue getValue() {

@@ -1,5 +1,6 @@
 package liten.catalog.dao;
 
+import liten.catalog.dao.model.IceEntry;
 import liten.catalog.dao.model.IceItem;
 
 import java.util.List;
@@ -9,7 +10,7 @@ import java.util.List;
  */
 public interface CatalogUpdaterDao {
 
-  default List<Long> persist(List<IceItem> item) {
-    throw new UnsupportedOperationException();
-  }
+  List<Long> addEntries(List<IceEntry> entries);
+
+  void deleteEntry(long id);
 }

@@ -70,12 +70,13 @@ CREATE TABLE ice_sku (
   item_id         INTEGER NOT NULL,
   title           VARCHAR(1024) NOT NULL,
 
+  created         DATE NOT NULL,
   updated         DATE NOT NULL,
 
   language_id     INTEGER NOT NULL,
 
   -- locale-specific
-  wikipedia_url   VARCHAR(1024) NOT NULL,
+  wikipedia_url   VARCHAR(1024),
 
   CONSTRAINT fk_ice_sku_item FOREIGN KEY (item_id) REFERENCES ice_item(id) ON DELETE CASCADE,
   CONSTRAINT fk_ice_sku_language FOREIGN KEY (language_id) REFERENCES ice_item(id) ON DELETE CASCADE
@@ -85,6 +86,7 @@ CREATE TABLE ice_instance (
   id              INTEGER PRIMARY KEY,
   sku_id          INTEGER NOT NULL,
 
+  created         DATE NOT NULL,
   updated         DATE NOT NULL,
 
   -- book-specific
@@ -98,4 +100,10 @@ CREATE TABLE ice_instance (
 -- Sequences
 --
 
+-- TODO: remove
 CREATE SEQUENCE seq_item              START WITH 1000;
+
+CREATE SEQUENCE seq_ice_item          START WITH 10;
+CREATE SEQUENCE seq_ice_sku           START WITH 200;
+CREATE SEQUENCE seq_ice_instance      START WITH 3000;
+
