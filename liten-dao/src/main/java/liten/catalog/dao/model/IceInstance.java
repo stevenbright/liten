@@ -8,7 +8,6 @@ import liten.dao.model.BaseModel;
  */
 public final class IceInstance extends BaseModel {
   private UtcTime created;
-  private UtcTime updated;
   private long originId;
   private long downloadId;
 
@@ -18,14 +17,6 @@ public final class IceInstance extends BaseModel {
 
   public void setCreated(UtcTime created) {
     this.created = created;
-  }
-
-  public UtcTime getUpdated() {
-    return updated;
-  }
-
-  public void setUpdated(UtcTime updated) {
-    this.updated = updated;
   }
 
   public long getOriginId() {

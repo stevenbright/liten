@@ -12,8 +12,6 @@ public final class IceSku extends BaseModel {
   private String title;
   private IceItem language;
   private Long languageId; // shall be set when SKU is updated
-  private UtcTime created;
-  private UtcTime updated;
 
   public String getType() {
     return type;
@@ -45,21 +43,5 @@ public final class IceSku extends BaseModel {
 
   public void setLanguageId(Long languageId) {
     this.languageId = languageId;
-  }
-
-  public UtcTime getCreated() {
-    return created;
-  }
-
-  public void setCreated(UtcTime created) {
-    this.created = created;
-  }
-
-  public UtcTime getUpdated() {
-    return updated;
-  }
-
-  public void setUpdated(UtcTime updated) {
-    this.updated = updated;
   }
 }
