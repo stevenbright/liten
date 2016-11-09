@@ -78,7 +78,7 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
       db.update("INSERT INTO ice_sku (id, item_id, title, language_id, wikipedia_url) VALUES (?, ?, ?, ?, ?)",
           skuId,
           itemId,
-          getTypeIdByName(sku.getType()),
+          sku.getTitle(),
           sku.getLanguageId(),
           null);
 
