@@ -1,25 +1,25 @@
 [
   {
-    "id": "a100",
+    "id": 100,
     "type": "author",
     "skus": [
       {
         "title": "Arkadiy Strugatsky",
-        "languageId": "l101"
+        "languageId": 301
       },
       {
         "title": "Аркадий Стругацкий",
-        "languageId": "l100"
+        "languageId": 300
       }
     ]
   },
   {
-    "id": "l100",
+    "id": 300,
     "defaultTitle": "ru",
     "type": "language"
   },
   {
-    "id": "l101",
+    "id": 301,
     "defaultTitle": "en",
     "type": "language"
   }
