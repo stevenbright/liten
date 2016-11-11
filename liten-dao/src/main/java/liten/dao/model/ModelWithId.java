@@ -7,39 +7,33 @@ import java.util.Objects;
  * @author Alexander Shabanov
  */
 @ParametersAreNonnullByDefault
-public final class ModelWithId<TValue> extends BaseModel {
+public abstract class ModelWithId extends BaseModel {
   public static final long INVALID_ID = 0;
 
+  public static boolean isValidId(long id) {
+    return id > 0;
+  }
+
   private final long id;
-  private final TValue value;
 
-  private ModelWithId(long id, TValue value) {
+  protected ModelWithId(long id) {
     this.id = id;
-    this.value = Objects.requireNonNull(value, "value");
-  }
-
-  public static <T> ModelWithId<T> from(long id, T value) {
-    return new ModelWithId<T>(id, value);
-  }
-
-  public static <T> ModelWithId<T> from(T value) {
-    return from(INVALID_ID, value);
   }
 
   public long getId() {
     return id;
   }
 
+  public long getValidId() {
+    if (!isValidId()) {
+      throw new IllegalStateException("Valid ID expected for object=" + this.toString());
+    }
+
+    return getId();
+  }
+
   public boolean isValidId() {
     return isValidId(id);
-  }
-
-  public TValue getValue() {
-    return value;
-  }
-
-  public static boolean isValidId(long id) {
-    return id > 0;
   }
 
   @Override
@@ -47,17 +41,41 @@ public final class ModelWithId<TValue> extends BaseModel {
     if (this == o) return true;
     if (!(o instanceof ModelWithId)) return false;
 
-    ModelWithId<?> that = (ModelWithId<?>) o;
+    ModelWithId that = (ModelWithId) o;
 
-    if (getId() != that.getId()) return false;
-    return getValue().equals(that.getValue());
+    return getId() == that.getId();
 
   }
 
   @Override
   public int hashCode() {
-    int result = (int) (getId() ^ (getId() >>> 32));
-    result = 31 * result + getValue().hashCode();
-    return result;
+    return (int) (getId() ^ (getId() >>> 32));
+  }
+
+  @Override
+  public String toString() {
+    @SuppressWarnings("StringBufferReplaceableByString")
+    final StringBuilder builder = new StringBuilder(50);
+
+    builder
+        .append(getClass().getSimpleName())
+        .append("#{id=")
+        .append(getId())
+        .append('}');
+
+    return builder.toString();
+  }
+
+  public static abstract class Builder<TSelf> {
+    protected long id = INVALID_ID;
+
+    protected Builder() {}
+
+    public TSelf setId(long value) {
+      this.id = value;
+      return getSelf();
+    }
+
+    protected abstract TSelf getSelf();
   }
 }

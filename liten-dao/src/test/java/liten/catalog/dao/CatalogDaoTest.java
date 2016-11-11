@@ -24,15 +24,12 @@ public final class CatalogDaoTest {
 
   @Test
   public void shouldInsertAndQueryItems() {
-    final Long id = updaterDao.addEntry(createEntry("language", "en"));
+    final Long id = 100L;
+    updaterDao.addEntry(IceEntry.newBuilder()
+        .setItem(IceItem.newBuilder().setId(id).setType("language").setDefaultTitle("en").build())
+        .build());
 
     final IceEntry entry = queryDao.getEntry(id, "en");
     assertEquals("en", entry.getDisplayTitle());
-  }
-
-  private static IceEntry createEntry(String type, String defaultTitle) {
-    final IceEntry entry = new IceEntry();
-    entry.setItem(new IceItem(type, defaultTitle));
-    return entry;
   }
 }

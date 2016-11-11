@@ -13,12 +13,12 @@ import java.util.List;
 @ParametersAreNonnullByDefault
 public interface CatalogUpdaterDao {
 
-  List<Long> addEntries(List<IceEntry> entries);
+  void addEntries(List<IceEntry> entries);
 
   void setRelation(long leftItemId, long rightItemId, String type);
 
-  default Long addEntry(IceEntry entry) {
-    return addEntries(Collections.singletonList(entry)).get(0);
+  default void addEntry(IceEntry entry) {
+    addEntries(Collections.singletonList(entry));
   }
 
   void deleteEntry(long id);

@@ -1,36 +1,31 @@
 package liten.catalog.dao.model;
 
-import liten.dao.model.BaseModel;
+import liten.dao.model.ModelWithId;
 
 /**
  * @author Alexander Shabanov
  */
-public final class IceSku extends BaseModel {
-  private String title;
-  private IceItem language;
-  private Long languageId; // shall be set when SKU is updated
+public final class IceSku extends ModelWithId {
+  private final String title;
+  private final IceItem language;
+  private final Long languageId; // shall be set when SKU is updated
+
+  public IceSku(long id, String title, IceItem language, Long languageId) {
+    super(id);
+    this.title = title;
+    this.language = language;
+    this.languageId = languageId;
+  }
 
   public String getTitle() {
     return title;
-  }
-
-  public void setTitle(String title) {
-    this.title = title;
   }
 
   public IceItem getLanguage() {
     return language;
   }
 
-  public void setLanguage(IceItem language) {
-    this.language = language;
-  }
-
   public Long getLanguageId() {
     return languageId;
-  }
-
-  public void setLanguageId(Long languageId) {
-    this.languageId = languageId;
   }
 }

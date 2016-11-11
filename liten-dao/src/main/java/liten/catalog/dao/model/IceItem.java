@@ -1,7 +1,8 @@
 package liten.catalog.dao.model;
 
-import liten.dao.model.BaseModel;
+import liten.dao.model.ModelWithId;
 
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Objects;
 
@@ -9,13 +10,14 @@ import java.util.Objects;
  * @author Alexander Shabanov
  */
 @ParametersAreNonnullByDefault
-public final class IceItem extends BaseModel {
+public final class IceItem extends ModelWithId {
   private final String type;
   private final String defaultTitle;
 
-  public IceItem(String type, String defaultTitle) {
-    this.type = Objects.requireNonNull(type);
-    this.defaultTitle = Objects.requireNonNull(defaultTitle);
+  private IceItem(long id, String type, String defaultTitle) {
+    super(id);
+    this.type = Objects.requireNonNull(type, "type");
+    this.defaultTitle = Objects.requireNonNull(defaultTitle, "defaultTitle");
   }
 
   public String getType() {
@@ -26,25 +28,40 @@ public final class IceItem extends BaseModel {
     return defaultTitle;
   }
 
-  @SuppressWarnings("SimplifiableIfStatement")
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof IceItem)) return false;
-    if (!super.equals(o)) return false;
-
-    IceItem iceItem = (IceItem) o;
-
-    if (!getType().equals(iceItem.getType())) return false;
-    return getDefaultTitle().equals(iceItem.getDefaultTitle());
-
+  public static Builder newBuilder() {
+    return new Builder();
   }
 
-  @Override
-  public int hashCode() {
-    int result = super.hashCode();
-    result = 31 * result + getType().hashCode();
-    result = 31 * result + getDefaultTitle().hashCode();
-    return result;
+  public static Builder newBuilder(IceItem other) {
+    return newBuilder()
+        .setId(other.getId())
+        .setType(other.getType())
+        .setDefaultTitle(other.getDefaultTitle());
+  }
+
+  public static final class Builder extends ModelWithId.Builder<Builder> {
+    private String type;
+    private String defaultTitle = "";
+
+    private Builder() {}
+
+    public IceItem build() {
+      return new IceItem(id, type, defaultTitle);
+    }
+
+    public Builder setType(@Nullable String value) {
+      this.type = value;
+      return this;
+    }
+
+    public Builder setDefaultTitle(@Nullable String value) {
+      this.defaultTitle = value;
+      return this;
+    }
+
+    @Override
+    protected Builder getSelf() {
+      return this;
+    }
   }
 }

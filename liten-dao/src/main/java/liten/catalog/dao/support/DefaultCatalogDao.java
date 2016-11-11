@@ -16,7 +16,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * @author Alexander Shabanov
@@ -35,20 +34,23 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
   @Override
   public IceEntry getEntry(long itemId, String language) {
     // get product
-    final IceItem item = db.queryForObject("SELECT e.name AS type, i.default_title FROM ice_item AS i\n" +
+    final IceItem item = db.queryForObject("SELECT i.id, e.name AS type, i.default_title FROM ice_item AS i\n" +
         "INNER JOIN entity_type AS e ON e.id=i.type_id WHERE i.id=?",
         IceItemRowMapper.INSTANCE,
         itemId);
 
-    final IceEntry entry = new IceEntry();
+    final IceEntry.Builder entry = IceEntry.newBuilder();
     entry.setItem(item);
-    return entry;
+
+    return entry.build();
   }
 
   @Override
-  public List<Long> addEntries(List<IceEntry> entries) {
-    // TODO: batch insert
-    return entries.stream().map(this::addEntry).collect(Collectors.toList());
+  public void addEntries(List<IceEntry> entries) {
+    //noinspection Convert2streamapi
+    for (final IceEntry entry : entries) {
+      addEntry(entry);
+    }
   }
 
   @Override
@@ -60,12 +62,12 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
   }
 
   @Override
-  public Long addEntry(IceEntry entry) {
+  public void addEntry(IceEntry entry) {
     log.debug("Adding entry={}", entry);
 
     // insert item
     final IceItem item = entry.getItem();
-    final Long itemId = db.queryForObject("SELECT seq_ice_item.nextval", Long.class);
+    final long itemId = item.getValidId();
     db.update("INSERT INTO ice_item (id, type_id, default_title) VALUES (?, ?, ?)",
         itemId,
         getTypeIdByName(item.getType()),
@@ -97,8 +99,6 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
             instance.getDownloadId());
       }
     }
-
-    return itemId;
   }
 
   @Override
@@ -151,7 +151,11 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
 
     @Override
     public IceItem mapRow(ResultSet rs, int i) throws SQLException {
-      return new IceItem(rs.getString("type"), rs.getString("default_title"));
+      return IceItem.newBuilder()
+          .setId(rs.getLong("id"))
+          .setType(rs.getString("type"))
+          .setDefaultTitle(rs.getString("default_title"))
+          .build();
     }
   }
 

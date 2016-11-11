@@ -66,6 +66,3 @@ CREATE TABLE ice_item_relations (
 --
 -- Sequences
 --
-
-CREATE SEQUENCE seq_ice_item          START WITH 10;
-
