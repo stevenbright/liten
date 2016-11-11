@@ -22,8 +22,9 @@ CREATE TABLE ice_item (
 );
 
 CREATE TABLE ice_sku (
-  id              INTEGER PRIMARY KEY,
   item_id         INTEGER NOT NULL,
+  sku_id          INTEGER NOT NULL,
+
   title           VARCHAR(1024) NOT NULL,
 
   language_id     INTEGER NOT NULL,
@@ -31,13 +32,15 @@ CREATE TABLE ice_sku (
   -- locale-specific
   wikipedia_url   VARCHAR(1024),
 
+  CONSTRAINT pk_ice_sku PRIMARY KEY (item_id, sku_id),
   CONSTRAINT fk_ice_sku_item FOREIGN KEY (item_id) REFERENCES ice_item(id) ON DELETE CASCADE,
   CONSTRAINT fk_ice_sku_language FOREIGN KEY (language_id) REFERENCES ice_item(id) ON DELETE CASCADE
 );
 
 CREATE TABLE ice_instance (
-  id              INTEGER PRIMARY KEY,
+  item_id         INTEGER NOT NULL,
   sku_id          INTEGER NOT NULL,
+  instance_id     INTEGER NOT NULL,
 
   created         DATE NOT NULL,
 
@@ -45,7 +48,9 @@ CREATE TABLE ice_instance (
   origin_id       INTEGER,
   download_id     INTEGER,
 
-  CONSTRAINT fk_ice_instance_sku FOREIGN KEY (sku_id) REFERENCES ice_sku(id) ON DELETE CASCADE
+  CONSTRAINT pk_ice_instance PRIMARY KEY (item_id, sku_id, instance_id),
+  CONSTRAINT fk_ice_instance_item FOREIGN KEY (item_id) REFERENCES ice_item(id) ON DELETE CASCADE,
+  CONSTRAINT fk_ice_instance_item_sku FOREIGN KEY (item_id, sku_id) REFERENCES ice_sku(item_id, sku_id) ON DELETE CASCADE
 );
 
 -- represents relationship between ice_items, e.g. author -> book relationships
@@ -62,10 +67,5 @@ CREATE TABLE ice_item_relations (
 -- Sequences
 --
 
--- TODO: remove
-CREATE SEQUENCE seq_item              START WITH 1000;
-
 CREATE SEQUENCE seq_ice_item          START WITH 10;
-CREATE SEQUENCE seq_ice_sku           START WITH 200;
-CREATE SEQUENCE seq_ice_instance      START WITH 3000;
 

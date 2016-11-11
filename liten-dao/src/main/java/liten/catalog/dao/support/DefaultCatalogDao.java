@@ -72,22 +72,26 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
         item.getDefaultTitle());
 
     // insert SKUs
+    int skuId = 0;
     for (final IceEntry.SkuEntry skuEntry : entry.getSkuEntries()) {
+      ++skuId;
       final IceSku sku = skuEntry.getSku();
-      final Long skuId = db.queryForObject("SELECT seq_ice_sku.nextval", Long.class);
-      db.update("INSERT INTO ice_sku (id, item_id, title, language_id, wikipedia_url) VALUES (?, ?, ?, ?, ?)",
-          skuId,
+      db.update("INSERT INTO ice_sku (item_id, sku_id, title, language_id, wikipedia_url) VALUES (?, ?, ?, ?, ?)",
           itemId,
+          skuId,
           sku.getTitle(),
           sku.getLanguageId(),
           null);
 
       // insert instances
+      int instanceId = 0;
       for (final IceInstance instance : skuEntry.getInstances()) {
-        final Long instanceId = db.queryForObject("SELECT seq_ice_instance.nextval", Long.class);
-        db.update("INSERT INTO ice_instance (id, sku_id, created, origin_id, download_id) VALUES (?, ?, ?, ?, ?)",
-            instanceId,
+        ++instanceId;
+        db.update("INSERT INTO ice_instance (item_id, sku_id, instance_id, created, origin_id, download_id) " +
+                "VALUES (?, ?, ?, ?, ?, ?)",
+            itemId,
             skuId,
+            instanceId,
             instance.getCreated().asCalendar(),
             instance.getOriginId(),
             instance.getDownloadId());
