@@ -30,6 +30,18 @@ public final class IceEntry extends BaseModel {
     return item.getDefaultTitle();
   }
 
+  public boolean isDefaultInstancePresent() {
+    return !(skus.isEmpty() || skus.get(0).getInstances().isEmpty());
+  }
+
+  public IceInstance getDefaultInstance() {
+    if (!isDefaultInstancePresent()) {
+      throw new IllegalStateException("Default instance is not present");
+    }
+
+    return skus.get(0).getInstances().get(0);
+  }
+
   public IceItem getItem() {
     return item;
   }

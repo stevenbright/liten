@@ -16,6 +16,8 @@ CREATE TABLE ice_item (
   id              INTEGER PRIMARY KEY,
   type_id         INTEGER NOT NULL,
 
+  alias           VARCHAR(32),
+
   default_title   VARCHAR(1024),
 
   CONSTRAINT fk_ice_item_entry_type FOREIGN KEY (type_id) REFERENCES entity_type(id) ON DELETE CASCADE

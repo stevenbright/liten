@@ -1,6 +1,7 @@
 package liten.catalog.dao;
 
 import liten.catalog.dao.model.IceEntry;
+import liten.catalog.dao.model.IceItem;
 import liten.catalog.dao.model.IceRelation;
 
 import javax.annotation.Nullable;
@@ -12,6 +13,8 @@ import java.util.List;
  */
 @ParametersAreNonnullByDefault
 public interface CatalogQueryDao {
+
+  IceItem getItem(long itemId);
 
   IceEntry getEntry(long itemId, String language);
 

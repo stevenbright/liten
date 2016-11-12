@@ -1,5 +1,6 @@
 package liten.catalog.dao.support;
 
+import com.truward.time.jdbc.UtcTimeSqlUtil;
 import liten.catalog.dao.CatalogQueryDao;
 import liten.catalog.dao.CatalogUpdaterDao;
 import liten.catalog.dao.model.*;
@@ -32,15 +33,35 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
   }
 
   @Override
-  public IceEntry getEntry(long itemId, String language) {
-    // get product
-    final IceItem item = db.queryForObject("SELECT i.id, e.name AS type, i.default_title FROM ice_item AS i\n" +
-        "INNER JOIN entity_type AS e ON e.id=i.type_id WHERE i.id=?",
+  public IceItem getItem(long itemId) {
+    return db.queryForObject("SELECT i.id, e.name AS type, i.default_title FROM ice_item AS i\n" +
+            "INNER JOIN entity_type AS e ON e.id=i.type_id WHERE i.id=?",
         IceItemRowMapper.INSTANCE,
         itemId);
+  }
 
+  @Override
+  public IceEntry getEntry(long itemId, String language) {
     final IceEntry.Builder entry = IceEntry.newBuilder();
-    entry.setItem(item);
+    entry.setItem(getItem(itemId));
+
+    final List<IceSku> skus = db.query("SELECT sku_id, title, language_id FROM ice_sku " +
+            "WHERE item_id=? ORDER BY sku_id",
+        IceSkuRowMapper.INSTANCE, itemId);
+    for (final IceSku sku : skus) {
+      final IceItem languageItem = getItem(sku.getLanguageId());
+      if (language.equals(languageItem.getDefaultTitle())) {
+        // get instances
+        entry.addSku(IceSku.newBuilder(sku).setLanguage(languageItem).build());
+        final List<IceInstance> instances = db.query(
+            "SELECT instance_id, created, origin_id, download_id FROM ice_instance WHERE item_id=? AND sku_id=?",
+            IceInstanceMapper.INSTANCE, itemId, sku.getId());
+        for (final IceInstance instance : instances) {
+          entry.addInstance(sku.getId(), instance);
+        }
+        break;
+      }
+    }
 
     return entry.build();
   }
@@ -74,26 +95,22 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
         item.getDefaultTitle());
 
     // insert SKUs
-    int skuId = 0;
     for (final IceEntry.SkuEntry skuEntry : entry.getSkuEntries()) {
-      ++skuId;
       final IceSku sku = skuEntry.getSku();
       db.update("INSERT INTO ice_sku (item_id, sku_id, title, language_id, wikipedia_url) VALUES (?, ?, ?, ?, ?)",
           itemId,
-          skuId,
+          sku.getId(),
           sku.getTitle(),
           sku.getLanguageId(),
           null);
 
       // insert instances
-      int instanceId = 0;
       for (final IceInstance instance : skuEntry.getInstances()) {
-        ++instanceId;
         db.update("INSERT INTO ice_instance (item_id, sku_id, instance_id, created, origin_id, download_id) " +
                 "VALUES (?, ?, ?, ?, ?, ?)",
             itemId,
-            skuId,
-            instanceId,
+            sku.getId(),
+            instance.getId(),
             instance.getCreated().asCalendar(),
             instance.getOriginId(),
             instance.getDownloadId());
@@ -155,6 +172,33 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
           .setId(rs.getLong("id"))
           .setType(rs.getString("type"))
           .setDefaultTitle(rs.getString("default_title"))
+          .build();
+    }
+  }
+
+  private static final class IceSkuRowMapper implements RowMapper<IceSku> {
+    private static final IceSkuRowMapper INSTANCE = new IceSkuRowMapper();
+
+    @Override
+    public IceSku mapRow(ResultSet rs, int i) throws SQLException {
+      return IceSku.newBuilder()
+          .setId(rs.getLong("sku_id"))
+          .setLanguageId(rs.getLong("language_id"))
+          .setTitle(rs.getString("title"))
+          .build();
+    }
+  }
+
+  private static final class IceInstanceMapper implements RowMapper<IceInstance> {
+    private static final IceInstanceMapper INSTANCE = new IceInstanceMapper();
+
+    @Override
+    public IceInstance mapRow(ResultSet rs, int i) throws SQLException {
+      return IceInstance.newBuilder()
+          .setId(rs.getLong("instance_id"))
+          .setCreated(UtcTimeSqlUtil.getUtcTime(rs, "created"))
+          .setOriginId(rs.getLong("origin_id"))
+          .setDownloadId(rs.getLong("download_id"))
           .build();
     }
   }
