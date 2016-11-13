@@ -34,8 +34,10 @@ CREATE TABLE ice_sku (
   wikipedia_url   VARCHAR(1024),
 
   CONSTRAINT pk_ice_sku PRIMARY KEY (item_id, sku_id),
-  CONSTRAINT fk_ice_sku_item FOREIGN KEY (item_id) REFERENCES ice_item(id) ON DELETE CASCADE,
-  CONSTRAINT fk_ice_sku_language FOREIGN KEY (language_id) REFERENCES ice_item(id) ON DELETE CASCADE
+  CONSTRAINT fk_ice_sku_item FOREIGN KEY (item_id) REFERENCES ice_item(id) ON DELETE CASCADE
+
+  -- Commenting out relation
+  --CONSTRAINT fk_ice_sku_language FOREIGN KEY (language_id) REFERENCES ice_item(id) ON DELETE CASCADE
 );
 
 CREATE TABLE ice_instance (

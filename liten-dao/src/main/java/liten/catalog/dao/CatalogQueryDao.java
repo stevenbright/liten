@@ -21,8 +21,4 @@ public interface CatalogQueryDao {
   List<IceEntry> getEntries(IceEntryFilter filter, long startItemId, int limit);
 
   List<IceRelation> getRelations(IceRelationQuery query);
-
-  List<IceRelation> getLeftRelations(long relatedItemId, String type, long startItemId, int limit);
-
-  List<IceRelation> getRightRelations(long relatedItemId, String type, long startItemId, int limit);
 }

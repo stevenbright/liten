@@ -132,7 +132,7 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
 
   @Override
   public void setRelation(long leftItemId, long rightItemId, String type) {
-    db.update("INSERT INTO ice_item_relations (?, ?, ?) VALUES (?, ?, ?)",
+    db.update("INSERT INTO ice_item_relations (left_id, right_id, type_id) VALUES (?, ?, ?)",
         leftItemId, rightItemId, getTypeIdByName(type));
   }
 
@@ -195,56 +195,18 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
       queryBuilder.append(')');
     }
 
-    queryBuilder.append(" LIMIT ?");
+    queryBuilder.append(" ORDER BY id LIMIT ?");
     params.add(query.getLimit());
 
     return db.query(queryBuilder.toString(), IceRelationRowMapper.INSTANCE, params.toArray(new Object[params.size()]));
-  }
-
-  @Override
-  public List<IceRelation> getLeftRelations(long relatedItemId, String type, long startItemId, int limit) {
-    if (!ModelWithId.isValidId(relatedItemId)) {
-      throw new IllegalArgumentException("Invalid rightItemId=" + relatedItemId);
-    }
-
-    final Long startItemIdParam = ModelWithId.getNullOrValidId(startItemId);
-
-    return db.query("SELECT e.name AS type, ir.left_id AS id FROM ice_item_relations AS ir\n" +
-            "INNER JOIN entity_type AS e ON e.id=ir.type_id\n" +
-            "WHERE ((?=0) OR (ir.left_id>?)) AND ((? IS NULL) OR (e.type=?)) AND (ir.right_id=?)\n" +
-            "ORDER BY ir.left_id LIMIT ?",
-        IceRelationRowMapper.INSTANCE,
-        startItemIdParam, startItemIdParam,
-        type, type,
-        relatedItemId,
-        limit);
-  }
-
-  @Override
-  public List<IceRelation> getRightRelations(long relatedItemId, String type, long startItemId, int limit) {
-    if (!ModelWithId.isValidId(relatedItemId)) {
-      throw new IllegalArgumentException("Invalid rightItemId=" + relatedItemId);
-    }
-
-    final Long startItemIdParam = ModelWithId.getNullOrValidId(startItemId);
-
-    return db.query("SELECT e.name AS type, ir.right_id AS id FROM ice_item_relations AS ir\n" +
-            "INNER JOIN entity_type AS e ON e.id=ir.type_id\n" +
-            "WHERE ((?=0) OR (ir.right_id>?)) AND (e.type=?) AND (ir.left_id=?)\n" +
-            "ORDER BY ir.right_id LIMIT ?",
-        IceRelationRowMapper.INSTANCE,
-        startItemIdParam, startItemIdParam,
-        type,
-        relatedItemId,
-        limit);
   }
 
   //
   // Private
   //
 
-  private String getTypeIdByName(String name) {
-    return db.queryForObject("SELECT id FROM entity_type WHERE name=?", String.class, name);
+  private Long getTypeIdByName(String name) {
+    return db.queryForObject("SELECT id FROM entity_type WHERE name=?", Long.class, name);
   }
 
   private static final class IceItemRowMapper implements RowMapper<IceItem> {

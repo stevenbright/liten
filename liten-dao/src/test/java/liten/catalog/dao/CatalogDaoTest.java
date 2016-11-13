@@ -129,21 +129,93 @@ public final class CatalogDaoTest {
   public void shouldQueryEmptyRelations() {
     final long langId = addEnLanguage();
     assertEquals(emptyList(), queryDao.getRelations(IceRelationQuery.newBuilder()
+        .setDirection(IceRelationQuery.Direction.LEFT)
         .setRelatedItemId(langId)
         .build()));
+
+    assertEquals(emptyList(), queryDao.getRelations(IceRelationQuery.newBuilder()
+        .setDirection(IceRelationQuery.Direction.RIGHT)
+        .setRelatedItemId(langId)
+        .build()));
+
+    assertEquals(emptyList(), queryDao.getRelations(IceRelationQuery.newBuilder()
+        .setLimit(100)
+        .setRelatedItemId(langId)
+        .setStartItemId(1L)
+        .setDirection(IceRelationQuery.Direction.RIGHT)
+        .build()));
+
+    assertEquals(emptyList(), queryDao.getRelations(IceRelationQuery.newBuilder()
+        .setLimit(100)
+        .setRelatedItemId(langId)
+        .setStartItemId(1L)
+        .setDirection(IceRelationQuery.Direction.RIGHT)
+        .addRelationType("language")
+        .addRelationType("book")
+        .build()));
+  }
+
+  @Test
+  public void shouldQueryComplexRelations() {
+    final long i[] = {
+        addLanguage(100L, "zzz"),
+        addLanguage(1L, "a"),
+        addLanguage(2L, "b"),
+        addLanguage(3L, "c"),
+        addLanguage(4L, "d"),
+        addLanguage(5L, "e"),
+        addLanguage(6L, "f"),
+        addLanguage(7L, "g"),
+    };
+
+    updaterDao.setRelation(i[1], i[2], "language");
+    updaterDao.setRelation(i[1], i[3], "language");
+    updaterDao.setRelation(i[1], i[4], "language");
+    updaterDao.setRelation(i[1], i[5], "language");
+    updaterDao.setRelation(i[1], i[7], "language");
+    updaterDao.setRelation(i[2], i[1], "language");
+    updaterDao.setRelation(i[2], i[3], "language");
+    updaterDao.setRelation(i[2], i[7], "language");
+    updaterDao.setRelation(i[4], i[7], "language");
+    updaterDao.setRelation(i[5], i[7], "language");
+    updaterDao.setRelation(i[6], i[7], "language");
+    updaterDao.setRelation(i[7], i[3], "language");
+
+    assertEquals(emptyList(), queryDao.getRelations(IceRelationQuery.newBuilder()
+        .setDirection(IceRelationQuery.Direction.LEFT)
+        .setRelatedItemId(i[0])
+        .build()));
+    assertEquals(emptyList(), queryDao.getRelations(IceRelationQuery.newBuilder()
+        .setDirection(IceRelationQuery.Direction.RIGHT)
+        .setRelatedItemId(i[0])
+        .build()));
+
+    assertEquals(asList(i[2], i[3], i[4], i[5], i[7]), queryDao.getRelations(IceRelationQuery.newBuilder()
+        .setRelatedItemId(i[1])
+        .build()).stream().map(IceRelation::getRelatedItemId).collect(Collectors.toList()));
+    assertEquals(emptyList(), queryDao.getRelations(IceRelationQuery.newBuilder()
+        .setRelatedItemId(i[1])
+        .addRelationType("book")
+        .build()));
+
+    assertEquals(asList(i[1], i[3], i[7]), queryDao.getRelations(IceRelationQuery.newBuilder()
+        .setRelatedItemId(i[2])
+        .build()).stream().map(IceRelation::getRelatedItemId).collect(Collectors.toList()));
   }
 
   //
   // Private
   //
 
-  private long addEnLanguage() {
-    final long id = 100L;
+  private long addLanguage(long id, String alias) {
     updaterDao.addEntry(IceEntry.newBuilder()
-        .setItem(IceItem.newBuilder().setId(id).setType("language").setAlias("en").build())
+        .setItem(IceItem.newBuilder().setId(id).setType("language").setAlias(alias).build())
         .build());
-
     return id;
+  }
+
+  private long addEnLanguage() {
+    return addLanguage(100L, "en");
   }
 
   private void assertEntryEquals(long id, IceEntryFilter filter, Consumer<IceEntry> testFn) {
