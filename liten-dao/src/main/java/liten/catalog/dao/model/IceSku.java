@@ -17,12 +17,8 @@ public final class IceSku extends ModelWithId {
 
   private IceSku(long id, String title, long languageId) {
     super(id);
-    if (!isValidId(languageId)) {
-      throw new IllegalArgumentException("Invalid language ID");
-    }
-
     this.title = requireNonNull(title, "title");
-    this.languageId = languageId;
+    this.languageId = ModelWithId.requireValidId(languageId, "languageId");
   }
 
   public String getTitle() {

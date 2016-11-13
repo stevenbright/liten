@@ -12,10 +12,11 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -32,6 +33,12 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
 
   public DefaultCatalogDao(JdbcOperations jdbcOperations) {
     this.db = Objects.requireNonNull(jdbcOperations, "jdbcOperations");
+  }
+
+  @Override
+  public long getNextItemId() {
+    final Long maxId = db.queryForObject("SELECT MAX(id) FROM ice_item", Long.class);
+    return 1L + (maxId != null ? maxId : 0L);
   }
 
   @Override
@@ -142,29 +149,93 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
     return entryIds.stream().map(itemId -> getEntry(itemId, filter)).collect(Collectors.toList());
   }
 
-        @Override
-  public List<IceRelation> getLeftRelations(long rightItemId, @Nullable String type, long startItemId, int limit) {
+  @Override
+  public List<IceRelation> getRelations(IceRelationQuery query) {
+    final StringBuilder queryBuilder = new StringBuilder(100);
+    final List<Object> params = new ArrayList<>();
+
+    final String relatedParamName;
+    final String opposingParamName;
+    switch (query.getDirection()) {
+      case LEFT:
+        relatedParamName = "left_id";
+        opposingParamName = "right_id";
+        break;
+      case RIGHT:
+        relatedParamName = "right_id";
+        opposingParamName = "left_id";
+        break;
+      default:
+        throw new IllegalStateException("Unknown direction=" + query.getDirection());
+    }
+
+    queryBuilder.append("SELECT e.name AS type, ir.")
+        .append(opposingParamName).append(" AS id FROM ice_item_relations AS ir\n")
+        .append("INNER JOIN entity_type AS e ON e.id=ir.type_id\n")
+        .append("WHERE ir.").append(relatedParamName).append(" = ?");
+    params.add(query.getRelatedItemId());
+
+    if (ModelWithId.isValidId(query.getStartItemId())) {
+      queryBuilder.append(" AND (? > ir.").append(opposingParamName).append(")");
+      params.add(query.getStartItemId());
+    }
+
+    if (!query.getRelationTypes().isEmpty()) {
+      queryBuilder.append(" AND e.name IN (");
+
+      for (int i = 0; i < query.getRelationTypes().size(); ++i) {
+        if (i == 0) {
+          queryBuilder.append('?');
+        } else {
+          queryBuilder.append(", ?");
+        }
+      }
+
+      params.addAll(query.getRelationTypes());
+      queryBuilder.append(')');
+    }
+
+    queryBuilder.append(" LIMIT ?");
+    params.add(query.getLimit());
+
+    return db.query(queryBuilder.toString(), IceRelationRowMapper.INSTANCE, params.toArray(new Object[params.size()]));
+  }
+
+  @Override
+  public List<IceRelation> getLeftRelations(long relatedItemId, String type, long startItemId, int limit) {
+    if (!ModelWithId.isValidId(relatedItemId)) {
+      throw new IllegalArgumentException("Invalid rightItemId=" + relatedItemId);
+    }
+
+    final Long startItemIdParam = ModelWithId.getNullOrValidId(startItemId);
+
     return db.query("SELECT e.name AS type, ir.left_id AS id FROM ice_item_relations AS ir\n" +
             "INNER JOIN entity_type AS e ON e.id=ir.type_id\n" +
             "WHERE ((?=0) OR (ir.left_id>?)) AND ((? IS NULL) OR (e.type=?)) AND (ir.right_id=?)\n" +
             "ORDER BY ir.left_id LIMIT ?",
         IceRelationRowMapper.INSTANCE,
-        startItemId, startItemId,
+        startItemIdParam, startItemIdParam,
         type, type,
-        rightItemId,
+        relatedItemId,
         limit);
   }
 
   @Override
-  public List<IceRelation> getRightRelations(long rightItemId, @Nullable String type, long startItemId, int limit) {
+  public List<IceRelation> getRightRelations(long relatedItemId, String type, long startItemId, int limit) {
+    if (!ModelWithId.isValidId(relatedItemId)) {
+      throw new IllegalArgumentException("Invalid rightItemId=" + relatedItemId);
+    }
+
+    final Long startItemIdParam = ModelWithId.getNullOrValidId(startItemId);
+
     return db.query("SELECT e.name AS type, ir.right_id AS id FROM ice_item_relations AS ir\n" +
             "INNER JOIN entity_type AS e ON e.id=ir.type_id\n" +
-            "WHERE ((?=0) OR (ir.right_id>?)) AND ((? IS NULL) OR (e.type=?)) AND (ir.left_id=?)\n" +
+            "WHERE ((?=0) OR (ir.right_id>?)) AND (e.type=?) AND (ir.left_id=?)\n" +
             "ORDER BY ir.right_id LIMIT ?",
         IceRelationRowMapper.INSTANCE,
-        startItemId, startItemId,
-        type, type,
-        rightItemId,
+        startItemIdParam, startItemIdParam,
+        type,
+        relatedItemId,
         limit);
   }
 

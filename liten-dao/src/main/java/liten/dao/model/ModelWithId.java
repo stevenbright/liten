@@ -15,6 +15,14 @@ public abstract class ModelWithId extends BaseModel {
     return id > 0;
   }
 
+  public static long requireValidId(long id, String parameterName) {
+    if (!isValidId(id)) {
+      throw new IllegalArgumentException(parameterName);
+    }
+
+    return id;
+  }
+
   @Nullable
   public static Long getNullOrValidId(long id) {
     if (isValidId(id)) {

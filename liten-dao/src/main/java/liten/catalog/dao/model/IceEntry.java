@@ -1,13 +1,13 @@
 package liten.catalog.dao.model;
 
 import liten.dao.model.BaseModel;
+import liten.util.CheckedCollections;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
-import static java.util.Collections.unmodifiableList;
 
 /**
  * @author Alexander Shabanov
@@ -21,8 +21,8 @@ public final class IceEntry extends BaseModel {
 
   public IceEntry(IceItem item, List<IceItem> relatedItems, List<SkuEntry> skuEntries) {
     this.item = requireNonNull(item, "item");
-    this.relatedItems = unmodifiableList(new ArrayList<>(requireNonNull(relatedItems, "relatedItems")));
-    this.skus = unmodifiableList(new ArrayList<>(requireNonNull(skuEntries, "skuEntries")));
+    this.relatedItems = CheckedCollections.copyList(relatedItems, "relatedItems");
+    this.skus = CheckedCollections.copyList(skuEntries, "skuEntries");
   }
 
   public String getDisplayTitle() {
@@ -91,7 +91,7 @@ public final class IceEntry extends BaseModel {
 
     private SkuEntry(IceSku sku, List<IceInstance> instances) {
       this.sku = sku;
-      this.instances = unmodifiableList(new ArrayList<>(requireNonNull(instances, "instances")));
+      this.instances = CheckedCollections.copyList(instances, "instances");
     }
 
     public List<IceInstance> getInstances() {

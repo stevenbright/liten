@@ -11,14 +11,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-
-import java.util.Arrays;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.junit.Assert.*;
 
 /**
  * @author Alexander Shabanov
@@ -29,6 +28,17 @@ import static org.junit.Assert.assertTrue;
 public final class CatalogDaoTest {
   @Resource CatalogUpdaterDao updaterDao;
   @Resource CatalogQueryDao queryDao;
+
+  @Test
+  public void shouldQueryNextItemIdForEmptyDb() {
+    assertEquals(1L, queryDao.getNextItemId());
+  }
+
+  @Test
+  public void shouldQueryNextItemId() {
+    final long langId = addEnLanguage();
+    assertEquals(1L + langId, queryDao.getNextItemId());
+  }
 
   @Test
   public void shouldInsertAndQueryRawItem() {
@@ -69,19 +79,37 @@ public final class CatalogDaoTest {
 
     assertEntryEquals(bookId, IceEntryFilter.forLanguages("en"), entryTestFn);
     assertEntryEquals(bookId, IceEntryFilter.NONE, entryTestFn);
+    assertEntryEquals(bookId, IceEntryFilter.newBuilder().build(), entryTestFn);
+    assertEntryEquals(bookId, IceEntryFilter.newBuilder().addLanguageAlias("ru").addLanguageAlias("en")
+        .build(), entryTestFn);
   }
 
   @Test
   public void shouldAllowAddingMultipleUnaliasedItems() {
     final IceItem template = IceItem.newBuilder().setType("book").build();
 
-    updaterDao.addEntries(Arrays.asList(
+    updaterDao.addEntries(asList(
         IceEntry.newBuilder().setItem(IceItem.newBuilder(template).setId(1L).build()).build(),
         IceEntry.newBuilder().setItem(IceItem.newBuilder(template).setId(2L).build()).build(),
         IceEntry.newBuilder().setItem(IceItem.newBuilder(template).setId(3L).build()).build()
     ));
 
-    queryDao.getEntries(IceEntryFilter.NONE, ModelWithId.INVALID_ID, 100);
+    assertEquals(asList(1L, 2L, 3L), queryDao.getEntries(IceEntryFilter.NONE, ModelWithId.INVALID_ID, 100)
+        .stream().map(e -> e.getItem().getId()).collect(Collectors.toList()));
+    assertEquals(asList(2L, 3L), queryDao.getEntries(IceEntryFilter.NONE, 1L, 100)
+        .stream().map(e -> e.getItem().getId()).collect(Collectors.toList()));
+
+    assertEquals(singletonList(2L), queryDao.getEntries(IceEntryFilter.NONE, 1L, 1)
+        .stream().map(e -> e.getItem().getId()).collect(Collectors.toList()));
+    assertEquals(singletonList(3L), queryDao.getEntries(IceEntryFilter.NONE, 2L, 1)
+        .stream().map(e -> e.getItem().getId()).collect(Collectors.toList()));
+    assertEquals(singletonList(3L), queryDao.getEntries(IceEntryFilter.NONE, 2L, 100)
+        .stream().map(e -> e.getItem().getId()).collect(Collectors.toList()));
+
+    assertEquals(emptyList(), queryDao.getEntries(IceEntryFilter.NONE, 2L, 0)
+        .stream().map(e -> e.getItem().getId()).collect(Collectors.toList()));
+    assertEquals(emptyList(), queryDao.getEntries(IceEntryFilter.NONE, 3L, 100)
+        .stream().map(e -> e.getItem().getId()).collect(Collectors.toList()));
   }
 
   @Test(expected = DuplicateKeyException.class)
@@ -95,6 +123,14 @@ public final class CatalogDaoTest {
         .build();
 
     updaterDao.addEntry(other);
+  }
+
+  @Test
+  public void shouldQueryEmptyRelations() {
+    final long langId = addEnLanguage();
+    assertEquals(emptyList(), queryDao.getRelations(IceRelationQuery.newBuilder()
+        .setRelatedItemId(langId)
+        .build()));
   }
 
   //

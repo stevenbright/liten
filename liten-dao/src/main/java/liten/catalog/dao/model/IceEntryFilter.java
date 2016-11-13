@@ -1,10 +1,13 @@
 package liten.catalog.dao.model;
 
+import liten.util.CheckedCollections;
+
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 import static java.util.Collections.emptySet;
-import static java.util.Collections.unmodifiableSet;
 
 /**
  * Represents query that returns Item+SkuEntry+Instance combinations.
@@ -25,18 +28,11 @@ public final class IceEntryFilter {
   private final Set<String> languageAliases;
 
   private IceEntryFilter(boolean useLanguageFilter, Collection<String> languageAliases) {
-    if (useLanguageFilter) {
-      if (languageAliases.isEmpty()) {
-        throw new IllegalArgumentException("Language filter is set to true, but no language aliases specified");
-      }
-
-      this.useLanguageFilter = true;
-      this.languageAliases = unmodifiableSet(new HashSet<>(languageAliases));
-    } else {
-      this.useLanguageFilter = false;
-      this.languageAliases = emptySet();
+    this.languageAliases = CheckedCollections.copySet(languageAliases, "languageAliases");
+    if (useLanguageFilter && this.languageAliases.isEmpty()) {
+      throw new IllegalArgumentException("Language filter is set to true, but no language aliases specified");
     }
-
+    this.useLanguageFilter = useLanguageFilter;
   }
 
   public boolean isUseLanguageFilter() {
@@ -65,6 +61,8 @@ public final class IceEntryFilter {
         return NONE;
       }
 
+      // constant condition inspection is suppressed here to avoid bugs when this filter will be exteneded in future
+      //noinspection ConstantConditions
       return new IceEntryFilter(useLanguageFilter, languageAliases);
     }
 

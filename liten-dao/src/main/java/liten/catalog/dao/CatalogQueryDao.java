@@ -1,9 +1,6 @@
 package liten.catalog.dao;
 
-import liten.catalog.dao.model.IceEntry;
-import liten.catalog.dao.model.IceEntryFilter;
-import liten.catalog.dao.model.IceItem;
-import liten.catalog.dao.model.IceRelation;
+import liten.catalog.dao.model.*;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -15,13 +12,17 @@ import java.util.List;
 @ParametersAreNonnullByDefault
 public interface CatalogQueryDao {
 
+  long getNextItemId();
+
   IceItem getItem(long itemId);
 
   IceEntry getEntry(long itemId, IceEntryFilter filter);
 
   List<IceEntry> getEntries(IceEntryFilter filter, long startItemId, int limit);
 
-  List<IceRelation> getLeftRelations(long rightItemId, @Nullable String type, long startItemId, int limit);
+  List<IceRelation> getRelations(IceRelationQuery query);
 
-  List<IceRelation> getRightRelations(long rightItemId, @Nullable String type, long startItemId, int limit);
+  List<IceRelation> getLeftRelations(long relatedItemId, String type, long startItemId, int limit);
+
+  List<IceRelation> getRightRelations(long relatedItemId, String type, long startItemId, int limit);
 }
