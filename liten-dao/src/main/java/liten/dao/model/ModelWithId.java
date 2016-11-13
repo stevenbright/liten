@@ -1,5 +1,6 @@
 package liten.dao.model;
 
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Objects;
 
@@ -12,6 +13,15 @@ public abstract class ModelWithId extends BaseModel {
 
   public static boolean isValidId(long id) {
     return id > 0;
+  }
+
+  @Nullable
+  public static Long getNullOrValidId(long id) {
+    if (isValidId(id)) {
+      return id;
+    }
+
+    return null;
   }
 
   private final long id;

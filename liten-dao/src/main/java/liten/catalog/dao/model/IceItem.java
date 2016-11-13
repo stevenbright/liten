@@ -12,20 +12,21 @@ import java.util.Objects;
 @ParametersAreNonnullByDefault
 public final class IceItem extends ModelWithId {
   private final String type;
-  private final String defaultTitle;
+  private final String alias;
 
-  private IceItem(long id, String type, String defaultTitle) {
+  private IceItem(long id, String type, String alias) {
     super(id);
     this.type = Objects.requireNonNull(type, "type");
-    this.defaultTitle = Objects.requireNonNull(defaultTitle, "defaultTitle");
+    this.alias = alias;
   }
 
   public String getType() {
     return type;
   }
 
-  public String getDefaultTitle() {
-    return defaultTitle;
+  @Nullable
+  public String getAlias() {
+    return alias;
   }
 
   public static Builder newBuilder() {
@@ -36,17 +37,17 @@ public final class IceItem extends ModelWithId {
     return newBuilder()
         .setId(other.getId())
         .setType(other.getType())
-        .setDefaultTitle(other.getDefaultTitle());
+        .setAlias(other.getAlias());
   }
 
   public static final class Builder extends ModelWithId.Builder<Builder> {
     private String type;
-    private String defaultTitle = "";
+    private String alias;
 
     private Builder() {}
 
     public IceItem build() {
-      return new IceItem(id, type, defaultTitle);
+      return new IceItem(id, type, alias);
     }
 
     public Builder setType(@Nullable String value) {
@@ -54,8 +55,8 @@ public final class IceItem extends ModelWithId {
       return this;
     }
 
-    public Builder setDefaultTitle(@Nullable String value) {
-      this.defaultTitle = value;
+    public Builder setAlias(@Nullable String value) {
+      this.alias = value;
       return this;
     }
 

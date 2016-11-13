@@ -1,6 +1,7 @@
 package liten.catalog.dao;
 
 import liten.catalog.dao.model.IceEntry;
+import liten.catalog.dao.model.IceEntryFilter;
 import liten.catalog.dao.model.IceItem;
 import liten.catalog.dao.model.IceRelation;
 
@@ -16,9 +17,9 @@ public interface CatalogQueryDao {
 
   IceItem getItem(long itemId);
 
-  IceEntry getEntry(long itemId, String language);
+  IceEntry getEntry(long itemId, IceEntryFilter filter);
 
-  List<IceEntry> getEntries(long startItemId, int limit);
+  List<IceEntry> getEntries(IceEntryFilter filter, long startItemId, int limit);
 
   List<IceRelation> getLeftRelations(long rightItemId, @Nullable String type, long startItemId, int limit);
 

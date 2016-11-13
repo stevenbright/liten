@@ -4,6 +4,7 @@ import com.truward.time.jdbc.UtcTimeSqlUtil;
 import liten.catalog.dao.CatalogQueryDao;
 import liten.catalog.dao.CatalogUpdaterDao;
 import liten.catalog.dao.model.*;
+import liten.dao.model.ModelWithId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcOperations;
@@ -17,6 +18,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author Alexander Shabanov
@@ -34,14 +36,14 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
 
   @Override
   public IceItem getItem(long itemId) {
-    return db.queryForObject("SELECT i.id, e.name AS type, i.default_title FROM ice_item AS i\n" +
+    return db.queryForObject("SELECT i.id, e.name AS type, i.alias FROM ice_item AS i\n" +
             "INNER JOIN entity_type AS e ON e.id=i.type_id WHERE i.id=?",
         IceItemRowMapper.INSTANCE,
         itemId);
   }
 
   @Override
-  public IceEntry getEntry(long itemId, String language) {
+  public IceEntry getEntry(long itemId, IceEntryFilter filter) {
     final IceEntry.Builder entry = IceEntry.newBuilder();
     entry.setItem(getItem(itemId));
 
@@ -50,15 +52,18 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
         IceSkuRowMapper.INSTANCE, itemId);
     for (final IceSku sku : skus) {
       final IceItem languageItem = getItem(sku.getLanguageId());
-      if (language.equals(languageItem.getDefaultTitle())) {
+      if ((!filter.isUseLanguageFilter()) || filter.getLanguageAliases().contains(languageItem.getAlias())) {
         // get instances
-        entry.addSku(IceSku.newBuilder(sku).setLanguage(languageItem).build());
+        entry.addSku(IceSku.newBuilder(sku).setLanguageId(languageItem.getId()).build());
         final List<IceInstance> instances = db.query(
             "SELECT instance_id, created, origin_id, download_id FROM ice_instance WHERE item_id=? AND sku_id=?",
             IceInstanceMapper.INSTANCE, itemId, sku.getId());
         for (final IceInstance instance : instances) {
           entry.addInstance(sku.getId(), instance);
         }
+
+        // set related item - language
+        entry.addRelatedItem(languageItem);
         break;
       }
     }
@@ -89,10 +94,10 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
     // insert item
     final IceItem item = entry.getItem();
     final long itemId = item.getValidId();
-    db.update("INSERT INTO ice_item (id, type_id, default_title) VALUES (?, ?, ?)",
+    db.update("INSERT INTO ice_item (id, type_id, alias) VALUES (?, ?, ?)",
         itemId,
         getTypeIdByName(item.getType()),
-        item.getDefaultTitle());
+        item.getAlias());
 
     // insert SKUs
     for (final IceEntry.SkuEntry skuEntry : entry.getSkuEntries()) {
@@ -125,8 +130,16 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
   }
 
   @Override
-  public List<IceEntry> getEntries(long startItemId, int limit) {
-    throw new UnsupportedOperationException();
+  public List<IceEntry> getEntries(IceEntryFilter filter, long startItemId, int limit) {
+    final Long startIdParam = ModelWithId.getNullOrValidId(startItemId);
+    final List<Long> entryIds = db.queryForList("SELECT id FROM ice_item\n" +
+            "WHERE (? IS NULL) OR (id > ?) ORDER BY id LIMIT ?",
+        Long.class,
+        startIdParam,
+        startIdParam,
+        limit);
+
+    return entryIds.stream().map(itemId -> getEntry(itemId, filter)).collect(Collectors.toList());
   }
 
         @Override
@@ -171,7 +184,7 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
       return IceItem.newBuilder()
           .setId(rs.getLong("id"))
           .setType(rs.getString("type"))
-          .setDefaultTitle(rs.getString("default_title"))
+          .setAlias(rs.getString("alias"))
           .build();
     }
   }

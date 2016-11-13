@@ -20,6 +20,7 @@
         <property name="scripts">
           <array>
             <value>classpath:/litenDao/sql/catalog/catalog-schema.sql</value>
+            <value>classpath:/litenDao/sql/catalog/catalog-indexes.sql</value>
             <value>classpath:/litenDao/sql/catalog/catalog-fixture.sql</value>
           </array>
         </property>
