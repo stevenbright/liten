@@ -95,7 +95,7 @@ public abstract class AbstractIntegrationTestBase {
     THREAD.start();
     LOG.info("Server started");
 
-    ServerApiUtil.waitUntilStarted(user, getServerUrl("/rest"));
+    ServerApiUtil.waitUntilStarted(user, getServerUrl("/api"));
     LOG.info("Server initialized");
   }
 
