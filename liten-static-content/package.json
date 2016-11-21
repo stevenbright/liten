@@ -18,15 +18,18 @@
 
     "watchify": "^3.4.0",
 
+    "jquery": "^3.1.1",
+
     "babel-jest": "^9.0.0",
     "jest-cli": "*",
-
-    "react-addons-test-utils": "~0.14.7",
 
     "http-server": "^0.9.0"
   },
 
   "scripts": {
+    "browserify": "browserify js/main.js -t babelify -o target/release/litenWebsite/web/static/assets/js/bundle.js",
+    "watchify": "watchify js/main.js -o target/release/litenWebsite/web/static/assets/js/bundle.js -v -d -t babelify",
+
     "test": "jest"
   },
 
