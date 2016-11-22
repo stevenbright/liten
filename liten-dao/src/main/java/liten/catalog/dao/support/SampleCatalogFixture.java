@@ -30,9 +30,17 @@ public final class SampleCatalogFixture {
   private static final long ORIGIN2     = 302L;
 
   private static final long AUTHOR1     = 400L;
+  private static final long AUTHOR2     = 405L;
+  private static final long AUTHOR3     = 410L;
 
   private static final long BOOK1       = 500L;
   private static final long BOOK2       = 501L;
+  private static final long BOOK3       = 502L;
+  private static final long BOOK4       = 503L;
+  private static final long BOOK5       = 504L;
+  private static final long BOOK6       = 505L;
+  private static final long BOOK7       = 506L;
+  private static final long BOOK8       = 507L;
 
   public static void addSampleData(CatalogUpdaterDao d) {
     addItem(d, EN, "en", "language", "English", "Английский");
@@ -53,8 +61,8 @@ public final class SampleCatalogFixture {
         .addSku(IceSku.newBuilder().setId(2).setLanguageId(EN)
             .setTitle("Holy Bible").build()).build());
 
-    d.setRelation(ORIGIN1, BOOK1, "origin");
-    d.setRelation(RELIGION, BOOK1, "genre");
+    d.setRelation(BOOK1, ORIGIN1, "origin");
+    d.setRelation(BOOK1, RELIGION, "genre");
 
     d.addEntry(IceEntry.newBuilder().setItem(IceItem.newBuilder().setId(AUTHOR1).setType("author").build())
         .addSku(IceSku.newBuilder().setId(1).setLanguageId(RU)
@@ -67,8 +75,47 @@ public final class SampleCatalogFixture {
             .setTitle("Война и мир").build())
         .addSku(IceSku.newBuilder().setId(2).setLanguageId(EN)
             .setTitle("War and Peace").build()).build());
-    d.setRelation(ORIGIN2, BOOK1, "origin");
-    d.setRelation(NOVEL, BOOK1, "genre");
+    d.setRelation(BOOK2, ORIGIN2, "origin");
+    d.setRelation(BOOK2, NOVEL, "genre");
+    d.setRelation(BOOK2, AUTHOR1, "author");
+
+    d.addEntry(IceEntry.newBuilder().setItem(IceItem.newBuilder().setId(AUTHOR2).setType("author").build())
+        .addSku(IceSku.newBuilder().setId(1).setLanguageId(RU)
+            .setTitle("Аркадий Стругацкий").build())
+        .addSku(IceSku.newBuilder().setId(2).setLanguageId(EN)
+            .setTitle("Arkady Strugatsky").build()).build());
+    d.addEntry(IceEntry.newBuilder().setItem(IceItem.newBuilder().setId(AUTHOR3).setType("author").build())
+        .addSku(IceSku.newBuilder().setId(1).setLanguageId(RU)
+            .setTitle("Борис Стругацкий").build())
+        .addSku(IceSku.newBuilder().setId(2).setLanguageId(EN)
+            .setTitle("Boris Strugatsky").build()).build());
+
+    d.addEntry(IceEntry.newBuilder().setItem(IceItem.newBuilder().setId(BOOK3).setType("book").build())
+        .addSku(IceSku.newBuilder().setId(1).setLanguageId(RU)
+            .setTitle("Страна багровых туч").build())
+        .addSku(IceSku.newBuilder().setId(2).setLanguageId(EN)
+            .setTitle("The Land of Crimson Clouds").build()).build());
+    d.setRelation(BOOK3, ORIGIN2, "origin");
+    d.setRelation(BOOK3, NOVEL, "genre");
+    d.setRelation(BOOK3, SCIFI, "genre");
+    d.setRelation(BOOK3, AUTHOR2, "author");
+    d.setRelation(BOOK3, AUTHOR3, "author");
+
+    d.addEntry(IceEntry.newBuilder().setItem(IceItem.newBuilder().setId(BOOK4).setType("book").build())
+        .addSku(IceSku.newBuilder().setId(2).setLanguageId(EN)
+            .setTitle("Test 4").build()).build());
+    d.addEntry(IceEntry.newBuilder().setItem(IceItem.newBuilder().setId(BOOK5).setType("book").build())
+        .addSku(IceSku.newBuilder().setId(2).setLanguageId(EN)
+            .setTitle("Test 5").build()).build());
+    d.addEntry(IceEntry.newBuilder().setItem(IceItem.newBuilder().setId(BOOK6).setType("book").build())
+        .addSku(IceSku.newBuilder().setId(2).setLanguageId(EN)
+            .setTitle("Test 6").build()).build());
+    d.addEntry(IceEntry.newBuilder().setItem(IceItem.newBuilder().setId(BOOK7).setType("book").build())
+        .addSku(IceSku.newBuilder().setId(2).setLanguageId(EN)
+            .setTitle("Test 7").build()).build());
+    d.addEntry(IceEntry.newBuilder().setItem(IceItem.newBuilder().setId(BOOK8).setType("book").build())
+        .addSku(IceSku.newBuilder().setId(2).setLanguageId(EN)
+            .setTitle("Test 8").build()).build());
   }
 
   public static long addItem(CatalogUpdaterDao d,
