@@ -25,10 +25,6 @@ import java.util.Map;
 @Controller
 @RequestMapping("/g/")
 public final class PublicPageController implements SecurityControllerMixin {
-  private final Logger log = LoggerFactory.getLogger(getClass());
-
-  @Resource
-  private CatalogQueryDao queryDao;
 
   @RequestMapping("/login")
   public ModelAndView login(@RequestParam(value = "error", required = false) String loginError) {
@@ -40,21 +36,7 @@ public final class PublicPageController implements SecurityControllerMixin {
 
   @RequestMapping("/index")
   public ModelAndView index() {
-    final List<IceEntry> entries = queryDao.getEntries(IceEntryFilter.NONE, ModelWithId.INVALID_ID, 10);
-
-    final Locale locale = LocaleContextHolder.getLocale();
-    final Object[] intro = {
-        locale.getISO3Language(),
-        locale.getLanguage(),
-        locale.getCountry()
-    };
-    log.trace("intro={}", intro);
-
-    final Map<String, Object> params = new HashMap<>();
-    params.put("time", System.currentTimeMillis());
-    params.put("entries", entries);
-
-    return new ModelAndView("page/index", params);
+    return new ModelAndView("page/index", "currentTime", System.currentTimeMillis());
   }
 
   @RequestMapping("/about")

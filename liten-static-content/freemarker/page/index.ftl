@@ -10,19 +10,9 @@
 <p>If you did enable javascript prior to getting this page, please, update your browser.</p>
 </div>
 
-<div>
-  <ul>
-  <#list entries as entry>
-    <li><a href="#?id=${entry.item.id}">${entry.displayTitle}</a></li>
-  </#list>
-  </ul>
-</div>
-
-<div>
-  <#list 0..9 as x>
-    <span><img src="/demo/media/image" width="64" height="64"/></span>
-  </#list>
-</div>
+<ul>
+  <li><a href="/g/cat/index">Catalog Index</a></li>
+</ul>
 
 <script type="text/javascript" src="/assets/js/bundle.js"></script>
 </@page.common>

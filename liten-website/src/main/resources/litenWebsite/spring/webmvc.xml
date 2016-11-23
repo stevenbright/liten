@@ -14,6 +14,7 @@
 
   <!-- Controllers -->
   <bean class="liten.website.controller.PublicPageController" autowire="constructor"/>
+  <bean class="liten.website.controller.CatalogPageController" autowire="constructor"/>
 
   <!-- Converters for RPC -->
   <bean id="litenWebsite.webmvc.protobufConverter"
