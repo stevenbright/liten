@@ -11,6 +11,14 @@
 </div>
 
 <div>
+  <ul>
+  <#list entries as entry>
+    <li><a href="#?id=${entry.item.id}">${entry.displayTitle}</a></li>
+  </#list>
+  </ul>
+</div>
+
+<div>
   <#list 0..9 as x>
     <span><img src="/demo/media/image" width="64" height="64"/></span>
   </#list>

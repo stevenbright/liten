@@ -4,4 +4,12 @@
        xsi:schemaLocation="
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
+  <import resource="datasource-context.xml"/>
+  <import resource="tx-context.xml"/>
+
+  <bean id="litenWebsite.dao.jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+    <property name="dataSource" ref="litenWebsite.dao.dataSource"/>
+  </bean>
+
+  <bean class="liten.catalog.dao.support.DefaultCatalogDao" autowire="constructor"/>
 </beans>
