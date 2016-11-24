@@ -17,8 +17,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public final class SampleCatalogFixture {
   private SampleCatalogFixture() {}
 
-  private static final long EN = 101L;
-  private static final long RU = 100L;
+  private static final long EN          = 101L;
+  private static final long RU          = 100L;
 
   private static final long NOVEL       = 200L;
   private static final long FANTASY     = 201L;
