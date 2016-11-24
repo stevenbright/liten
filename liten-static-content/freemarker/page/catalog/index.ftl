@@ -1,6 +1,6 @@
 <#import "../../template/page.ftl" as page/>
 
-<@page.common title="Catalog">
+<@page.common title="Catalog Index">
 <@page.heading/>
 
 <div>
@@ -10,6 +10,10 @@
   </#list>
   </ul>
 </div>
+
+<#if hasNext>
+  <p><a href="/g/cat/index?startItemId=${startItemId}&limit=${limit}">Next</a></p>
+</#if>
 
 <script type="text/javascript" src="/assets/js/bundle.js"></script>
 </@page.common>
