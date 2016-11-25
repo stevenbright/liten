@@ -10,6 +10,7 @@ function fetchAndAppendHtml($list, $loadButton) {
   const $deferred = $.ajax(pageUrl);
 
   $deferred.fail(function () {
+    console.warn("Error while loading", pageUrl);
   });
 
   $deferred.done(function (htmlPageString) {

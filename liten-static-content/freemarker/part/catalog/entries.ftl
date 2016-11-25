@@ -1,5 +1,5 @@
 <#import "../../template/catalog.ftl" as cat />
 <#import "../../template/pagination.ftl" as p />
 
-<@cat.entryList entryListModel=items />
+<@cat.itemList listModel=items />
 <@p.nextPageMarker nextUrl=nextUrl />

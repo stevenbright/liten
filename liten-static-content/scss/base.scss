@@ -1,7 +1,16 @@
 
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+$footer-height: 60px;
+
 body {
-    padding-top: 70px;
-    /* Required padding for .navbar-fixed-top. Remove if using .navbar-static-top. Change if height of navigation changes. */
+  /* Required padding for .navbar-fixed-top. Remove if using .navbar-static-top. Change if height of navigation changes. */
+  padding-top: 70px;
+
+  margin-bottom: $footer-height;
 }
 
 /* Input forms with inputs in monospace */
@@ -18,4 +27,18 @@ body {
 .navbar-brand .glyphicon {
   /*color: #ff0099;*/
   color: #ff9900;
+}
+
+#main-content {
+  padding-bottom: 2em;
+}
+
+footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: $footer-height;
+  background-color: #eeeeec;
+
+  padding-top: 10px;
 }

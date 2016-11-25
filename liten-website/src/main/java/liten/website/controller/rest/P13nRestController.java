@@ -1,20 +1,31 @@
 package liten.website.controller.rest;
 
+import com.google.protobuf.BoolValue;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Alexander Shabanov
  */
 @Controller
-@RequestMapping("/rest/p13n")
+@RequestMapping("/api/p13n/v1")
 public final class P13nRestController extends BaseRestController {
+  private final Set<Long> favorites = new HashSet<>();
 
-  @RequestMapping("/v1/favs/{id}")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void addToFavorite(@PathVariable("id") String id) {
+  @RequestMapping(value = "/favs/{id}/toggle", method = RequestMethod.POST)
+  @ResponseBody
+  public BoolValue toggleFavorite(@PathVariable("id") long id) {
+    final boolean isFavorite;
+    if (favorites.remove(id)) {
+      isFavorite = false;
+    } else {
+      isFavorite = true;
+      favorites.add(id);
+    }
+    return BoolValue.newBuilder().setValue(isFavorite).build();
   }
 }

@@ -16,6 +16,8 @@
   <bean class="liten.website.controller.PublicPageController" autowire="constructor"/>
   <bean class="liten.website.controller.CatalogPageController" autowire="constructor"/>
 
+  <bean class="liten.website.controller.rest.P13nRestController" autowire="constructor"/>
+
   <!-- Converters for RPC -->
   <bean id="litenWebsite.webmvc.protobufConverter"
         class="com.truward.brikar.protobuf.http.ProtobufHttpMessageConverter" />
@@ -26,7 +28,6 @@
   <mvc:annotation-driven>
     <!-- custom marshallers -->
     <mvc:message-converters>
-      <ref bean="litenWebsite.webmvc.protobufConverter"/>
       <ref bean="litenWebsite.webmvc.jsonProtobufConverter"/>
     </mvc:message-converters>
   </mvc:annotation-driven>

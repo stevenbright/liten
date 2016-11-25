@@ -52,11 +52,13 @@
     <#nested/>
   </div>
 
-  <div id="footer">
-  </div>
-
   <#-- Bundle Page Script -->
   <#-- <script type="text/javascript" src="/assets/js/bundle.js"></script> -->
+  <footer>
+    <div class="container">
+      <p class="text-muted">Discover amazing something here!</p>
+    </div>
+  </footer>
 </body>
 </html>
 

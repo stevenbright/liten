@@ -6,12 +6,12 @@
 <@page.heading/>
 
 <div>
-  <ul id="catalog-list">
-  <@cat.entryList entryListModel=items />
+  <ul id="catalog-items" class="catalog-list">
+  <@cat.itemList listModel=items />
   </ul>
 </div>
 <div>
-  <@p.loadMoreButton nextUrl=nextUrl targetListSelector="#catalog-list" />
+  <@p.loadMoreButton nextUrl=nextUrl targetListSelector="#catalog-items" />
 </div>
 
 <script type="text/javascript" src="/assets/js/bundle.js"></script>
