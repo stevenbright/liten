@@ -1,5 +1,5 @@
 <#import "../../template/page.ftl" as page/>
-<#import "../../template/catalog/entries.ftl" as cat />
+<#import "../../template/catalog.ftl" as cat />
 <#import "../../template/pagination.ftl" as p />
 
 <@page.common title="Catalog Index">

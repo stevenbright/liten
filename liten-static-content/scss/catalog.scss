@@ -1,36 +1,4 @@
 
-body {
-    padding-top: 70px;
-    /* Required padding for .navbar-fixed-top. Remove if using .navbar-static-top. Change if height of navigation changes. */
-}
-
-/* Input forms with inputs in monospace */
-
-.use-monospace {
-  font-family: Consolas, Lucida Console, monospace;
-}
-
-.break-all {
-  word-break: break-all;
-}
-
-/* Sign In Form */
-
-form.signin-form div {
-  min-height: 2rem;
-}
-
-form.signin-form > div.button-holder {
-  padding-top: 0.2rem;
-  padding-bottom: 0.2rem;
-}
-
-
-/* Navbar icon */
-.navbar-brand .glyphicon {
-  color: #ff9900;
-}
-
 /* CatalogList */
 
 ul.catalog-list {
@@ -93,22 +61,4 @@ table.item-info > tbody > tr > td:first-child {
 
 .item-details > tbody > tr > td {
   padding: 0.5rem;
-}
-
-/* Favorites */
-
-.fav-link .star {
-  display: none;
-}
-
-.fav-link .unstar {
-  display: inline;
-}
-
-.fav-link.fav .star {
-  display: inline;
-}
-
-.fav-link.fav .unstar {
-  display: none;
 }

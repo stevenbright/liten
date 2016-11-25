@@ -7,5 +7,5 @@ setUpPaginationHandlers();
 
 $(document).ready(function () {
   $('#javascript-alert').remove();
-  console.log('Hello from progressive website!');
+  console.log('BTF loaded');
 });

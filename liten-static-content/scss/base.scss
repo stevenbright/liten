@@ -1,0 +1,21 @@
+
+body {
+    padding-top: 70px;
+    /* Required padding for .navbar-fixed-top. Remove if using .navbar-static-top. Change if height of navigation changes. */
+}
+
+/* Input forms with inputs in monospace */
+
+.use-monospace {
+  font-family: Consolas, Lucida Console, monospace;
+}
+
+.break-all {
+  word-break: break-all;
+}
+
+/* Navbar icon */
+.navbar-brand .glyphicon {
+  /*color: #ff0099;*/
+  color: #ff9900;
+}

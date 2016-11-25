@@ -1,4 +1,4 @@
-<#import "../../template/catalog/entries.ftl" as cat />
+<#import "../../template/catalog.ftl" as cat />
 <#import "../../template/pagination.ftl" as p />
 
 <@cat.entryList entryListModel=items />

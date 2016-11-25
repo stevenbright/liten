@@ -1,0 +1,18 @@
+
+/* Favorites */
+
+.fav-link .star {
+  display: none;
+}
+
+.fav-link .unstar {
+  display: inline;
+}
+
+.fav-link.fav .star {
+  display: inline;
+}
+
+.fav-link.fav .unstar {
+  display: none;
+}

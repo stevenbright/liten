@@ -28,7 +28,11 @@
   },
 
   "config": {
-    "assets": "target/release/litenWebsite/web/static/assets"
+    "static_root":  "target/release/litenWebsite/web/static",
+
+    "assets":       "target/release/litenWebsite/web/static/assets",
+    "libs":         "target/release/litenWebsite/web/static/assets/libs",
+    "freemarker":   "target/release/litenWebsite/web/freemarker"
   },
 
   "scripts": {
@@ -43,8 +47,15 @@
     "watch-all": "npm run watch-js & npm run watch-css",
 
     "clean": "rm -rf ./target",
-    "prepare": "mkdir -p $npm_package_config_assets",
-    "build": "npm run prepare & npm run build-js & npm run build-css",
+    "prepare": "mkdir -p $npm_package_config_assets/js && mkdir -p $npm_package_config_assets/css && mkdir -p $npm_package_config_freemarker && mkdir -p $npm_package_config_libs",
+
+    "copy-freemarker": "cp -r ./freemarker/ $npm_package_config_freemarker",
+    "copy-assets": "cp -r ./assets $npm_package_config_assets",
+    "copy-root": "cp -r ./root/ $npm_package_config_static_root/",
+    "copy-bootstrap": "cp -r ./node_modules/bootstrap/dist/ $npm_package_config_libs/bootstrap",
+    "copy-all": "npm run copy-freemarker && npm run copy-assets && npm run copy-root && npm run copy-bootstrap",
+
+    "build": "npm run prepare && npm run build-js && npm run build-css && npm run copy-all",
 
     "test": "jest"
   },

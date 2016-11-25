@@ -12,17 +12,6 @@
 
   <name>Liten Website Static Content</name>
 
-  <properties>
-    <b.target>${project.build.directory}/release/litenWebsite</b.target>
-    <b.static>${b.target}/web/static</b.static>
-    <b.assets>${b.static}/assets</b.assets>
-    <b.ftl>${b.target}/web/freemarker</b.ftl>
-    <b.nbin>${project.basedir}/node_modules/.bin</b.nbin>
-    <b.port>8000</b.port>
-
-    <browserify.extension/>
-  </properties>
-
   <build>
     <resources>
       <resource>
@@ -56,39 +45,10 @@
                   </else>
                 </if>
 
-                <!-- Prepare directory structure -->
-                <mkdir dir="${b.ftl}" />
-                <mkdir dir="${b.assets}" />
-                <mkdir dir="${b.assets}/js" />
-                <mkdir dir="${b.assets}/libs/bootstrap" />
-
-                <!-- Copy bootstrap library -->
-                <copy todir="${b.assets}/libs/bootstrap">
-                  <fileset dir="./node_modules/bootstrap/dist/"/>
-                </copy>
-
-                <!-- Copy static files -->
-                <copy todir="${b.static}">
-                  <fileset dir="root"/>
-                </copy>
-                <copy todir="${b.ftl}">
-                  <fileset dir="freemarker"/>
-                </copy>
-                <copy todir="${b.assets}">
-                  <fileset dir="assets"/>
-                </copy>
-
-                <!-- Build CSS -->
-                <mkdir dir="${b.assets}/css" />
+                <!-- Prepare and build everything -->
                 <exec executable="npm">
                   <arg value="run"/>
-                  <arg value="build-css"/>
-                </exec>
-
-                <!-- Build JS -->
-                <exec executable="npm">
-                  <arg value="run"/>
-                  <arg value="build-js"/>
+                  <arg value="build"/>
                 </exec>
               </target>
             </configuration>
