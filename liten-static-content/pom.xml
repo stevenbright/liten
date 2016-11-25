@@ -68,10 +68,6 @@
                 </copy>
 
                 <!-- Copy static files -->
-                <mkdir dir="${b.assets}/css" />
-                <copy todir="${b.assets}/css">
-                  <fileset dir="css"/>
-                </copy>
                 <copy todir="${b.static}">
                   <fileset dir="root"/>
                 </copy>
@@ -82,13 +78,17 @@
                   <fileset dir="assets"/>
                 </copy>
 
-                <!-- Browserify -->
-                <exec executable="${b.nbin}/browserify${browserify.extension}">
-                  <arg value="js/main.js"/>
-                  <arg value="-t"/>
-                  <arg value="babelify"/>
-                  <arg value="-o"/>
-                  <arg value="${b.assets}/js/bundle.js"/>
+                <!-- Build CSS -->
+                <mkdir dir="${b.assets}/css" />
+                <exec executable="npm">
+                  <arg value="run"/>
+                  <arg value="build-css"/>
+                </exec>
+
+                <!-- Build JS -->
+                <exec executable="npm">
+                  <arg value="run"/>
+                  <arg value="build-js"/>
                 </exec>
               </target>
             </configuration>

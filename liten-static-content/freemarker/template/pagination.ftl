@@ -8,3 +8,9 @@
 <#macro nextPageMarker nextUrl>
 <!-- <next>${nextUrl}</next> -->
 </#macro>
+
+<#macro loadMoreButton nextUrl targetListSelector>
+<#if nextUrl?has_content>
+<button type="button" class="btn btn-default load-more" next-url="${nextUrl}" target-list="${targetListSelector}">Load More</button>
+</#if>
+</#macro>

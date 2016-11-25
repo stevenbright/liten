@@ -10,7 +10,7 @@
 
     <link rel="stylesheet" type="text/css" href="/assets/libs/bootstrap/css/bootstrap.css" />
     <link rel="stylesheet" type="text/css" href="/assets/libs/bootstrap/css/bootstrap-theme.css" />
-    <link rel="stylesheet" type="text/css" href="/assets/css/global.css" />
+    <link rel="stylesheet" type="text/css" href="/assets/css/main.css" />
   </head>
   <body>
 

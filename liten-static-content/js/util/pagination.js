@@ -1,33 +1,16 @@
 
 import $ from 'jquery';
+import {appendFadeInHtmlBlock} from '../ui/effects';
 
 const NEXT_OPEN_TAG     = '<next>';
 const NEXT_CLOSE_TAG    = '</next>';
 
-function appendHtml($container, htmlString) {
-  // NOTE:  two approaches are possible here, one uses jquery abstractions (and works on pretty old browsers),
-  //        while the other uses insertAdjacentHTML, the standard API in all the modern browsers (and old IEs too!)
-  //
-  // First approach (jquery way):
-  //        const $element = $($.parseHTML(htmlString));
-  //        $element.appendTo($container);
-  //
-  // Other approach (pure HTML):
-  //        $container.each(function () { this.insertAdjacentHTML('beforeend', htmlString); });
-  //
-  //
-  // Links:
-  //    https://developer.mozilla.org/en-US/docs/Web/API/Element/insertAdjacentHTML
-  //    https://msdn.microsoft.com/en-us/library/ms536452(v=vs.85).aspx
-
-  $container.each(function () {
-    this.insertAdjacentHTML('beforeend', htmlString);
-  });
-}
-
 function fetchAndAppendHtml($list, $loadButton) {
   const pageUrl = $loadButton.attr('next-url');
   const $deferred = $.ajax(pageUrl);
+
+  $deferred.fail(function () {
+  });
 
   $deferred.done(function (htmlPageString) {
     //console.log("Retrieved htmlPageString ", htmlPageString, " for url", pageUrl);
@@ -50,7 +33,7 @@ function fetchAndAppendHtml($list, $loadButton) {
       $loadButton.remove();
     }
 
-    appendHtml($list, htmlPageString);
+    appendFadeInHtmlBlock($list, htmlPageString);
   });
 }
 

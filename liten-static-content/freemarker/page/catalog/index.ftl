@@ -1,5 +1,6 @@
 <#import "../../template/page.ftl" as page/>
 <#import "../../template/catalog/entries.ftl" as cat />
+<#import "../../template/pagination.ftl" as p />
 
 <@page.common title="Catalog Index">
 <@page.heading/>
@@ -9,12 +10,9 @@
   <@cat.entryList entryListModel=items />
   </ul>
 </div>
-
-<#if nextUrl?has_content>
 <div>
-  <button class="load-more" next-url="${nextUrl}" target-list="#catalog-list">Load More</button>
+  <@p.loadMoreButton nextUrl=nextUrl targetListSelector="#catalog-list" />
 </div>
-</#if>
 
 <script type="text/javascript" src="/assets/js/bundle.js"></script>
 </@page.common>
