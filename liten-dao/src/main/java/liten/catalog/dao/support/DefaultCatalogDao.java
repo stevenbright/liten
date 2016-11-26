@@ -57,20 +57,24 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
     final List<IceSku> skus = db.query("SELECT sku_id, title, language_id FROM ice_sku " +
             "WHERE item_id=? ORDER BY sku_id",
         IceSkuRowMapper.INSTANCE, itemId);
+
     for (final IceSku sku : skus) {
       final IceItem languageItem = getItem(sku.getLanguageId());
       if ((!filter.isUseLanguageFilter()) || filter.getLanguageAliases().contains(languageItem.getAlias())) {
-        // get instances
         entry.addSku(IceSku.newBuilder(sku).setLanguageId(languageItem.getId()).build());
-        final List<IceInstance> instances = db.query(
-            "SELECT instance_id, created, origin_id, download_id FROM ice_instance WHERE item_id=? AND sku_id=?",
-            IceInstanceMapper.INSTANCE, itemId, sku.getId());
-        for (final IceInstance instance : instances) {
-          entry.addInstance(sku.getId(), instance);
-        }
-
         // set related item - language
         entry.addRelatedItem(languageItem);
+
+        if (filter.isIncludeInstances()) {
+          // get instances
+          final List<IceInstance> instances = db.query(
+              "SELECT instance_id, created, origin_id, download_id FROM ice_instance WHERE item_id=? AND sku_id=?",
+              IceInstanceMapper.INSTANCE, itemId, sku.getId());
+          for (final IceInstance instance : instances) {
+            entry.addInstance(sku.getId(), instance);
+          }
+        }
+
         break;
       }
     }

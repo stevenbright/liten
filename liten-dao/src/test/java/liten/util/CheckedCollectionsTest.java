@@ -2,9 +2,7 @@ package liten.util;
 
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;
@@ -84,6 +82,54 @@ public final class CheckedCollectionsTest {
       fail();
     } catch (NullPointerException e) {
       assertEquals("set[1]", e.getMessage());
+    }
+  }
+
+  @Test
+  public void shouldCopyEmptyMap() {
+    assertEquals(Collections.emptyMap(), CheckedCollections.copyMap(Collections.emptyMap(), "emptyMap"));
+  }
+
+  @Test
+  public void shouldCopySingleElementMap() {
+    final String k = "k";
+    final Integer v = 1;
+    assertEquals(Collections.singletonMap(k, v),
+        CheckedCollections.copyMap(Collections.singletonMap(k, v), "singleElemMap"));
+  }
+
+  @Test
+  public void shouldCopyMultiElementMap() {
+    final Map<String, Integer> map = new HashMap<>();
+    map.put("a", 1);
+    map.put("b", 2);
+    assertEquals(map, CheckedCollections.copyMap(map, "multiElemMap"));
+  }
+
+  @Test
+  public void shouldDisallowNullsInMap() {
+    try {
+      CheckedCollections.copyMap(Collections.singletonMap("a", null), "map");
+      fail();
+    } catch (NullPointerException e) {
+      assertEquals("map[0]", e.getMessage());
+    }
+
+    try {
+      CheckedCollections.copyMap(Collections.singletonMap(null, "1"), "map");
+      fail();
+    } catch (NullPointerException e) {
+      assertEquals("map[0]", e.getMessage());
+    }
+
+    try {
+      final Map<String, Integer> map = new HashMap<>();
+      map.put("a", 1);
+      map.put("b", null);
+      CheckedCollections.copyMap(map, "map");
+      fail();
+    } catch (NullPointerException e) {
+      assertEquals("map[1]", e.getMessage());
     }
   }
 }

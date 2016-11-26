@@ -14,10 +14,10 @@ import static java.util.Collections.emptySet;
  */
 @ParametersAreNonnullByDefault
 public final class IceEntryFilter {
-  public static final IceEntryFilter NONE = new IceEntryFilter(false, emptySet());
+  public static final IceEntryFilter NONE = new IceEntryFilter(false, emptySet(), false);
 
-  public static IceEntryFilter forLanguages(String... languageAliases) {
-    final IceEntryFilter.Builder builder = IceEntryFilter.newBuilder();
+  public static IceEntryFilter forLanguages(boolean includeInstances, String... languageAliases) {
+    final IceEntryFilter.Builder builder = IceEntryFilter.newBuilder().setIncludeInstances(includeInstances);
     for (final String alias : languageAliases) {
       builder.addLanguageAlias(alias);
     }
@@ -26,13 +26,21 @@ public final class IceEntryFilter {
 
   private final boolean useLanguageFilter;
   private final Set<String> languageAliases;
+  private final boolean includeInstances;
 
-  private IceEntryFilter(boolean useLanguageFilter, Collection<String> languageAliases) {
+  private IceEntryFilter(boolean useLanguageFilter,
+                         Collection<String> languageAliases,
+                         boolean includeInstances) {
     this.languageAliases = CheckedCollections.copySet(languageAliases, "languageAliases");
     if (useLanguageFilter && this.languageAliases.isEmpty()) {
       throw new IllegalArgumentException("Language filter is set to true, but no language aliases specified");
     }
     this.useLanguageFilter = useLanguageFilter;
+    this.includeInstances = includeInstances;
+  }
+
+  public boolean isIncludeInstances() {
+    return includeInstances;
   }
 
   public boolean isUseLanguageFilter() {
@@ -50,20 +58,27 @@ public final class IceEntryFilter {
     return new Builder();
   }
 
+  public static Builder newBuilder(IceEntryFilter origin) {
+    return newBuilder()
+        .setUseLanguageFilter(origin.isUseLanguageFilter())
+        .setIncludeInstances(origin.isIncludeInstances())
+        .addLanguageAliases(origin.getLanguageAliases());
+  }
+
   public static final class Builder {
     private boolean useLanguageFilter = false;
     private Set<String> languageAliases = new HashSet<>();
+    private boolean includeInstances = false;
 
     private Builder() {}
 
     public IceEntryFilter build() {
-      if (!useLanguageFilter) {
-        return NONE;
-      }
+      return new IceEntryFilter(useLanguageFilter, languageAliases, includeInstances);
+    }
 
-      // constant condition inspection is suppressed here to avoid bugs when this filter will be exteneded in future
-      //noinspection ConstantConditions
-      return new IceEntryFilter(useLanguageFilter, languageAliases);
+    public Builder setIncludeInstances(boolean value) {
+      this.includeInstances = value;
+      return this;
     }
 
     public Builder setUseLanguageFilter(boolean value) {
@@ -74,6 +89,13 @@ public final class IceEntryFilter {
     public Builder addLanguageAlias(String value) {
       this.languageAliases.add(value);
       return setUseLanguageFilter(true);
+    }
+
+    public Builder addLanguageAliases(Iterable<String> values) {
+      for (final String value : values) {
+        addLanguageAlias(value);
+      }
+      return this;
     }
   }
 }

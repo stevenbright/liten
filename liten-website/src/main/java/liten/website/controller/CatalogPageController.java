@@ -4,7 +4,10 @@ import com.truward.orion.user.service.spring.SecurityControllerMixin;
 import liten.catalog.dao.CatalogQueryDao;
 import liten.catalog.dao.model.IceEntry;
 import liten.catalog.dao.model.IceEntryFilter;
+import liten.catalog.dao.model.IceRelation;
+import liten.catalog.dao.model.IceRelationQuery;
 import liten.dao.model.ModelWithId;
+import liten.website.model.IceEntryAdapter;
 import liten.website.util.PaginationHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +20,7 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,11 +71,11 @@ public final class CatalogPageController implements SecurityControllerMixin, Loc
   // Private
   //
 
-  private PaginationHelper<IceEntry> newEntryPaginationHelper() {
+  private PaginationHelper<IceEntryAdapter> newEntryPaginationHelper() {
     return new IceEntryPaginationHelper(queryDao, getUserLanguage());
   }
 
-  private static final class IceEntryPaginationHelper extends PaginationHelper<IceEntry> {
+  private static final class IceEntryPaginationHelper extends PaginationHelper<IceEntryAdapter> {
     private final CatalogQueryDao queryDao;
     private final String userLanguage;
 
@@ -81,12 +85,49 @@ public final class CatalogPageController implements SecurityControllerMixin, Loc
     }
 
     @Override
-    protected List<IceEntry> getItemList(long startItemId, int limit) {
-      return queryDao.getEntries(IceEntryFilter.forLanguages(userLanguage), startItemId, limit);
+    protected List<IceEntryAdapter> getItemList(long startItemId, int limit) {
+      final List<IceEntry> entries = queryDao.getEntries(
+          IceEntryFilter.forLanguages(true, userLanguage), startItemId, limit);
+
+      final List<IceEntryAdapter> result = new ArrayList<>(entries.size());
+      //noinspection ForLoopReplaceableByForEach
+      for (int i = 0; i < entries.size(); ++i) {
+        final IceEntry entry = entries.get(i);
+        if (entry.getItem().getType().equals("book")) {
+          // get relations
+          final List<IceRelation> relations = queryDao.getRelations(IceRelationQuery.newBuilder()
+              .setLimit(100)
+              .setRelatedItemId(entry.getItem().getId())
+              .setDirection(IceRelationQuery.Direction.LEFT)
+              .build());
+          final Map<String, List<IceEntry>> fromRelations = new HashMap<>();
+          for (final IceRelation relation : relations) {
+            List<IceEntry> e = fromRelations.get(relation.getType());
+            if (e == null) {
+              e = new ArrayList<>();
+              fromRelations.put(relation.getType(), e);
+            }
+
+            final IceEntry relatedEntry = queryDao.getEntry(relation.getRelatedItemId(),
+                IceEntryFilter.newBuilder()
+                    .addLanguageAlias(userLanguage)
+                    .setUseLanguageFilter(true)
+                    .setIncludeInstances(false)
+                    .build());
+            e.add(relatedEntry);
+          }
+
+          result.add(new IceEntryAdapter(entry, fromRelations));
+        } else {
+          result.add(new IceEntryAdapter(entry));
+        }
+      }
+
+      return result;
     }
 
     @Override
-    protected long getItemId(IceEntry item) {
+    protected long getItemId(IceEntryAdapter item) {
       return item.getItem().getId();
     }
 

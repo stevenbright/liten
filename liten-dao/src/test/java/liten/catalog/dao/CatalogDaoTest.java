@@ -44,7 +44,7 @@ public final class CatalogDaoTest {
   public void shouldInsertAndQueryRawItem() {
     final long id = addEnLanguage();
 
-    final IceEntry entry = queryDao.getEntry(id, IceEntryFilter.forLanguages("en"));
+    final IceEntry entry = queryDao.getEntry(id, IceEntryFilter.forLanguages(true, "en"));
     assertEquals("en", entry.getDisplayTitle());
     assertFalse(entry.isDefaultInstancePresent());
   }
@@ -61,7 +61,7 @@ public final class CatalogDaoTest {
         .build());
 
     {
-      final IceEntry entry = queryDao.getEntry(bookId, IceEntryFilter.forLanguages("en"));
+      final IceEntry entry = queryDao.getEntry(bookId, IceEntryFilter.forLanguages(true, "en"));
       assertEquals("The Crow", entry.getDisplayTitle());
       assertTrue(entry.isDefaultInstancePresent());
       assertEquals(123L, entry.getDefaultInstance().getOriginId());
@@ -77,11 +77,16 @@ public final class CatalogDaoTest {
       assertEquals("en", entry.getRelatedItem(entry.getDefaultSkuEntry().getSku().getLanguageId()).getAlias());
     };
 
-    assertEntryEquals(bookId, IceEntryFilter.forLanguages("en"), entryTestFn);
-    assertEntryEquals(bookId, IceEntryFilter.NONE, entryTestFn);
-    assertEntryEquals(bookId, IceEntryFilter.newBuilder().build(), entryTestFn);
-    assertEntryEquals(bookId, IceEntryFilter.newBuilder().addLanguageAlias("ru").addLanguageAlias("en")
-        .build(), entryTestFn);
+    assertEntryEquals(bookId, IceEntryFilter.forLanguages(true, "en"), entryTestFn);
+    assertEntryEquals(bookId, IceEntryFilter.newBuilder().setIncludeInstances(true).build(), entryTestFn);
+    assertEntryEquals(bookId,
+        IceEntryFilter.newBuilder()
+            .addLanguageAlias("ru")
+            .addLanguageAlias("en")
+            .setIncludeInstances(true)
+            .build(),
+        entryTestFn);
+    assertEntryEquals(bookId, IceEntryFilter.newBuilder().setIncludeInstances(true).build(), entryTestFn);
   }
 
   @Test
@@ -115,7 +120,7 @@ public final class CatalogDaoTest {
   @Test(expected = DuplicateKeyException.class)
   public void shouldRejectDuplicateAlias() {
     final long enLangId = addEnLanguage();
-    final IceEntry enLang = queryDao.getEntry(enLangId, IceEntryFilter.forLanguages("en"));
+    final IceEntry enLang = queryDao.getEntry(enLangId, IceEntryFilter.forLanguages(true, "en"));
 
     final long otherId = enLangId + 1;
     final IceEntry other = IceEntry.newBuilder()

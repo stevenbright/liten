@@ -11,6 +11,32 @@ import java.util.*;
 public final class CheckedCollections {
   private CheckedCollections() {}
 
+  public static <K, V> Map<K, V> copyMap(@Nullable Map<K, V> map, String parameterName) {
+    Objects.requireNonNull(map, parameterName);
+    switch (map.size()) {
+      case 0:
+        return Collections.emptyMap();
+
+      case 1:
+        final Map.Entry<K, V> entry = map.entrySet().iterator().next();
+        return Collections.singletonMap(
+            requireNonNullElement(entry.getKey(), 0, parameterName),
+            requireNonNullElement(entry.getValue(), 0, parameterName));
+
+      default:
+        final Map<K, V> copy = new HashMap<>(map.size() * 2);
+        int pos = 0;
+
+        for (final Map.Entry<K, V> e : map.entrySet()) {
+          copy.put(requireNonNullElement(e.getKey(), pos, parameterName),
+              requireNonNullElement(e.getValue(), pos, parameterName));
+          ++pos;
+        }
+
+        return Collections.unmodifiableMap(copy);
+    }
+  }
+
   public static <T> List<T> copyList(@Nullable Collection<T> elements, String parameterName) {
     Objects.requireNonNull(elements, parameterName);
 
