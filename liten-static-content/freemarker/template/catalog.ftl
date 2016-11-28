@@ -38,7 +38,6 @@
 </div>
 </#macro>
 
-
 <#macro itemList listModel>
 <#list listModel as it>
 <li><@item itemModel=it /></li>
