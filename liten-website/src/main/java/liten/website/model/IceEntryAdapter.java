@@ -48,6 +48,9 @@ public abstract class IceEntryAdapter {
   }
 
   public final boolean isDownloadUrlPresent() {
+    if (!entry.isDefaultInstancePresent()) {
+      return false;
+    }
     final IceInstance inst = entry.getDefaultInstance();
     return ModelWithId.isValidId(inst.getDownloadId()) && ModelWithId.isValidId(inst.getOriginId());
   }
@@ -58,7 +61,15 @@ public abstract class IceEntryAdapter {
     }
 
     final IceInstance inst = entry.getDefaultInstance();
-    return "/g/book/download/" + inst.getOriginId() + "/item/" + inst.getDownloadId();
+    return "/g/download/origin/" + inst.getOriginId() + "/item/" + inst.getDownloadId();
+  }
+
+  public final int getFileSize() {
+    return 1000;
+  }
+
+  public final List<IceEntry> getLanguages() {
+    return getFromRelations("language");
   }
 
   public final List<IceEntry> getAuthors() {

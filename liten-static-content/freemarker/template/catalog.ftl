@@ -6,7 +6,7 @@
 
 <#macro inlineItems listModel>
 <#list listModel as itemModel>
-  <a href="/item/${itemModel.item.id?c}" title="${itemModel.displayTitle}">${itemModel.displayTitle}</a><#if itemModel_has_next>,&nbsp</#if>
+  <a href="/g/cat/item/${itemModel.item.id?c}" title="${itemModel.displayTitle}">${itemModel.displayTitle}</a><#if itemModel_has_next>,&nbsp</#if>
 </#list>
 </#macro>
 

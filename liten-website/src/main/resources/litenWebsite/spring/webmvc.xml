@@ -15,6 +15,7 @@
   <!-- Controllers -->
   <bean class="liten.website.controller.PublicPageController" autowire="constructor"/>
   <bean class="liten.website.controller.CatalogPageController" autowire="constructor"/>
+  <bean class="liten.website.controller.DownloadController" autowire="constructor"/>
 
   <bean class="liten.website.controller.rest.P13nRestController" autowire="constructor"/>
 

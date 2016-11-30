@@ -1,9 +1,8 @@
 package liten.website.controller;
 
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -16,13 +15,13 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public final class DownloadController {
 
   @RequestMapping("/origin/{originId}/item/{itemId}")
-  public String getDownloadUrl(@RequestParam("originId") long originId,
-                               @RequestParam("itemId") long itemId) {
-    return "redirect:/g/download/typ";
+  public String getDownloadUrl(@PathVariable("originId") long originId,
+                               @PathVariable("itemId") long itemId) {
+    return "redirect:/g/download/unavailable";
   }
 
-  @RequestMapping
-  public String getTemporarilyNotAvailablePage() {
-    return "page/download/";
+  @RequestMapping("/unavailable")
+  public String thankYouPage() {
+    return "page/download/unavailable";
   }
 }
