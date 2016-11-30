@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Alexander Shabanov
@@ -57,12 +58,18 @@ public final class CatalogPageController implements SecurityControllerMixin, Loc
 
   @RequestMapping("/item/{id}")
   public ModelAndView detailPage(@PathVariable("id") long id) {
-    final IceEntry entry = queryDao.getEntry(id, IceEntryFilter.NONE);
+    final String userLanguage = getUserLanguage();
+
+    final IceEntry entry = queryDao.getEntry(id, IceEntryFilter.newBuilder()
+        .setIncludeInstances(true)
+        .addLanguageAlias(userLanguage)
+        .setUseLanguageFilter(true)
+        .build());
     log.trace("entry={}", entry);
 
     final Map<String, Object> params = new HashMap<>();
     params.put("currentTime", System.currentTimeMillis());
-    params.put("entry", entry);
+    params.put("entry", getEntryAdapter(queryDao, userLanguage, entry));
 
     return new ModelAndView("page/catalog/item", params);
   }
@@ -70,6 +77,40 @@ public final class CatalogPageController implements SecurityControllerMixin, Loc
   //
   // Private
   //
+
+  private static IceEntryAdapter getEntryAdapter(CatalogQueryDao queryDao,
+                                                 String userLanguage,
+                                                 IceEntry entry) {
+    if (entry.getItem().getType().equals("book")) {
+      // get relations
+      final List<IceRelation> relations = queryDao.getRelations(IceRelationQuery.newBuilder()
+          .setLimit(100)
+          .setRelatedItemId(entry.getItem().getId())
+          .setDirection(IceRelationQuery.Direction.LEFT)
+          .build());
+      final Map<String, List<IceEntry>> fromRelations = new HashMap<>();
+      for (final IceRelation relation : relations) {
+        List<IceEntry> e = fromRelations.get(relation.getType());
+        if (e == null) {
+          e = new ArrayList<>();
+          fromRelations.put(relation.getType(), e);
+        }
+
+        final IceEntry relatedEntry = queryDao.getEntry(relation.getRelatedItemId(),
+            IceEntryFilter.newBuilder()
+                .addLanguageAlias(userLanguage)
+                .setUseLanguageFilter(true)
+                .setIncludeInstances(false)
+                .build());
+        e.add(relatedEntry);
+      }
+
+      return IceEntryAdapter.fromBook(entry, fromRelations);
+    }
+
+    // fallback case - unknown entry type
+    return IceEntryAdapter.fromEntry(entry);
+  }
 
   private PaginationHelper<IceEntryAdapter> newEntryPaginationHelper() {
     return new IceEntryPaginationHelper(queryDao, getUserLanguage());
@@ -79,7 +120,7 @@ public final class CatalogPageController implements SecurityControllerMixin, Loc
     private final CatalogQueryDao queryDao;
     private final String userLanguage;
 
-    public IceEntryPaginationHelper(CatalogQueryDao queryDao, String userLanguage) {
+    IceEntryPaginationHelper(CatalogQueryDao queryDao, String userLanguage) {
       this.queryDao = queryDao;
       this.userLanguage = userLanguage;
     }
@@ -89,41 +130,9 @@ public final class CatalogPageController implements SecurityControllerMixin, Loc
       final List<IceEntry> entries = queryDao.getEntries(
           IceEntryFilter.forLanguages(true, userLanguage), startItemId, limit);
 
-      final List<IceEntryAdapter> result = new ArrayList<>(entries.size());
-      //noinspection ForLoopReplaceableByForEach
-      for (int i = 0; i < entries.size(); ++i) {
-        final IceEntry entry = entries.get(i);
-        if (entry.getItem().getType().equals("book")) {
-          // get relations
-          final List<IceRelation> relations = queryDao.getRelations(IceRelationQuery.newBuilder()
-              .setLimit(100)
-              .setRelatedItemId(entry.getItem().getId())
-              .setDirection(IceRelationQuery.Direction.LEFT)
-              .build());
-          final Map<String, List<IceEntry>> fromRelations = new HashMap<>();
-          for (final IceRelation relation : relations) {
-            List<IceEntry> e = fromRelations.get(relation.getType());
-            if (e == null) {
-              e = new ArrayList<>();
-              fromRelations.put(relation.getType(), e);
-            }
-
-            final IceEntry relatedEntry = queryDao.getEntry(relation.getRelatedItemId(),
-                IceEntryFilter.newBuilder()
-                    .addLanguageAlias(userLanguage)
-                    .setUseLanguageFilter(true)
-                    .setIncludeInstances(false)
-                    .build());
-            e.add(relatedEntry);
-          }
-
-          result.add(new IceEntryAdapter(entry, fromRelations));
-        } else {
-          result.add(new IceEntryAdapter(entry));
-        }
-      }
-
-      return result;
+      return entries.stream()
+          .map(e -> getEntryAdapter(queryDao, userLanguage, e))
+          .collect(Collectors.toList());
     }
 
     @Override

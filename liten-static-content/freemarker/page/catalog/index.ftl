@@ -3,7 +3,8 @@
 <#import "../../template/pagination.ftl" as p />
 
 <@page.common title="Catalog Index">
-<@page.heading/>
+
+<h2>Catalog Index</h2>
 
 <div>
   <ul id="catalog-items" class="catalog-list">

@@ -6,8 +6,10 @@
   <h1>${entry.displayTitle}</h1>
   <small>${entry.item.id}</small>
 <#if entry.defaultInstancePresent>
-  <p>Instance.Created = ${entry.instance.created}</p>
-  <p>Instance.OriginId = ${entry.instance.originId}</p>
+  <p>Created = ${entry.createdDate}</p>
+  <#if entry.downloadUrlPresent>
+  <p><a href="${entry.downloadUrl}">Download</a></p>
+  </#if>
 </#if>
   <p>TBD</p>
 </div>

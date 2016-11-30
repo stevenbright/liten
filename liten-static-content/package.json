@@ -51,7 +51,7 @@
 
     "copy-freemarker": "cp -r ./freemarker/ $npm_package_config_freemarker",
     "copy-assets": "cp -r ./assets $npm_package_config_assets",
-    "copy-root": "cp -r ./root/ $npm_package_config_static_root/",
+    "copy-root": "cp -r ./root/* $npm_package_config_static_root/",
     "copy-bootstrap": "cp -r ./node_modules/bootstrap/dist/ $npm_package_config_libs/bootstrap",
     "copy-all": "npm run copy-freemarker && npm run copy-assets && npm run copy-root && npm run copy-bootstrap",
 

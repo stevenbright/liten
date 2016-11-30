@@ -1,12 +1,16 @@
 package liten.catalog.dao.support;
 
+import com.truward.time.UtcTime;
 import liten.catalog.dao.CatalogUpdaterDao;
 import liten.catalog.dao.model.IceEntry;
+import liten.catalog.dao.model.IceInstance;
 import liten.catalog.dao.model.IceItem;
 import liten.catalog.dao.model.IceSku;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 /**
  * Defines fixture data for catalog
@@ -73,8 +77,13 @@ public final class SampleCatalogFixture {
     d.addEntry(IceEntry.newBuilder().setItem(IceItem.newBuilder().setId(BOOK2).setType("book").build())
         .addSku(IceSku.newBuilder().setId(1).setLanguageId(RU)
             .setTitle("Война и мир").build())
+        .addInstance(1, IceInstance.newBuilder()
+            .setCreated(date("2012-11-05")).setDownloadId(1011L).setOriginId(15L).build())
         .addSku(IceSku.newBuilder().setId(2).setLanguageId(EN)
-            .setTitle("War and Peace").build()).build());
+            .setTitle("War and Peace").build())
+        .addInstance(2, IceInstance.newBuilder()
+            .setCreated(date("2012-09-24")).setDownloadId(1013L).setOriginId(15L).build())
+        .build());
     d.setRelation(BOOK2, ORIGIN2, "origin");
     d.setRelation(BOOK2, NOVEL, "genre");
     d.setRelation(BOOK2, AUTHOR1, "author");
@@ -93,8 +102,13 @@ public final class SampleCatalogFixture {
     d.addEntry(IceEntry.newBuilder().setItem(IceItem.newBuilder().setId(BOOK3).setType("book").build())
         .addSku(IceSku.newBuilder().setId(1).setLanguageId(RU)
             .setTitle("Страна багровых туч").build())
+        .addInstance(1, IceInstance.newBuilder()
+            .setCreated(date("2012-10-24")).setDownloadId(1024L).setOriginId(15L).build())
         .addSku(IceSku.newBuilder().setId(2).setLanguageId(EN)
-            .setTitle("The Land of Crimson Clouds").build()).build());
+            .setTitle("The Land of Crimson Clouds").build())
+        .addInstance(2, IceInstance.newBuilder()
+            .setCreated(date("2012-11-02")).setDownloadId(1025L).setOriginId(15L).build())
+        .build());
     d.setRelation(BOOK3, ORIGIN2, "origin");
     d.setRelation(BOOK3, NOVEL, "genre");
     d.setRelation(BOOK3, SCIFI, "genre");
@@ -116,6 +130,16 @@ public final class SampleCatalogFixture {
     d.addEntry(IceEntry.newBuilder().setItem(IceItem.newBuilder().setId(BOOK8).setType("book").build())
         .addSku(IceSku.newBuilder().setId(2).setLanguageId(EN)
             .setTitle("Test 8").build()).build());
+  }
+
+  public static UtcTime date(String strDate) {
+    final SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
+    fmt.setTimeZone(UtcTime.newUtcTimeZone());
+    try {
+      return UtcTime.valueOf(fmt.parse(strDate).getTime());
+    } catch (ParseException e) {
+      throw new IllegalArgumentException(e);
+    }
   }
 
   public static long addItem(CatalogUpdaterDao d,
