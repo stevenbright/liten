@@ -16,7 +16,7 @@ public interface CatalogQueryDao {
 
   IceItem getItem(long itemId);
 
-  IceEntry getEntry(long itemId, IceEntryFilter filter);
+  IceEntry getEntry(long itemId);
 
   List<IceEntry> getEntries(IceEntryFilter filter, long startItemId, int limit);
 

@@ -29,6 +29,39 @@ public final class IceItem extends ModelWithId {
     return alias;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof IceItem)) return false;
+    if (!super.equals(o)) return false;
+
+    IceItem iceItem = (IceItem) o;
+
+    return type.equals(iceItem.type) && alias.equals(iceItem.alias);
+
+  }
+
+  @Override
+  public int hashCode() {
+    int result = super.hashCode();
+    result = 31 * result + type.hashCode();
+    result = 31 * result + alias.hashCode();
+    return result;
+  }
+
+  @Override
+  public String toString() {
+    return "IceItem{" +
+        "id=" + getId() +
+        ", type='" + type + '\'' +
+        ", alias='" + alias + '\'' +
+        '}';
+  }
+
+  //
+  // Builder
+  //
+
   public static Builder newBuilder() {
     return new Builder();
   }

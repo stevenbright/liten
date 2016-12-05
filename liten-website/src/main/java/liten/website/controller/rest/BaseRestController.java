@@ -1,17 +1,12 @@
 package liten.website.controller.rest;
 
-import com.truward.brikar.error.helper.ExceptionResponseUtil;
-import com.truward.brikar.server.controller.AbstractRestController;
+import com.truward.brikar.server.controller.DefaultRestExceptionHandler;
 
-import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 
 /**
  * @author Alexander Shabanov
  */
-public abstract class BaseRestController extends AbstractRestController {
-
-  @Override
-  protected Object getResponseObjectFromException(@Nonnull Throwable e) {
-    return ExceptionResponseUtil.shallowConvert(e);
-  }
+@ParametersAreNonnullByDefault
+public abstract class BaseRestController implements DefaultRestExceptionHandler {
 }

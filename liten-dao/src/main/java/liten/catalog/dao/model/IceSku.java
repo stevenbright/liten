@@ -29,6 +29,43 @@ public final class IceSku extends ModelWithId {
     return languageId;
   }
 
+  //
+  // hashCode / equals
+  //
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof IceSku)) return false;
+    if (!super.equals(o)) return false;
+
+    IceSku iceSku = (IceSku) o;
+
+    return languageId == iceSku.languageId && title.equals(iceSku.title);
+
+  }
+
+  @Override
+  public int hashCode() {
+    int result = super.hashCode();
+    result = 31 * result + title.hashCode();
+    result = 31 * result + (int) (languageId ^ (languageId >>> 32));
+    return result;
+  }
+
+  @Override
+  public String toString() {
+    return "IceSku{" +
+        "id=" + getId() +
+        ", title='" + title + '\'' +
+        ", languageId=" + languageId +
+        '}';
+  }
+
+  //
+  // Builder
+  //
+
   public static Builder newBuilder() {
     return new Builder();
   }

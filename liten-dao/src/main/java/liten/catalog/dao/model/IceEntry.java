@@ -16,12 +16,10 @@ public final class IceEntry extends BaseModel {
   public static final String DEFAULT_DISPLAY_TITLE = "?";
 
   private final IceItem item;
-  private final List<IceItem> relatedItems;
   private final List<SkuEntry> skus;
 
-  public IceEntry(IceItem item, List<IceItem> relatedItems, List<SkuEntry> skuEntries) {
+  public IceEntry(IceItem item, List<SkuEntry> skuEntries) {
     this.item = requireNonNull(item, "item");
-    this.relatedItems = CheckedCollections.copyList(relatedItems, "relatedItems");
     this.skus = CheckedCollections.copyList(skuEntries, "skuEntries");
   }
 
@@ -35,52 +33,17 @@ public final class IceEntry extends BaseModel {
     return result != null ? result : DEFAULT_DISPLAY_TITLE;
   }
 
-  public boolean isDefaultSkuPresent() {
-    return !skus.isEmpty();
-  }
-
-  public boolean isDefaultInstancePresent() {
-    return isDefaultSkuPresent() && (!skus.get(0).getInstances().isEmpty());
-  }
-
-  public SkuEntry getDefaultSkuEntry() {
-    if (!isDefaultSkuPresent()) {
-      throw new IllegalStateException("Default sku is not present");
-    }
-
-    return skus.get(0);
-  }
-
-  public IceInstance getDefaultInstance() {
-    if (!isDefaultInstancePresent()) {
-      throw new IllegalStateException("Default instance is not present");
-    }
-
-    return getDefaultSkuEntry().getInstances().get(0);
-  }
-
   public IceItem getItem() {
     return item;
-  }
-
-  public List<IceItem> getRelatedItems() {
-    return relatedItems;
-  }
-
-  public IceItem getRelatedItem(long id) {
-    for (final IceItem relatedItem : getRelatedItems()) {
-      if (id == relatedItem.getId()) {
-        return relatedItem;
-      }
-    }
-
-    throw new IllegalArgumentException("Non-existent related item, id=" + id);
   }
 
   public List<SkuEntry> getSkuEntries() {
     return skus;
   }
 
+  /**
+   * Represents SKU entry along with the related instances
+   */
   public static final class SkuEntry {
     private final IceSku sku;
     private final List<IceInstance> instances;
@@ -97,7 +60,67 @@ public final class IceEntry extends BaseModel {
     public List<IceInstance> getInstances() {
       return instances;
     }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (!(o instanceof SkuEntry)) return false;
+
+      SkuEntry skuEntry = (SkuEntry) o;
+
+      return sku.equals(skuEntry.sku) && instances.equals(skuEntry.instances);
+
+    }
+
+    @Override
+    public int hashCode() {
+      int result = sku.hashCode();
+      result = 31 * result + instances.hashCode();
+      return result;
+    }
+
+    @Override
+    public String toString() {
+      return "SkuEntry{" +
+          "sku=" + sku +
+          ", instances=" + instances +
+          '}';
+    }
   }
+
+  //
+  // hashCode / equals
+  //
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof IceEntry)) return false;
+
+    IceEntry entry = (IceEntry) o;
+
+    return item.equals(entry.item) && skus.equals(entry.skus);
+
+  }
+
+  @Override
+  public int hashCode() {
+    int result = item.hashCode();
+    result = 31 * result + skus.hashCode();
+    return result;
+  }
+
+  @Override
+  public String toString() {
+    return "IceEntry{" +
+        "item=" + item +
+        ", skus=" + skus +
+        '}';
+  }
+
+  //
+  // Builder
+  //
 
   public static Builder newBuilder() {
     return new Builder();
@@ -105,12 +128,10 @@ public final class IceEntry extends BaseModel {
 
   public static final class Builder {
     private IceItem item;
-    private List<IceItem> relatedItems = new ArrayList<>();
     private List<SkuEntryBuilder> skuEntryBuilders = new ArrayList<>();
 
     public IceEntry build() {
-      return new IceEntry(item, relatedItems,
-          skuEntryBuilders.stream().map(SkuEntryBuilder::toEntry).collect(Collectors.toList()));
+      return new IceEntry(item, skuEntryBuilders.stream().map(SkuEntryBuilder::toEntry).collect(Collectors.toList()));
     }
 
     private Builder() {}
@@ -122,20 +143,6 @@ public final class IceEntry extends BaseModel {
 
     public Builder addSku(IceSku value) {
       this.skuEntryBuilders.add(new SkuEntryBuilder(value));
-      return this;
-    }
-
-    public Builder addRelatedItem(IceItem item) {
-      for (int i = 0; i < this.relatedItems.size(); ++i) {
-        if (this.relatedItems.get(i).getId() == item.getId()) {
-          // replace existing related item if ID matches
-          this.relatedItems.set(i, item);
-          return this;
-        }
-      }
-
-      // add new related item
-      this.relatedItems.add(item);
       return this;
     }
 

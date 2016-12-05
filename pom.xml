@@ -5,7 +5,7 @@
   <parent>
     <groupId>com.truward.brikar</groupId>
     <artifactId>brikar</artifactId>
-    <version>1.7.29</version>
+    <version>1.8.30</version>
   </parent>
 
   <groupId>liten</groupId>
@@ -31,7 +31,7 @@
 
     <awssdk.version>1.9.13</awssdk.version>
 
-    <brikar.version>1.7.29</brikar.version>
+    <brikar.version>1.8.30</brikar.version>
 
     <user-service.version>1.0.6</user-service.version>
 

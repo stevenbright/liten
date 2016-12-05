@@ -11,13 +11,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Alexander Shabanov
@@ -44,49 +44,29 @@ public final class CatalogDaoTest {
   public void shouldInsertAndQueryRawItem() {
     final long id = addEnLanguage();
 
-    final IceEntry entry = queryDao.getEntry(id, IceEntryFilter.forLanguages(true, "en"));
+    final IceEntry entry = queryDao.getEntry(id);
     assertEquals("en", entry.getDisplayTitle());
-    assertFalse(entry.isDefaultInstancePresent());
+    assertTrue(entry.getSkuEntries().isEmpty());
   }
 
   @Test
   public void shouldInsertUpdateQueryAndDeleteInstance() {
     final long langId = addEnLanguage();
     final long bookId = 110L;
-    updaterDao.addEntry(IceEntry.newBuilder()
+    final IceEntry entry = IceEntry.newBuilder()
         .setItem(IceItem.newBuilder().setId(bookId).setType("book").setAlias("The Crow (Book)").build())
         .addSku(IceSku.newBuilder().setId(1L).setTitle("The Crow").setLanguageId(langId).build())
         .addInstance(1L, IceInstance.newBuilder()
-            .setCreated(UtcTime.now()).setDownloadId(456L).setOriginId(123L).build())
-        .build());
+            .setCreated(UtcTime.valueOf(System.currentTimeMillis(), true))
+            .setDownloadId(456L)
+            .setOriginId(123L)
+            .build())
+        .build();
 
-    {
-      final IceEntry entry = queryDao.getEntry(bookId, IceEntryFilter.forLanguages(true, "en"));
-      assertEquals("The Crow", entry.getDisplayTitle());
-      assertTrue(entry.isDefaultInstancePresent());
-      assertEquals(123L, entry.getDefaultInstance().getOriginId());
-      assertEquals(456L, entry.getDefaultInstance().getDownloadId());
-      assertEquals("en", entry.getRelatedItem(entry.getDefaultSkuEntry().getSku().getLanguageId()).getAlias());
-    }
+    updaterDao.addEntry(entry);
 
-    final Consumer<IceEntry> entryTestFn = (entry) -> {
-      assertEquals("The Crow", entry.getDisplayTitle());
-      assertTrue(entry.isDefaultInstancePresent());
-      assertEquals(123L, entry.getDefaultInstance().getOriginId());
-      assertEquals(456L, entry.getDefaultInstance().getDownloadId());
-      assertEquals("en", entry.getRelatedItem(entry.getDefaultSkuEntry().getSku().getLanguageId()).getAlias());
-    };
-
-    assertEntryEquals(bookId, IceEntryFilter.forLanguages(true, "en"), entryTestFn);
-    assertEntryEquals(bookId, IceEntryFilter.newBuilder().setIncludeInstances(true).build(), entryTestFn);
-    assertEntryEquals(bookId,
-        IceEntryFilter.newBuilder()
-            .addLanguageAlias("ru")
-            .addLanguageAlias("en")
-            .setIncludeInstances(true)
-            .build(),
-        entryTestFn);
-    assertEntryEquals(bookId, IceEntryFilter.newBuilder().setIncludeInstances(true).build(), entryTestFn);
+    final IceEntry actualEntry = queryDao.getEntry(bookId);
+    assertEquals(entry, actualEntry);
   }
 
   @Test
@@ -120,7 +100,7 @@ public final class CatalogDaoTest {
   @Test(expected = DuplicateKeyException.class)
   public void shouldRejectDuplicateAlias() {
     final long enLangId = addEnLanguage();
-    final IceEntry enLang = queryDao.getEntry(enLangId, IceEntryFilter.forLanguages(true, "en"));
+    final IceEntry enLang = queryDao.getEntry(enLangId);
 
     final long otherId = enLangId + 1;
     final IceEntry other = IceEntry.newBuilder()
@@ -221,9 +201,5 @@ public final class CatalogDaoTest {
 
   private long addEnLanguage() {
     return addLanguage(100L, "en");
-  }
-
-  private void assertEntryEquals(long id, IceEntryFilter filter, Consumer<IceEntry> testFn) {
-    testFn.accept(queryDao.getEntry(id, filter));
   }
 }

@@ -16,7 +16,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -50,32 +49,23 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
   }
 
   @Override
-  public IceEntry getEntry(long itemId, IceEntryFilter filter) {
+  public IceEntry getEntry(long itemId) {
     final IceEntry.Builder entry = IceEntry.newBuilder();
     entry.setItem(getItem(itemId));
 
+    // add SKUs
     final List<IceSku> skus = db.query("SELECT sku_id, title, language_id FROM ice_sku " +
             "WHERE item_id=? ORDER BY sku_id",
         IceSkuRowMapper.INSTANCE, itemId);
-
     for (final IceSku sku : skus) {
-      final IceItem languageItem = getItem(sku.getLanguageId());
-      if ((!filter.isUseLanguageFilter()) || filter.getLanguageAliases().contains(languageItem.getAlias())) {
-        entry.addSku(IceSku.newBuilder(sku).setLanguageId(languageItem.getId()).build());
-        // set related item - language
-        entry.addRelatedItem(languageItem);
+      entry.addSku(sku);
 
-        if (filter.isIncludeInstances()) {
-          // get instances
-          final List<IceInstance> instances = db.query(
-              "SELECT instance_id, created, origin_id, download_id FROM ice_instance WHERE item_id=? AND sku_id=?",
-              IceInstanceMapper.INSTANCE, itemId, sku.getId());
-          for (final IceInstance instance : instances) {
-            entry.addInstance(sku.getId(), instance);
-          }
-        }
-
-        break;
+      // add instances
+      final List<IceInstance> instances = db.query(
+          "SELECT instance_id, created, origin_id, download_id FROM ice_instance WHERE item_id=? AND sku_id=?",
+          IceInstanceMapper.INSTANCE, itemId, sku.getId());
+      for (final IceInstance instance : instances) {
+        entry.addInstance(sku.getId(), instance);
       }
     }
 
@@ -150,7 +140,7 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
         startIdParam,
         limit);
 
-    return entryIds.stream().map(itemId -> getEntry(itemId, filter)).collect(Collectors.toList());
+    return entryIds.stream().map(this::getEntry).collect(Collectors.toList());
   }
 
   @Override
