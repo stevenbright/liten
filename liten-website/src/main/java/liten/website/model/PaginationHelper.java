@@ -1,4 +1,4 @@
-package liten.website.util;
+package liten.website.model;
 
 import liten.dao.model.ModelWithId;
 
