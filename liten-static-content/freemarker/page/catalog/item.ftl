@@ -1,13 +1,24 @@
 <#import "../../template/page.ftl" as page/>
 <#import "../../template/catalog.ftl" as cat/>
 
-<@page.common title="Catalog">
+<@page.common title="${entry.displayTitle}">
 
 <h2>${entry.displayTitle}</h2>
 
 <hr/>
 
-<!-- Information -->
+<div class="container">
+
+<#-- Item Details Row -->
+<div class="row">
+<div class="col-md-4">
+<#if entry.item.type == "book">
+<img src="${entry.detailPageCoverUrl}" alt="Cover" width="240" height="320"/>
+</#if>
+</div>
+
+<#-- Information -->
+<div class="col-md-8">
 <table class="item-info">
   <tbody>
     <tr>
@@ -50,8 +61,11 @@
 <#if entry.downloadUrlPresent>
 <h3><a href="${entry.downloadUrl}">Download&nbsp;<span class="glyphicon glyphicon-download" aria-hidden="true"></span></a></h3>
 </#if>
+</div>
 
+<div class="row"><#-- Item Details Row -->
 
+</div><#-- Container -->
 
 <script type="text/javascript" src="/assets/js/bundle.js"></script>
 </@page.common>

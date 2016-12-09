@@ -45,6 +45,10 @@ public final class IceEntryAdapter {
     return result != null ? result : Collections.emptyList();
   }
 
+  public final String getDetailPageCoverUrl() {
+    return "/demo/media/image?type=cover";
+  }
+
   public final String getCreatedDate() {
     final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
     dateFormat.setTimeZone(UtcTime.newUtcTimeZone());
