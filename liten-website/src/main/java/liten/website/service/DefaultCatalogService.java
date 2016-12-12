@@ -54,12 +54,7 @@ public final class DefaultCatalogService {
           .setDirection(IceRelationQuery.Direction.LEFT)
           .build());
       for (final IceRelation relation : relations) {
-        List<IceEntry> e = fromRelations.get(relation.getType());
-        if (e == null) {
-          e = new ArrayList<>();
-          fromRelations.put(relation.getType(), e);
-        }
-
+        final List<IceEntry> e = fromRelations.computeIfAbsent(relation.getType(), k -> new ArrayList<>());
         final IceEntry relatedEntry = queryDao.getEntry(relation.getRelatedItemId());
         e.add(relatedEntry);
       }
