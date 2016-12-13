@@ -9,7 +9,7 @@ import javax.annotation.Nonnull;
 /**
  * @author Alexander Shabanov
  */
-public class LitenLauncher {
+public final class LitenLauncher {
 
   public static void main(String[] args) throws Exception {
     try (StandardLauncher launcher = new StandardLauncher("classpath:/litenWebsite/") {

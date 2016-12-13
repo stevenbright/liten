@@ -45,6 +45,10 @@ public final class IceEntryAdapter {
     return result != null ? result : Collections.emptyList();
   }
 
+  public boolean isDetailPageCoverUrlPresent() {
+    return entry.getItem().getType().equals("book");
+  }
+
   public final String getDetailPageCoverUrl() {
     return "/demo/media/image?type=cover";
   }
