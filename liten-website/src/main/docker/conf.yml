@@ -1,0 +1,6 @@
+
+packaging:
+  add:
+    - target/liten-${project.version}-jar-with-dependencies.jar
+
+tag: liten
