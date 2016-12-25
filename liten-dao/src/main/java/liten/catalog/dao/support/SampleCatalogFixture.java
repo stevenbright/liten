@@ -48,7 +48,7 @@ public final class SampleCatalogFixture {
 
   public static void addSampleData(CatalogUpdaterDao d) {
     addItem(d, EN, "en", "language", "English", "Английский");
-    addItem(d, RU, "ru", "language", "Russian", "Английский");
+    addItem(d, RU, "ru", "language", "Russian", "Русский");
 
     addItem(d, NOVEL, "novel", "genre", "Novel", "Новелла");
     addItem(d, FANTASY, "fantasy", "genre", null, null);

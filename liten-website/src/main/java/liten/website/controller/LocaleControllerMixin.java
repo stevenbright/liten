@@ -1,5 +1,6 @@
 package liten.website.controller;
 
+import com.truward.orion.user.service.spring.SecurityControllerMixin;
 import org.springframework.context.i18n.LocaleContextHolder;
 
 import javax.annotation.ParametersAreNonnullByDefault;

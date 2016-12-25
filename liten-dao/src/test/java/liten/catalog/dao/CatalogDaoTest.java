@@ -45,7 +45,7 @@ public final class CatalogDaoTest {
     final long id = addEnLanguage();
 
     final IceEntry entry = queryDao.getEntry(id);
-    assertEquals("en", entry.getDisplayTitle());
+    assertEquals("en", entry.getItem().getAlias());
     assertTrue(entry.getSkuEntries().isEmpty());
   }
 

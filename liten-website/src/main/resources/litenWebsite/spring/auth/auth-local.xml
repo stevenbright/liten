@@ -10,8 +10,9 @@
       <user-service>
         <!-- Password - test -->
         <user name="testonly" password="098f6bcd4621d373cade4e832627b4f6" authorities="ROLE_GENERIC_USER,ROLE_ID_1029" />
-        <user name="test2" password="098f6bcd4621d373cade4e832627b4f6" authorities="ROLE_GENERIC_USER,ROLE_ID_1030" locked="true" />
-        <user name="test3" password="098f6bcd4621d373cade4e832627b4f6" authorities="ROLE_GENERIC_USER,ROLE_ID_1030" disabled="true" />
+        <user name="boris" password="098f6bcd4621d373cade4e832627b4f6" authorities="ROLE_GENERIC_USER,ROLE_ID_1035" />
+        <user name="test2" password="098f6bcd4621d373cade4e832627b4f6" authorities="ROLE_GENERIC_USER,ROLE_ID_1040" locked="true" />
+        <user name="test3" password="098f6bcd4621d373cade4e832627b4f6" authorities="ROLE_GENERIC_USER,ROLE_ID_1041" disabled="true" />
         <user name="admin" password="098f6bcd4621d373cade4e832627b4f6" authorities="ROLE_GENERIC_USER,ROLE_LITEN_ADMIN,ROLE_ID_1075" />
       </user-service>
     </authentication-provider>

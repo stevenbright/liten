@@ -13,24 +13,12 @@ import static java.util.Objects.requireNonNull;
  * @author Alexander Shabanov
  */
 public final class IceEntry extends BaseModel {
-  public static final String DEFAULT_DISPLAY_TITLE = "?";
-
   private final IceItem item;
   private final List<SkuEntry> skus;
 
   public IceEntry(IceItem item, List<SkuEntry> skuEntries) {
     this.item = requireNonNull(item, "item");
     this.skus = CheckedCollections.copyList(skuEntries, "skuEntries");
-  }
-
-  public String getDisplayTitle() {
-    String result = item.getAlias();
-    if (!skus.isEmpty()) {
-      final SkuEntry skuEntry = skus.get(0);
-      result = skuEntry.getSku().getTitle();
-    }
-
-    return result != null ? result : DEFAULT_DISPLAY_TITLE;
   }
 
   public IceItem getItem() {

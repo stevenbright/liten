@@ -4,45 +4,51 @@ import com.truward.time.UtcTime;
 import liten.catalog.dao.model.IceEntry;
 import liten.catalog.dao.model.IceInstance;
 import liten.catalog.dao.model.IceItem;
-import liten.catalog.dao.model.IceSku;
 import liten.dao.model.ModelWithId;
 import liten.util.CheckedCollections;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Alexander Shabanov
  */
+@SuppressWarnings("unused") // referred from freemarker templates
 @ParametersAreNonnullByDefault
 public final class IceEntryAdapter {
   private final IceEntry entry;
   private final List<IceEntry> relatedEntries;
-  private final List<String> preferredUserLanguages;
+  private final IceEntry.SkuEntry defaultSkuEntry;
   private final Map<String, List<IceEntry>> fromRelations;
 
   public IceEntryAdapter(IceEntry entry,
                          List<IceEntry> relatedEntries,
-                         List<String> preferredUserLanguages,
+                         @Nullable IceEntry.SkuEntry defaultSkuEntry,
                          Map<String, List<IceEntry>> fromRelations) {
     this.entry = entry;
     this.relatedEntries = CheckedCollections.copyList(relatedEntries, "relatedEntries");
-    this.preferredUserLanguages = CheckedCollections.copyList(preferredUserLanguages, "preferredUserLanguages");
+    this.defaultSkuEntry = defaultSkuEntry;
     this.fromRelations = CheckedCollections.copyMap(fromRelations, "fromRelations");
+  }
+
+  public long getId() {
+    return entry.getItem().getId();
   }
 
   public Map<String, List<IceEntry>> getFromRelations() {
     return fromRelations;
   }
 
-  public final List<IceEntry> getFromRelations(String relationName) {
+  public final List<IceEntryRef> getFromRelations(String relationName) {
     final List<IceEntry> result = getFromRelations().get(relationName);
-    return result != null ? result : Collections.emptyList();
+    return result != null ?
+        result.stream().map(this::toEntityRef).collect(Collectors.toList()) :
+        Collections.emptyList();
   }
 
   public boolean isDetailPageCoverUrlPresent() {
@@ -80,45 +86,79 @@ public final class IceEntryAdapter {
     return 1000;
   }
 
-  public final List<IceEntry> getLanguages() {
-    return getFromRelations("language");
+  public final List<IceEntryRef> getLanguages() {
+    if (isDefaultSkuPresent()) {
+      final IceEntry.SkuEntry sku = getDefaultSkuEntry();
+      for (final IceEntry relatedEntry : relatedEntries) {
+        if (relatedEntry.getItem().getId() == sku.getSku().getLanguageId()) {
+          return Collections.singletonList(toEntityRef(relatedEntry));
+        }
+      }
+    }
+
+    return Collections.emptyList();
   }
 
-  public final List<IceEntry> getAuthors() {
+  private IceEntryRef toEntityRef(IceEntry otherEntry) {
+    // now pick up SKU with the same title
+    String displayTitle = otherEntry.getItem().getAlias();
+    if (displayTitle == null) {
+      displayTitle = "?";
+    }
+
+    if (isDefaultSkuPresent()) {
+      final long languageId = getDefaultSkuEntry().getSku().getLanguageId();
+
+      for (final IceEntry.SkuEntry skuEntry : otherEntry.getSkuEntries()) {
+        if (skuEntry.getSku().getLanguageId() == languageId) {
+          displayTitle = skuEntry.getSku().getTitle();
+        }
+      }
+    }
+
+    return new IceEntryRef(otherEntry.getItem().getId(), displayTitle);
+  }
+
+  public final List<IceEntryRef> getAuthors() {
     return getFromRelations("author");
   }
 
-  public final List<IceEntry> getGenres() {
+  public final List<IceEntryRef> getGenres() {
     return getFromRelations("genre");
   }
 
-  public final List<IceEntry> getOrigins() {
+  public final List<IceEntryRef> getOrigins() {
     return getFromRelations("origin");
   }
 
   public final String getDisplayTitle() {
-    return entry.getDisplayTitle();
+    String title = entry.getItem().getAlias();
+    if (isDefaultSkuPresent()) {
+      title = getDefaultSkuEntry().getSku().getTitle();
+    }
+
+    return title != null ? title : "???";
   }
 
   public final boolean isDefaultSkuPresent() {
-    return entry.getSkuEntries().size() > 0;
+    return defaultSkuEntry != null;
   }
 
   public final boolean isDefaultInstancePresent() {
-    return (entry.getSkuEntries().size() > 0) && (entry.getSkuEntries().get(0).getInstances().size() > 0);
+    return !(entry.getSkuEntries().isEmpty() || entry.getSkuEntries().get(0).getInstances().isEmpty());
   }
 
   public final IceEntry.SkuEntry getDefaultSkuEntry() {
-    if (entry.getSkuEntries().size() > 0) {
-      return entry.getSkuEntries().get(0);
+    if (defaultSkuEntry != null) {
+      return defaultSkuEntry;
     }
 
-    throw new IllegalStateException("No default SKU for IceEntry{id=" + entry.getItem().getId() + "}");
+    throw new IllegalStateException("No default SKU entry for IceEntry{id=" + entry.getItem().getId() + "}");
   }
 
   public final IceInstance getDefaultInstance() {
-    if (entry.getSkuEntries().size() > 0) {
-      final IceEntry.SkuEntry skuEntry = entry.getSkuEntries().get(0);
+    if (isDefaultSkuPresent()) {
+      final IceEntry.SkuEntry skuEntry = getDefaultSkuEntry();
       if (skuEntry.getInstances().size() > 0) {
         return skuEntry.getInstances().get(0);
       }
