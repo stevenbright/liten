@@ -149,23 +149,58 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
   @Override
   public List<IceEntry> getEntries(IceEntryQuery query) {
     final StringBuilder builder = new StringBuilder(256);
-    builder.append("SELECT id FROM ice_item\n");
-
     final List<Object> params = new ArrayList<>();
+
+    builder.append("SELECT i.id FROM ice_item AS i\n");
+
+    if (query.getNamePrefix() != null) {
+      builder.append("INNER JOIN ice_sku AS s ON s.item_id = i.id\n");
+    }
+
     boolean next = false;
     if (ModelWithId.isValidId(query.getStartItemId())) {
-      builder.append("WHERE (id > ?)");
+      builder.append("WHERE (i.id > ?)");
       params.add(query.getStartItemId());
       next = true;
     }
 
     if (query.getType() != null) {
       final Long typeId = getTypeIdByName(query.getType());
-      builder.append(next ? " AND " : "WHERE ").append("(type_id = ?)");
+      builder.append(next ? " AND " : "WHERE ").append("(i.type_id = ?)");
       params.add(typeId);
+      next = true;
     }
 
-    builder.append(" ORDER BY id LIMIT ?");
+    if (query.getNamePrefix() != null) {
+      builder.append(next ? " AND " : "WHERE ").append("(s.title >= ? AND s.title < ?)");
+
+      // prepare end prefix
+      final StringBuilder endPrefix = new StringBuilder(query.getNamePrefix());
+      final int lastCharPos = endPrefix.length() - 1;
+      endPrefix.setCharAt(lastCharPos, (char) (endPrefix.charAt(lastCharPos) + 1));
+
+      // add prefix range
+      params.add(query.getNamePrefix());
+      params.add(endPrefix.toString());
+
+      next = true;
+    }
+
+    if (!next) {
+      // no where clause
+      log.trace("Raw getEntries query: {}", builder);
+    }
+
+    if (query.getNamePrefix() != null) {
+      // order by title
+      builder.append(" ORDER BY s.title ASC");
+    } else {
+      // default ordering
+      builder.append(" ORDER BY i.id");
+    }
+
+    builder.append(" LIMIT ?");
+
     params.add(query.getLimit());
 
     final List<Long> entryIds = db.queryForList(builder.toString(),

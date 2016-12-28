@@ -226,14 +226,23 @@ public final class CatalogDaoTest {
     addEntity(1003, "book", "Ййлй", "Yyly");
     addEntity(1004, "book", "Абв", "ABC");
     addEntity(1005, "book", "Абг", "ABD");
-    addEntity(1006, "genre", "Искусство", "Аrt");
-    addEntity(1007, "genre", "Иога", "Yoga");
+    addEntity(1006, "book", "Солнце", "Sun");
+    addEntity(1007, "genre", "Искусство", "Аrt");
+    addEntity(1008, "genre", "Иога", "Yoga");
 
     assertEquals(asList("Y", "А", "И"), queryDao.getSkuNameHints("genre", null));
-    assertEquals(asList("A", "Y", "А", "Й"), queryDao.getSkuNameHints("book", null));
+    assertEquals(asList("A", "S", "Y", "А", "Й", "С"), queryDao.getSkuNameHints("book", null));
 
     assertEquals(asList("Ио", "Ис"), queryDao.getSkuNameHints("genre", "И"));
     assertEquals(singletonList("AB"), queryDao.getSkuNameHints("book", "A"));
+    assertEquals(asList("ABC", "ABD"), queryDao.getSkuNameHints("book", "AB"));
+
+    assertEquals(asList(1004L, 1005L), getIdsFromIceEntries(queryDao.getEntries(IceEntryQuery.newBuilder()
+        .setType("book").setNamePrefix("A").build())));
+    assertEquals(singletonList(1005L), getIdsFromIceEntries(queryDao.getEntries(IceEntryQuery.newBuilder()
+        .setType("book").setStartItemId(1004L).setNamePrefix("Аб").build())));
+    assertEquals(asList(1007L, 1004L, 1005L), getIdsFromIceEntries(queryDao.getEntries(IceEntryQuery.newBuilder()
+        .setNamePrefix("А").build())));
   }
 
   //
