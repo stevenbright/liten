@@ -12,16 +12,22 @@ import java.util.Objects;
 @ParametersAreNonnullByDefault
 public final class IceItem extends ModelWithId {
   private final String type;
+  private final int modCounter;
   private final String alias;
 
-  private IceItem(long id, String type, String alias) {
+  private IceItem(long id, String type, int modCounter, String alias) {
     super(id);
     this.type = Objects.requireNonNull(type, "type");
+    this.modCounter = modCounter;
     this.alias = alias;
   }
 
   public String getType() {
     return type;
+  }
+
+  public int getModCounter() {
+    return modCounter;
   }
 
   @Nullable
@@ -37,7 +43,7 @@ public final class IceItem extends ModelWithId {
 
     IceItem iceItem = (IceItem) o;
 
-    return type.equals(iceItem.type) && alias.equals(iceItem.alias);
+    return type.equals(iceItem.type) && (modCounter == iceItem.modCounter) && alias.equals(iceItem.alias);
 
   }
 
@@ -45,6 +51,7 @@ public final class IceItem extends ModelWithId {
   public int hashCode() {
     int result = super.hashCode();
     result = 31 * result + type.hashCode();
+    result = 31 * result + modCounter;
     result = 31 * result + alias.hashCode();
     return result;
   }
@@ -54,6 +61,7 @@ public final class IceItem extends ModelWithId {
     return "IceItem{" +
         "id=" + getId() +
         ", type='" + type + '\'' +
+        ", modCounter=" + modCounter +
         ", alias='" + alias + '\'' +
         '}';
   }
@@ -70,21 +78,28 @@ public final class IceItem extends ModelWithId {
     return newBuilder()
         .setId(other.getId())
         .setType(other.getType())
+        .setModCounter(other.getModCounter())
         .setAlias(other.getAlias());
   }
 
   public static final class Builder extends ModelWithId.Builder<Builder> {
     private String type;
+    private int modCounter;
     private String alias;
 
     private Builder() {}
 
     public IceItem build() {
-      return new IceItem(id, type, alias);
+      return new IceItem(id, type, modCounter, alias);
     }
 
     public Builder setType(@Nullable String value) {
       this.type = value;
+      return this;
+    }
+
+    public Builder setModCounter(int value) {
+      this.modCounter = value;
       return this;
     }
 

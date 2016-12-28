@@ -42,7 +42,7 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
 
   @Override
   public IceItem getItem(long itemId) {
-    return db.queryForObject("SELECT i.id, e.name AS type, i.alias FROM ice_item AS i\n" +
+    return db.queryForObject("SELECT i.id, e.name AS type, i.mod_counter, i.alias FROM ice_item AS i\n" +
             "INNER JOIN entity_type AS e ON e.id=i.type_id WHERE i.id=?",
         IceItemRowMapper.INSTANCE,
         itemId);
@@ -211,6 +211,7 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
       return IceItem.newBuilder()
           .setId(rs.getLong("id"))
           .setType(rs.getString("type"))
+          .setModCounter(rs.getInt("mod_counter"))
           .setAlias(rs.getString("alias"))
           .build();
     }

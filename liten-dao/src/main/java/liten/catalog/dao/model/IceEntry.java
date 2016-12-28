@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 import static java.util.Objects.requireNonNull;
 
 /**
+ * Consolidated information about ICE entry: item (1) -> sku (n) -> instances (n->m)
+ *
  * @author Alexander Shabanov
  */
 public final class IceEntry extends BaseModel {

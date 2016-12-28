@@ -16,6 +16,10 @@ CREATE TABLE ice_item (
   id              INTEGER PRIMARY KEY,
   type_id         INTEGER NOT NULL,
 
+  -- modification counter, used for optimistic locking for all modifications of
+  -- ice_item, including related SKUs, instances and relations; also used for verifying that item cache is up-to-date
+  mod_counter     INTEGER NOT NULL DEFAULT 1,
+
   -- unique item name
   alias           VARCHAR(32),
 
@@ -45,11 +49,12 @@ CREATE TABLE ice_instance (
   sku_id          INTEGER NOT NULL,
   instance_id     INTEGER NOT NULL,
 
-  created         DATE NOT NULL,
+  created         DATE,
 
-  -- book-specific
+  -- download-specific attributes
   origin_id       INTEGER,
   download_id     INTEGER,
+  download_size   INTEGER,
 
   CONSTRAINT pk_ice_instance PRIMARY KEY (item_id, sku_id, instance_id),
   CONSTRAINT fk_ice_instance_item FOREIGN KEY (item_id) REFERENCES ice_item(id) ON DELETE CASCADE,
