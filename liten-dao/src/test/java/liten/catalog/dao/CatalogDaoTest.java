@@ -85,7 +85,7 @@ public final class CatalogDaoTest {
     updaterDao.addEntries(asList(
         IceEntry.newBuilder().setItem(IceItem.newBuilder(template).setId(1L).build()).build(),
         IceEntry.newBuilder().setItem(IceItem.newBuilder(template).setId(2L).build()).build(),
-        IceEntry.newBuilder().setItem(IceItem.newBuilder(template).setId(3L).build()).build()
+        IceEntry.newBuilder().setItem(IceItem.newBuilder(template).setType("author").setId(3L).build()).build()
     ));
 
     assertEquals(asList(1L, 2L, 3L), getIdsFromIceEntries(queryDao.getEntries(IceEntryQuery.NONE)));
@@ -104,6 +104,16 @@ public final class CatalogDaoTest {
         .setStartItemId(2L).setLimit(0).build())));
     assertEquals(emptyList(), getIdsFromIceEntries(queryDao.getEntries(IceEntryQuery.newBuilder()
         .setStartItemId(3L).setLimit(9).build())));
+
+    // type-based filtering
+    assertEquals(asList(1L, 2L), getIdsFromIceEntries(queryDao.getEntries(IceEntryQuery.newBuilder()
+        .setType("book").build())));
+    assertEquals(singletonList(2L), getIdsFromIceEntries(queryDao.getEntries(IceEntryQuery.newBuilder()
+        .setType("book").setStartItemId(1L).setLimit(9).build())));
+    assertEquals(singletonList(3L), getIdsFromIceEntries(queryDao.getEntries(IceEntryQuery.newBuilder()
+        .setType("author").build())));
+    assertEquals(emptyList(), getIdsFromIceEntries(queryDao.getEntries(IceEntryQuery.newBuilder()
+        .setType("genre").build())));
   }
 
   @Test(expected = DuplicateKeyException.class)

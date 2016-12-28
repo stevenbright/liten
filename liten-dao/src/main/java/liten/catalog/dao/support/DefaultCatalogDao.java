@@ -132,17 +132,29 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
 
   @Override
   public List<IceEntry> getEntries(IceEntryQuery query) {
-    final Long startIdParam = ModelWithId.getNullOrValidId(query.getStartItemId());
-    final Long typeId = query.getType() != null ? getTypeIdByName(query.getType()) : null;
+    final StringBuilder builder = new StringBuilder(256);
+    builder.append("SELECT id FROM ice_item\n");
 
-    final List<Long> entryIds = db.queryForList("SELECT id FROM ice_item\n" +
-            "WHERE ((? IS NULL) OR (id > ?)) AND ((? IS NULL) OR (type_id = ?)) ORDER BY id LIMIT ?",
+    final List<Object> params = new ArrayList<>();
+    boolean next = false;
+    if (ModelWithId.isValidId(query.getStartItemId())) {
+      builder.append("WHERE (id > ?)");
+      params.add(query.getStartItemId());
+      next = true;
+    }
+
+    if (query.getType() != null) {
+      final Long typeId = getTypeIdByName(query.getType());
+      builder.append(next ? " AND " : "WHERE ").append("(type_id = ?)");
+      params.add(typeId);
+    }
+
+    builder.append(" ORDER BY id LIMIT ?");
+    params.add(query.getLimit());
+
+    final List<Long> entryIds = db.queryForList(builder.toString(),
         Long.class,
-        startIdParam,
-        startIdParam,
-        typeId,
-        typeId,
-        query.getLimit());
+        params.toArray(new Object[params.size()]));
 
     return entryIds.stream().map(this::getEntry).collect(Collectors.toList());
   }
