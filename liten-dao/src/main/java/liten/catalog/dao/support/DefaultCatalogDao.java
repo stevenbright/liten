@@ -131,14 +131,18 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
   }
 
   @Override
-  public List<IceEntry> getEntries(IceEntryFilter filter, long startItemId, int limit) {
-    final Long startIdParam = ModelWithId.getNullOrValidId(startItemId);
+  public List<IceEntry> getEntries(IceEntryQuery query) {
+    final Long startIdParam = ModelWithId.getNullOrValidId(query.getStartItemId());
+    final Long typeId = query.getType() != null ? getTypeIdByName(query.getType()) : null;
+
     final List<Long> entryIds = db.queryForList("SELECT id FROM ice_item\n" +
-            "WHERE (? IS NULL) OR (id > ?) ORDER BY id LIMIT ?",
+            "WHERE ((? IS NULL) OR (id > ?)) AND ((? IS NULL) OR (type_id = ?)) ORDER BY id LIMIT ?",
         Long.class,
         startIdParam,
         startIdParam,
-        limit);
+        typeId,
+        typeId,
+        query.getLimit());
 
     return entryIds.stream().map(this::getEntry).collect(Collectors.toList());
   }

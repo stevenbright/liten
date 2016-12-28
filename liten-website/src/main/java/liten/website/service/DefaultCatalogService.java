@@ -34,6 +34,22 @@ public final class DefaultCatalogService implements CatalogService {
     return getEntryAdapter(queryDao, userLanguage, entry);
   }
 
+  /*
+  TODO: use cache
+
+  LoadingCache<Key, Graph> graphs = CacheBuilder.newBuilder()
+    .concurrencyLevel(4)
+    .weakKeys()
+    .maximumSize(10000)
+    .expireAfterWrite(10, TimeUnit.MINUTES)
+    .build(
+        new CacheLoader<Key, Graph>() {
+          public Graph load(Key key) throws AnyException {
+            return createExpensiveGraph(key);
+          }
+        });
+   */
+
   //
   // Private
   //
@@ -93,8 +109,8 @@ public final class DefaultCatalogService implements CatalogService {
 
     @Override
     protected List<IceEntryAdapter> getItemList(long startItemId, int limit) {
-      final List<IceEntry> entries = queryDao.getEntries(
-          IceEntryFilter.forLanguages(true, userLanguage), startItemId, limit);
+      final List<IceEntry> entries = queryDao.getEntries(IceEntryQuery.newBuilder()
+          .setStartItemId(startItemId).setLimit(limit).build());
 
       return entries.stream()
           .map(e -> getEntryAdapter(queryDao, userLanguage, e))

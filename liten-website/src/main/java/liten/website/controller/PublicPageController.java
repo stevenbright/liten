@@ -1,22 +1,12 @@
 package liten.website.controller;
 
 import com.truward.orion.user.service.spring.SecurityControllerMixin;
-import liten.catalog.dao.CatalogQueryDao;
-import liten.catalog.dao.model.IceEntry;
-import liten.catalog.dao.model.IceEntryFilter;
-import liten.dao.model.ModelWithId;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.annotation.Resource;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 /**

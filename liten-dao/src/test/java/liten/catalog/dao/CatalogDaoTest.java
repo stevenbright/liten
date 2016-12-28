@@ -2,7 +2,6 @@ package liten.catalog.dao;
 
 import com.truward.time.UtcTime;
 import liten.catalog.dao.model.*;
-import liten.dao.model.ModelWithId;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.dao.DuplicateKeyException;
@@ -88,21 +87,24 @@ public final class CatalogDaoTest {
         IceEntry.newBuilder().setItem(IceItem.newBuilder(template).setId(3L).build()).build()
     ));
 
-    assertEquals(asList(1L, 2L, 3L), queryDao.getEntries(IceEntryFilter.NONE, ModelWithId.INVALID_ID, 100)
+    assertEquals(asList(1L, 2L, 3L), queryDao.getEntries(IceEntryQuery.NONE)
         .stream().map(e -> e.getItem().getId()).collect(Collectors.toList()));
-    assertEquals(asList(2L, 3L), queryDao.getEntries(IceEntryFilter.NONE, 1L, 100)
-        .stream().map(e -> e.getItem().getId()).collect(Collectors.toList()));
-
-    assertEquals(singletonList(2L), queryDao.getEntries(IceEntryFilter.NONE, 1L, 1)
-        .stream().map(e -> e.getItem().getId()).collect(Collectors.toList()));
-    assertEquals(singletonList(3L), queryDao.getEntries(IceEntryFilter.NONE, 2L, 1)
-        .stream().map(e -> e.getItem().getId()).collect(Collectors.toList()));
-    assertEquals(singletonList(3L), queryDao.getEntries(IceEntryFilter.NONE, 2L, 100)
+    assertEquals(asList(2L, 3L), queryDao.getEntries(IceEntryQuery.newBuilder().setStartItemId(1L).setLimit(9).build())
         .stream().map(e -> e.getItem().getId()).collect(Collectors.toList()));
 
-    assertEquals(emptyList(), queryDao.getEntries(IceEntryFilter.NONE, 2L, 0)
+    assertEquals(singletonList(2L),
+        queryDao.getEntries(IceEntryQuery.newBuilder().setStartItemId(1L).setLimit(1).build())
+            .stream().map(e -> e.getItem().getId()).collect(Collectors.toList()));
+    assertEquals(singletonList(3L),
+        queryDao.getEntries(IceEntryQuery.newBuilder().setStartItemId(2L).setLimit(1).build())
+            .stream().map(e -> e.getItem().getId()).collect(Collectors.toList()));
+    assertEquals(singletonList(3L),
+        queryDao.getEntries(IceEntryQuery.newBuilder().setStartItemId(2L).setLimit(9).build())
+            .stream().map(e -> e.getItem().getId()).collect(Collectors.toList()));
+
+    assertEquals(emptyList(), queryDao.getEntries(IceEntryQuery.newBuilder().setStartItemId(2L).setLimit(0).build())
         .stream().map(e -> e.getItem().getId()).collect(Collectors.toList()));
-    assertEquals(emptyList(), queryDao.getEntries(IceEntryFilter.NONE, 3L, 100)
+    assertEquals(emptyList(), queryDao.getEntries(IceEntryQuery.newBuilder().setStartItemId(3L).setLimit(9).build())
         .stream().map(e -> e.getItem().getId()).collect(Collectors.toList()));
   }
 

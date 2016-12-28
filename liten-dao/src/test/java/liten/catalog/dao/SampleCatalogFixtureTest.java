@@ -1,7 +1,7 @@
 package liten.catalog.dao;
 
 import liten.catalog.dao.model.IceEntry;
-import liten.catalog.dao.model.IceEntryFilter;
+import liten.catalog.dao.model.IceEntryQuery;
 import liten.catalog.dao.support.SampleCatalogFixture;
 import liten.dao.model.ModelWithId;
 import org.junit.Test;
@@ -29,7 +29,7 @@ public final class SampleCatalogFixtureTest {
   public void shouldInsertAndQuerySampleData() {
     SampleCatalogFixture.addSampleData(updaterDao);
 
-    final List<IceEntry> entries = queryDao.getEntries(IceEntryFilter.NONE, ModelWithId.INVALID_ID, 3);
+    final List<IceEntry> entries = queryDao.getEntries(IceEntryQuery.newBuilder().setLimit(3).build());
     assertEquals(3, entries.size());
   }
 }
