@@ -34,16 +34,18 @@ public final class CatalogPageController implements SecurityControllerMixin, Loc
   @RequestMapping("/part/entries")
   public ModelAndView entriesPart(
       @RequestParam(value = "startItemId", required = false) @Nullable Long startItemId,
-      @RequestParam(value = "limit", required = false) @Nullable Integer limit) {
-    final Map<String, Object> params = catalogService.getPaginationHelper(getUserLanguage())
+      @RequestParam(value = "limit", required = false) @Nullable Integer limit,
+      @RequestParam(value = "type", required = false) @Nullable String type) {
+    final Map<String, Object> params = catalogService.getPaginationHelper(getUserLanguage(), type)
         .newModelWithItemsOpt(startItemId, limit);
 
     return new ModelAndView("part/catalog/entries", params);
   }
 
   @RequestMapping("/index")
-  public ModelAndView index(@RequestParam(value = "limit", required = false) @Nullable Integer limit) {
-    final Map<String, Object> params = catalogService.getPaginationHelper(getUserLanguage())
+  public ModelAndView index(@RequestParam(value = "limit", required = false) @Nullable Integer limit,
+                            @RequestParam(value = "type", required = false) @Nullable String type) {
+    final Map<String, Object> params = catalogService.getPaginationHelper(getUserLanguage(), type)
         .newModelWithItems(ModelWithId.INVALID_ID, limit != null ? limit : PaginationHelper.DEFAULT_LIMIT);
 
     return new ModelAndView("page/catalog/index", params);

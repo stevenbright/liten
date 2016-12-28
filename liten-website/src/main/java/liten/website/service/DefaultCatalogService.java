@@ -6,6 +6,7 @@ import liten.catalog.dao.model.*;
 import liten.website.model.IceEntryAdapter;
 import liten.website.model.PaginationHelper;
 
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,8 +25,8 @@ public final class DefaultCatalogService implements CatalogService {
   }
 
   @Override
-  public PaginationHelper<IceEntryAdapter> getPaginationHelper(String userLanguage) {
-    return new IceEntryPaginationHelper(queryDao, userLanguage);
+  public PaginationHelper<IceEntryAdapter> getPaginationHelper(String userLanguage, @Nullable String type) {
+    return new IceEntryPaginationHelper(queryDao, userLanguage, type);
   }
 
   @Override
@@ -100,16 +101,21 @@ public final class DefaultCatalogService implements CatalogService {
   private static final class IceEntryPaginationHelper extends PaginationHelper<IceEntryAdapter> {
     private final CatalogQueryDao queryDao;
     private final String userLanguage;
+    private final String type;
 
-    IceEntryPaginationHelper(CatalogQueryDao queryDao, String userLanguage) {
+    IceEntryPaginationHelper(CatalogQueryDao queryDao, String userLanguage, @Nullable String type) {
       this.queryDao = queryDao;
       this.userLanguage = userLanguage;
+      this.type = type;
     }
 
     @Override
     protected List<IceEntryAdapter> getItemList(long startItemId, int limit) {
       final List<IceEntry> entries = queryDao.getEntries(IceEntryQuery.newBuilder()
-          .setStartItemId(startItemId).setLimit(limit).build());
+          .setStartItemId(startItemId)
+          .setLimit(limit)
+          .setType(type)
+          .build());
 
       return entries.stream()
           .map(e -> getEntryAdapter(queryDao, userLanguage, e))
@@ -123,7 +129,14 @@ public final class DefaultCatalogService implements CatalogService {
 
     @Override
     protected String createNextUrl(long startItemId, int limit) {
-      return String.format("/g/cat/part/entries?startItemId=%s&limit=%s", startItemId, limit);
+      final StringBuilder builder = new StringBuilder(100);
+      builder.append("/g/cat/part/entries?startItemId=").append(startItemId);
+      builder.append("&limit=").append(limit);
+      if (type != null) {
+        builder.append("&type=").append(type);
+      }
+
+      return builder.toString();
     }
   }
 }

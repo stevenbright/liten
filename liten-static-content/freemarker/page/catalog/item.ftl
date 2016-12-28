@@ -29,5 +29,4 @@
 
 </div><#-- Container -->
 
-<script type="text/javascript" src="/assets/js/bundle.js"></script>
 </@page.common>

@@ -1,5 +1,5 @@
 
-import $ from 'jquery'; //var $ = require('jquery');
+import $ from 'jquery';
 
 import {setUpPaginationHandlers} from './logic/pagination';
 import {setUpFavoritesHandlers} from './logic/favorites';
@@ -10,5 +10,8 @@ setUpFavoritesHandlers();
 
 $(document).ready(function () {
   $('#javascript-alert').remove();
-  console.log('BTF loaded');
+  console.log('BTF loaded #2');
 });
+
+// make jQuery globally available
+window.jQuery = $;

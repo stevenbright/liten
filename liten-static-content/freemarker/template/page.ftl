@@ -53,7 +53,8 @@
   </div>
 
   <#-- Bundle Page Script -->
-  <#-- <script type="text/javascript" src="/assets/js/bundle.js"></script> -->
+  <script type="text/javascript" src="/assets/js/bundle.js"></script>
+  <script type="text/javascript" src="/assets/libs/bootstrap/js/bootstrap.min.js"></script>
   <footer>
     <div class="container">
       <p class="text-muted">Discover amazing something here!</p>

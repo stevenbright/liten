@@ -14,5 +14,4 @@
   <li><a href="/g/cat/index">Catalog Index</a></li>
 </ul>
 
-<script type="text/javascript" src="/assets/js/bundle.js"></script>
 </@page.common>
