@@ -35,7 +35,7 @@ public final class DefaultCatalogService implements CatalogService {
   }
 
   /*
-  TODO: use cache
+  TODO: use cache below
 
   LoadingCache<Key, Graph> graphs = CacheBuilder.newBuilder()
     .concurrencyLevel(4)
@@ -58,7 +58,6 @@ public final class DefaultCatalogService implements CatalogService {
                                                  String userLanguage,
                                                  IceEntry entry) {
     List<IceEntry> relatedEntries = new ArrayList<>();
-    List<String> preferredLanguages = Collections.singletonList(userLanguage);
     Map<String, List<IceEntry>> fromRelations = new HashMap<>();
 
     if (entry.getItem().getType().equals("book")) {

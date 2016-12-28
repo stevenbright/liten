@@ -10,6 +10,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
@@ -87,25 +88,22 @@ public final class CatalogDaoTest {
         IceEntry.newBuilder().setItem(IceItem.newBuilder(template).setId(3L).build()).build()
     ));
 
-    assertEquals(asList(1L, 2L, 3L), queryDao.getEntries(IceEntryQuery.NONE)
-        .stream().map(e -> e.getItem().getId()).collect(Collectors.toList()));
-    assertEquals(asList(2L, 3L), queryDao.getEntries(IceEntryQuery.newBuilder().setStartItemId(1L).setLimit(9).build())
-        .stream().map(e -> e.getItem().getId()).collect(Collectors.toList()));
+    assertEquals(asList(1L, 2L, 3L), getIdsFromIceEntries(queryDao.getEntries(IceEntryQuery.NONE)));
+    assertEquals(asList(1L, 2L, 3L), getIdsFromIceEntries(queryDao.getEntries(IceEntryQuery.newBuilder().build())));
+    assertEquals(asList(2L, 3L), getIdsFromIceEntries(queryDao.getEntries(IceEntryQuery.newBuilder()
+        .setStartItemId(1L).setLimit(9).build())));
 
     assertEquals(singletonList(2L),
-        queryDao.getEntries(IceEntryQuery.newBuilder().setStartItemId(1L).setLimit(1).build())
-            .stream().map(e -> e.getItem().getId()).collect(Collectors.toList()));
+        getIdsFromIceEntries(queryDao.getEntries(IceEntryQuery.newBuilder().setStartItemId(1L).setLimit(1).build())));
     assertEquals(singletonList(3L),
-        queryDao.getEntries(IceEntryQuery.newBuilder().setStartItemId(2L).setLimit(1).build())
-            .stream().map(e -> e.getItem().getId()).collect(Collectors.toList()));
+        getIdsFromIceEntries(queryDao.getEntries(IceEntryQuery.newBuilder().setStartItemId(2L).setLimit(1).build())));
     assertEquals(singletonList(3L),
-        queryDao.getEntries(IceEntryQuery.newBuilder().setStartItemId(2L).setLimit(9).build())
-            .stream().map(e -> e.getItem().getId()).collect(Collectors.toList()));
+        getIdsFromIceEntries(queryDao.getEntries(IceEntryQuery.newBuilder().setStartItemId(2L).setLimit(9).build())));
 
-    assertEquals(emptyList(), queryDao.getEntries(IceEntryQuery.newBuilder().setStartItemId(2L).setLimit(0).build())
-        .stream().map(e -> e.getItem().getId()).collect(Collectors.toList()));
-    assertEquals(emptyList(), queryDao.getEntries(IceEntryQuery.newBuilder().setStartItemId(3L).setLimit(9).build())
-        .stream().map(e -> e.getItem().getId()).collect(Collectors.toList()));
+    assertEquals(emptyList(), getIdsFromIceEntries(queryDao.getEntries(IceEntryQuery.newBuilder()
+        .setStartItemId(2L).setLimit(0).build())));
+    assertEquals(emptyList(), getIdsFromIceEntries(queryDao.getEntries(IceEntryQuery.newBuilder()
+        .setStartItemId(3L).setLimit(9).build())));
   }
 
   @Test(expected = DuplicateKeyException.class)
@@ -202,6 +200,10 @@ public final class CatalogDaoTest {
   //
   // Private
   //
+
+  private static List<Long> getIdsFromIceEntries(List<IceEntry> entries) {
+    return entries.stream().map(e -> e.getItem().getId()).collect(Collectors.toList());
+  }
 
   private long addLanguage(long id, String alias) {
     updaterDao.addEntry(IceEntry.newBuilder()

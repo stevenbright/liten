@@ -1,6 +1,7 @@
 package liten.catalog.dao.model;
 
 import liten.dao.model.ModelWithId;
+import liten.dao.model.PageQuery;
 import liten.util.CheckedCollections;
 
 import java.util.HashSet;
@@ -11,7 +12,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * Filter for ICE item relations
  */
-public final class IceRelationQuery {
+public final class IceRelationQuery extends PageQuery {
   public enum Direction {
     LEFT,
     RIGHT
@@ -22,19 +23,16 @@ public final class IceRelationQuery {
   private final Direction direction;
   private final Set<String> relationTypes;
   private final long relatedItemId;
-  private final long startItemId;
-  private final int limit;
 
   private IceRelationQuery(Direction direction,
                            Set<String> relationTypes,
                            long relatedItemId,
                            long startItemId,
                            int limit) {
+    super(startItemId, limit);
     this.direction = requireNonNull(direction, "direction");
     this.relationTypes = CheckedCollections.copySet(relationTypes, "relationTypes");
     this.relatedItemId = ModelWithId.requireValidId(relatedItemId, "relatedItemId");
-    this.startItemId = startItemId;
-    this.limit = limit;
   }
 
   public Direction getDirection() {
@@ -49,19 +47,11 @@ public final class IceRelationQuery {
     return relatedItemId;
   }
 
-  public long getStartItemId() {
-    return startItemId;
-  }
-
-  public int getLimit() {
-    return limit;
-  }
-
   public static Builder newBuilder() {
     return new Builder();
   }
 
-  public static final class Builder {
+  public static final class Builder extends PageQuery.Builder<Builder> {
     private Direction direction = Direction.LEFT;
     private Set<String> relationTypes = new HashSet<>();
     private long relatedItemId = ModelWithId.INVALID_ID;
@@ -89,13 +79,8 @@ public final class IceRelationQuery {
       return this;
     }
 
-    public Builder setStartItemId(long value) {
-      this.startItemId = value;
-      return this;
-    }
-
-    public Builder setLimit(int value) {
-      this.limit = value;
+    @Override
+    protected Builder getSelf() {
       return this;
     }
   }
