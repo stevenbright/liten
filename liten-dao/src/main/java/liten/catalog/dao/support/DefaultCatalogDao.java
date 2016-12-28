@@ -12,6 +12,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -46,6 +47,21 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
             "INNER JOIN entity_type AS e ON e.id=i.type_id WHERE i.id=?",
         IceItemRowMapper.INSTANCE,
         itemId);
+  }
+
+  @Override
+  public List<String> getSkuNameHints(String type, @Nullable String namePrefix) {
+    String namePrefixParam = ((namePrefix != null) ? (namePrefix + "%") : null);
+    final int charCount = ((namePrefix != null) ? namePrefix.length() + 1 : 1);
+
+    // TODO: change to the better query - this one is very expensive
+    return db.queryForList(
+        "SELECT DISTINCT SUBSTR(s.title, 0, ?) AS name_part FROM ice_sku AS s\n" +
+            "INNER JOIN ice_item AS i ON i.id=s.item_id\n" +
+            "INNER JOIN entity_type AS e ON e.id=i.type_id\n" +
+            "WHERE (e.name=?) AND (? IS NULL OR s.title LIKE ?)\n" +
+            "ORDER BY name_part",
+        String.class, charCount, type, namePrefixParam, namePrefixParam);
   }
 
   @Override

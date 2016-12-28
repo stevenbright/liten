@@ -26,6 +26,9 @@ import static org.junit.Assert.assertTrue;
 @ContextConfiguration(locations = "/spring/CatalogDaoTest-context.xml")
 @Transactional
 public final class CatalogDaoTest {
+  private static final long EN = 100L;
+  private static final long RU = 101L;
+
   @Resource CatalogUpdaterDao updaterDao;
   @Resource CatalogQueryDao queryDao;
 
@@ -207,6 +210,32 @@ public final class CatalogDaoTest {
         .build()).stream().map(IceRelation::getRelatedItemId).collect(Collectors.toList()));
   }
 
+  @Test
+  public void shouldFilterByNamePrefix() {
+    // Test missing hints
+    assertEquals(emptyList(), queryDao.getSkuNameHints("book", null));
+    assertEquals(emptyList(), queryDao.getSkuNameHints("book", "A"));
+
+    // Given:
+    addLanguage(EN, "en");
+    addLanguage(RU, "ru");
+
+    addEntity(1000, "book", "Йййй", "Yyyy");
+    addEntity(1001, "book", "Йййв", "Yyyv");
+    addEntity(1002, "book", "Йййб", "Yyyb");
+    addEntity(1003, "book", "Ййлй", "Yyly");
+    addEntity(1004, "book", "Абв", "ABC");
+    addEntity(1005, "book", "Абг", "ABD");
+    addEntity(1006, "genre", "Искусство", "Аrt");
+    addEntity(1007, "genre", "Иога", "Yoga");
+
+    assertEquals(asList("Y", "А", "И"), queryDao.getSkuNameHints("genre", null));
+    assertEquals(asList("A", "Y", "А", "Й"), queryDao.getSkuNameHints("book", null));
+
+    assertEquals(asList("Ио", "Ис"), queryDao.getSkuNameHints("genre", "И"));
+    assertEquals(singletonList("AB"), queryDao.getSkuNameHints("book", "A"));
+  }
+
   //
   // Private
   //
@@ -222,7 +251,24 @@ public final class CatalogDaoTest {
     return id;
   }
 
+  private long addEntity(long id, String type, String ruName, String enName) {
+    updaterDao.addEntry(IceEntry.newBuilder()
+        .setItem(IceItem.newBuilder().setId(id).setType(type).build())
+        .addSku(IceSku.newBuilder()
+            .setId(id * 2)
+            .setLanguageId(EN)
+            .setTitle(enName)
+            .build())
+        .addSku(IceSku.newBuilder()
+            .setId(id * 2 + 1)
+            .setLanguageId(RU)
+            .setTitle(ruName)
+            .build())
+        .build());
+    return id;
+  }
+
   private long addEnLanguage() {
-    return addLanguage(100L, "en");
+    return addLanguage(EN, "en");
   }
 }
