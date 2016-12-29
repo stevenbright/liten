@@ -55,12 +55,12 @@ public final class IceEntryQuery extends PageQuery {
       return new IceEntryQuery(type, namePrefix, startItemId, limit);
     }
 
-    public Builder setType(String value) {
+    public Builder setType(@Nullable String value) {
       this.type = value;
       return this;
     }
 
-    public Builder setNamePrefix(String value) {
+    public Builder setNamePrefix(@Nullable String value) {
       this.namePrefix = value;
       return this;
     }

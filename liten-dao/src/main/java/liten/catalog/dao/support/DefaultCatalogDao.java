@@ -11,6 +11,7 @@ import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -148,12 +149,15 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
 
   @Override
   public List<IceEntry> getEntries(IceEntryQuery query) {
+    final boolean hasType = StringUtils.hasLength(query.getType());
+    final boolean hasNamePrefix = StringUtils.hasLength(query.getNamePrefix());
+
     final StringBuilder builder = new StringBuilder(256);
     final List<Object> params = new ArrayList<>();
 
     builder.append("SELECT i.id FROM ice_item AS i\n");
 
-    if (query.getNamePrefix() != null) {
+    if (hasNamePrefix) {
       builder.append("INNER JOIN ice_sku AS s ON s.item_id = i.id\n");
     }
 
@@ -164,14 +168,14 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
       next = true;
     }
 
-    if (query.getType() != null) {
+    if (hasType) {
       final Long typeId = getTypeIdByName(query.getType());
       builder.append(next ? " AND " : "WHERE ").append("(i.type_id = ?)");
       params.add(typeId);
       next = true;
     }
 
-    if (query.getNamePrefix() != null) {
+    if (hasNamePrefix) {
       builder.append(next ? " AND " : "WHERE ").append("(s.title >= ? AND s.title < ?)");
 
       // prepare end prefix
@@ -191,7 +195,7 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
       log.trace("Raw getEntries query: {}", builder);
     }
 
-    if (query.getNamePrefix() != null) {
+    if (hasNamePrefix) {
       // order by title
       builder.append(" ORDER BY s.title ASC");
     } else {

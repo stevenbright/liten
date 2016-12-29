@@ -4,7 +4,7 @@
 
 <@page.common title="Catalog Index">
 
-<h2>Catalog Index</h2>
+<h2>Catalog Index<small>&nbsp;&nbsp;&raquo; ${itemType}</small></h2>
 
 <#-- Filtering labels -->
 <div class="container">

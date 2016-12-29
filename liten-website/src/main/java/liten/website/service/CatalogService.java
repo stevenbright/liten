@@ -15,5 +15,6 @@ public interface CatalogService {
   IceEntryAdapter getEntry(long id, String userLanguage);
 
   PaginationHelper<IceEntryAdapter> getPaginationHelper(String userLanguage,
-                                                        @Nullable String type);
+                                                        @Nullable String type,
+                                                        @Nullable String namePrefix);
 }

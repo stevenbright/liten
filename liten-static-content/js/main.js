@@ -3,15 +3,19 @@ import $ from 'jquery';
 
 import {setUpPaginationHandlers} from './logic/pagination';
 import {setUpFavoritesHandlers} from './logic/favorites';
+import {setUpCustomDispatcher} from './logic/custom-dispatcher'
 
 // Set up global handlers
 setUpPaginationHandlers();
 setUpFavoritesHandlers();
 
+// Set up custom page dispatcher code
+setUpCustomDispatcher();
+
 $(document).ready(function () {
   $('#javascript-alert').remove();
-  console.log('BTF loaded #2');
+  console.log('BTF loaded #1');
 });
 
-// make jQuery globally available
+// make jQuery globally available (for bootstrap)
 window.jQuery = $;

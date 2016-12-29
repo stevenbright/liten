@@ -8,6 +8,9 @@ import liten.website.model.PaginationHelper;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -25,8 +28,10 @@ public final class DefaultCatalogService implements CatalogService {
   }
 
   @Override
-  public PaginationHelper<IceEntryAdapter> getPaginationHelper(String userLanguage, @Nullable String type) {
-    return new IceEntryPaginationHelper(queryDao, userLanguage, type);
+  public PaginationHelper<IceEntryAdapter> getPaginationHelper(String userLanguage,
+                                                               @Nullable String type,
+                                                               @Nullable String namePrefix) {
+    return new IceEntryPaginationHelper(queryDao, userLanguage, type, namePrefix);
   }
 
   @Override
@@ -102,11 +107,16 @@ public final class DefaultCatalogService implements CatalogService {
     private final CatalogQueryDao queryDao;
     private final String userLanguage;
     private final String type;
+    private final String namePrefix;
 
-    IceEntryPaginationHelper(CatalogQueryDao queryDao, String userLanguage, @Nullable String type) {
+    IceEntryPaginationHelper(CatalogQueryDao queryDao,
+                             String userLanguage,
+                             @Nullable String type,
+                             @Nullable String namePrefix) {
       this.queryDao = queryDao;
       this.userLanguage = userLanguage;
       this.type = type;
+      this.namePrefix = namePrefix;
     }
 
     @Override
@@ -115,6 +125,7 @@ public final class DefaultCatalogService implements CatalogService {
           .setStartItemId(startItemId)
           .setLimit(limit)
           .setType(type)
+          .setNamePrefix(namePrefix)
           .build());
 
       return entries.stream()
@@ -129,14 +140,21 @@ public final class DefaultCatalogService implements CatalogService {
 
     @Override
     protected String createNextUrl(long startItemId, int limit) {
-      final StringBuilder builder = new StringBuilder(100);
-      builder.append("/g/cat/part/entries?startItemId=").append(startItemId);
-      builder.append("&limit=").append(limit);
-      if (type != null) {
-        builder.append("&type=").append(type);
-      }
+      try {
+        final StringBuilder builder = new StringBuilder(100);
+        builder.append("/g/cat/part/entries?startItemId=").append(startItemId);
+        builder.append("&limit=").append(limit);
+        if (type != null) {
+            builder.append("&type=").append(URLEncoder.encode(type, StandardCharsets.UTF_8.name()));
+        }
+        if (namePrefix != null) {
+          builder.append("&namePrefix=").append(URLEncoder.encode(namePrefix, StandardCharsets.UTF_8.name()));
+        }
 
-      return builder.toString();
+        return builder.toString();
+      } catch (UnsupportedEncodingException e) {
+        throw new IllegalStateException(e); // should not happen
+      }
     }
   }
 }
