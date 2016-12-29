@@ -40,6 +40,11 @@ public final class DefaultCatalogService implements CatalogService {
     return getEntryAdapter(queryDao, userLanguage, entry);
   }
 
+  public List<String> getSkuNameHints(@Nullable String type,
+                                      @Nullable String namePrefix) {
+    return queryDao.getSkuNameHints(type, namePrefix);
+  }
+
   /*
   TODO: use cache below
 

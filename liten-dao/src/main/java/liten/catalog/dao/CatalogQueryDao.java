@@ -16,7 +16,7 @@ public interface CatalogQueryDao {
 
   IceItem getItem(long itemId);
 
-  List<String> getSkuNameHints(String type, @Nullable String namePrefix);
+  List<String> getSkuNameHints(@Nullable String type, @Nullable String namePrefix);
 
   IceEntry getEntry(long itemId);
 
