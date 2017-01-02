@@ -33,8 +33,10 @@
           <li><a href="/g/cat/hints">Hints</a></li>
           <li class="nav-divider"></li>
           <li><a href="/g/about">About</a></li>
-          <li class="nav-divider"></li>
-          <li><a href="/g/logout">Logout</a></li>
+          <#if userAccount??>
+            <li class="nav-divider"></li>
+            <li><a href="/g/logout">Logout</a></li>
+          </#if>
         </ul>
         <ul class="nav navbar-nav navbar-right">
           <li>
