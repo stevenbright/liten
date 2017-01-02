@@ -27,12 +27,17 @@ public final class PublicPageController extends BaseHtmlController {
   public ModelAndView index() {
     return new ModelAndView("page/index", "currentTime", System.currentTimeMillis());
   }
-  
+
   @RequestMapping("/about")
   public ModelAndView about() {
     final Map<String, Object> params = newMapWithAccount();
     params.put("userId", hasUserAccount() ? getUserId() : -1L);
     params.put("currentTime", System.currentTimeMillis());
     return new ModelAndView("page/about", params);
+  }
+
+  @RequestMapping("/profile")
+  public String profile() {
+    return "page/profile";
   }
 }
