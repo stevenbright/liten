@@ -4,12 +4,13 @@ import com.truward.orion.user.service.spring.SecurityControllerMixin;
 import liten.dao.model.ModelWithId;
 import liten.website.exception.ResourceNotFoundException;
 import liten.website.model.IceEntryAdapter;
-import liten.website.model.IceNameHint;
 import liten.website.model.PaginationHelper;
 import liten.website.service.DefaultCatalogService;
+import liten.website.util.RequestParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,13 +19,12 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.io.UnsupportedEncodingException;
+import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author Alexander Shabanov
@@ -47,6 +47,10 @@ public final class CatalogPageController implements SecurityControllerMixin, Loc
       @RequestParam(value = "limit", required = false) @Nullable Integer limit,
       @RequestParam(value = "type", required = false) @Nullable String type,
       @RequestParam(value = "namePrefix", required = false) @Nullable String namePrefix) {
+    // normalize string parameters
+    type = RequestParams.getEmptyAsNull(type);
+    namePrefix = RequestParams.getEmptyAsNull(namePrefix);
+
     final Map<String, Object> params = catalogService.getPaginationHelper(getUserLanguage(), type, namePrefix)
         .newModelWithItemsOpt(startItemId, limit);
 
@@ -54,29 +58,46 @@ public final class CatalogPageController implements SecurityControllerMixin, Loc
   }
 
   @RequestMapping("/index")
-  public ModelAndView index(@RequestParam(value = "limit", required = false) @Nullable Integer limit,
-                            @RequestParam(value = "type", required = false) @Nullable String type,
-                            @RequestParam(value = "namePrefix", required = false) @Nullable String namePrefix) {
+  public ModelAndView index(
+      @RequestParam(value = "limit", required = false) @Nullable Integer limit,
+      @RequestParam(value = "type", required = false) @Nullable String type,
+      @RequestParam(value = "namePrefix", required = false) @Nullable String namePrefix
+  ) throws IOException {
+    // normalize string parameters
+    type = RequestParams.getEmptyAsNull(type);
+    namePrefix = RequestParams.getEmptyAsNull(namePrefix);
+
     final String displayTitleForItemType = getDisplayTitleForItemType(type);
 
     final Map<String, Object> params = catalogService.getPaginationHelper(getUserLanguage(), type, namePrefix)
         .newModelWithItems(ModelWithId.INVALID_ID, limit != null ? limit : PaginationHelper.DEFAULT_LIMIT);
-    params.put("itemType", displayTitleForItemType);
+    params.put("displayItemTypeTitle", displayTitleForItemType);
 
     return new ModelAndView("page/catalog/index", params);
   }
 
   @RequestMapping("/hints")
-  public ModelAndView hints(@RequestParam(value = "type", required = false) @Nullable String type,
-                            @RequestParam(value = "namePrefix", required = false) @Nullable String namePrefix) {
+  public String hints(
+      @RequestParam(value = "type", required = false) @Nullable String type,
+      @RequestParam(value = "namePrefix", required = false) @Nullable String namePrefix,
+      Model model
+  ) throws IOException {
+    // normalize string parameters
+    type = RequestParams.getEmptyAsNull(type);
+    namePrefix = RequestParams.getEmptyAsNull(namePrefix);
+
+    if (namePrefix != null && namePrefix.length() >= 3) {
+      return getIndexRedirectDirective(namePrefix, type);
+    }
+
     final String displayTitleForItemType = getDisplayTitleForItemType(type);
 
     final List<String> namePrefixList = catalogService.getSkuNameHints(type, namePrefix);
-    final Map<String, Object> params = new HashMap<>();
-    params.put("itemType", displayTitleForItemType);
-    params.put("nameHintList", namePrefixList.stream().map(n -> getNameHint(n, type)).collect(Collectors.toList()));
+    model.addAttribute("type", type != null ? type : "");
+    model.addAttribute("displayItemTypeTitle", displayTitleForItemType);
+    model.addAttribute("namePrefixList", namePrefixList);
 
-    return new ModelAndView("page/catalog/hints", params);
+    return "page/catalog/hints";
   }
 
   @RequestMapping("/item/{id}")
@@ -95,10 +116,21 @@ public final class CatalogPageController implements SecurityControllerMixin, Loc
   // Private
   //
 
+  private static String getIndexRedirectDirective(String namePrefix, @Nullable String type) throws IOException {
+    final StringBuilder redirectBuilder = new StringBuilder(100);
+    redirectBuilder.append("redirect:/g/cat/index?namePrefix=");
+    redirectBuilder.append(URLEncoder.encode(namePrefix, StandardCharsets.UTF_8.name()));
+    if (type != null) {
+      redirectBuilder.append("&type=");
+      redirectBuilder.append(URLEncoder.encode(type, StandardCharsets.UTF_8.name()));
+    }
+    return redirectBuilder.toString();
+  }
+
   private String getDisplayTitleForItemType(@Nullable String type) {
     // TODO: return localized string!
 
-    if (!StringUtils.hasLength(type)) {
+    if (type == null) {
       return "All";
     }
 
@@ -121,35 +153,5 @@ public final class CatalogPageController implements SecurityControllerMixin, Loc
       default:
         throw new ResourceNotFoundException("Unknown item type");
     }
-  }
-
-  private static IceNameHint getNameHint(String namePrefix, @Nullable String type) {
-    try {
-      return new IceNameHint(namePrefix,
-          getNameHintOrFilterUrl("hints", type, namePrefix),
-          getNameHintOrFilterUrl("index", type, namePrefix));
-    } catch (UnsupportedEncodingException e) {
-      throw new IllegalStateException(e);
-    }
-  }
-
-  private static String getNameHintOrFilterUrl(String resourcePart,
-                                               @Nullable String type,
-                                               String namePrefix) throws UnsupportedEncodingException {
-    final StringBuilder result = new StringBuilder(100);
-    result.append("/g/cat/").append(resourcePart);
-
-    boolean next = false;
-    if (StringUtils.hasLength(type)) {
-      result.append("?type=").append(URLEncoder.encode(type, StandardCharsets.UTF_8.name()));
-      next = true;
-    }
-
-    if (StringUtils.hasLength(namePrefix)) {
-      result.append(next ? '&' : '?');
-      result.append("namePrefix=").append(URLEncoder.encode(namePrefix, StandardCharsets.UTF_8.name()));
-    }
-
-    return result.toString();
   }
 }

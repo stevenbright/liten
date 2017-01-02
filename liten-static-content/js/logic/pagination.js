@@ -5,7 +5,7 @@ import {appendFadeInHtmlBlock} from '../ui/effects';
 const NEXT_OPEN_TAG     = '<next>';
 const NEXT_CLOSE_TAG    = '</next>';
 
-function fetchAndAppendHtml($list, $loadButton) {
+function fetchAndAppendHtml($list, $loadButton, $loadButtons) {
   const pageUrl = $loadButton.attr('next-url');
   const $deferred = $.ajax(pageUrl);
 
@@ -30,8 +30,8 @@ function fetchAndAppendHtml($list, $loadButton) {
 
       $loadButton.attr('next-url', nextUrl);
     } else {
-      // nothing left to load, disable load button
-      $loadButton.remove();
+      // nothing left to load, disable load buttons
+      $loadButtons.remove();
     }
 
     appendFadeInHtmlBlock($list, htmlPageString);
@@ -47,6 +47,13 @@ export function setUpPaginationHandlers() {
       return;
     }
 
-    fetchAndAppendHtml($targetList, $(this));
+    const loadButtonsClass = $(this).attr('load-button-class');
+    const $loadButtons = $('.' + loadButtonsClass);
+    if ($loadButtons.length === 0) {
+      console.warn('Load buttons class is missing for load button', this);
+      return;
+    }
+
+    fetchAndAppendHtml($targetList, $(this), $loadButtons);
   });
 }

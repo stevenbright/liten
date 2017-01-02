@@ -4,7 +4,7 @@
 
 <@page.common title="Catalog Hints">
 
-<h2>Catalog Hints<small>&nbsp;&nbsp;&raquo; ${itemType}</small></h2>
+<h2>Catalog Hints<small>&nbsp;&nbsp;&raquo; ${displayItemTypeTitle}</small></h2>
 
 <#-- Filtering labels -->
 <div class="container">
@@ -29,17 +29,8 @@
   <div class="row">
     <div class="col-md-12">
       <div>
-        <#list nameHintList as nameHint>
-          <div class="btn-group">
-            <a class="btn btn-default" href="${nameHint.moreHintsUrl}">${nameHint.prefix}&nbsp;&hellip;</a>
-            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <span class="caret"></span>
-              <span class="sr-only">Toggle Dropdown</span>
-            </button>
-            <ul class="dropdown-menu">
-              <li><a href="${nameHint.itemsFilterUrl}">Show items starting with '${nameHint.prefix}'</a></li>
-            </ul>
-          </div>
+        <#list namePrefixList as namePrefix>
+          <span class="named-value-elem"><a href="/g/cat/hints?namePrefix=${namePrefix?url}&type=${type!""?url}"><strong>${namePrefix}</strong>&nbsp;<small>&hellip;</small></a></span>
         </#list>
       </div><#-- namePrefix container -->
     </div><#-- column -->

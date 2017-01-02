@@ -87,4 +87,20 @@
 <#if entry.downloadUrlPresent>
 <h3><a href="${entryModel.downloadUrl}">Download&nbsp;<span class="glyphicon glyphicon-download" aria-hidden="true"></span></a></h3>
 </#if>
-</#macro>
+</#macro><#-- macro itemDetails -->
+
+<#macro filterButtonGroup>
+<div class="btn-group">
+  <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    Filter by Type <span class="caret"></span>
+  </button>
+  <ul class="dropdown-menu">
+    <li><a href="/g/cat/index?type=author">Authors</a></li>
+    <li><a href="/g/cat/index?type=genre">Genres</a></li>
+    <li><a href="/g/cat/index?type=book">Book</a></li>
+    <li><a href="/g/cat/index?type=origin">Origins</a></li>
+    <li role="separator" class="divider"></li>
+    <li><a href="/g/cat/index">No Type Filter</a></li>
+  </ul>
+</div>
+</#macro><#-- macro itemListControls -->

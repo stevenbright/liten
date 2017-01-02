@@ -4,38 +4,34 @@
 
 <@page.common title="Catalog Index">
 
-<h2>Catalog Index<small>&nbsp;&nbsp;&raquo; ${itemType}</small></h2>
+<h2>Catalog Index<small>&nbsp;&nbsp;&raquo; ${displayItemTypeTitle}</small></h2>
 
 <#-- Filtering labels -->
 <div class="container">
   <div class="row">
     <div class="col-md-6">
-      <@p.loadMoreButton nextUrl=nextUrl targetListSelector="#catalog-items" />
+      <@p.loadMoreButton nextUrl=nextUrl targetListSelector="#catalog-items" loadButtonClass="btn-catalog-pagination" />
     </div>
     <div class="col-md-6">
-      <div class="btn-group">
-        <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          Filter by Type <span class="caret"></span>
-        </button>
-        <ul class="dropdown-menu">
-          <li><a href="/g/cat/index?type=author">Authors</a></li>
-          <li><a href="/g/cat/index?type=genre">Genres</a></li>
-          <li><a href="/g/cat/index?type=book">Book</a></li>
-          <li><a href="/g/cat/index?type=origin">Origins</a></li>
-          <li role="separator" class="divider"></li>
-          <li><a href="/g/cat/index">No Type Filter</a></li>
-        </ul>
-      </div>
+      <@cat.filterButtonGroup/>
     </div>
-  </div>
+  </div><#-- row (upper controls) -->
+  <div class="row">
+    <div class="col-md-12">
+      <ul id="catalog-items" class="catalog-list">
+      <@cat.itemList listModel=items />
+      </ul>
+    </div>
+  </div><#-- row (main content) -->
+  <div class="row">
+    <div class="col-md-6">
+      <@p.loadMoreButton nextUrl=nextUrl targetListSelector="#catalog-items" loadButtonClass="btn-catalog-pagination" />
+    </div>
+    <div class="col-md-6">
+      <@cat.filterButtonGroup/>
+    </div>
+  </div><#-- row (bottom controls) -->
 </div>
 <br/>
-
-<#-- Main Content -->
-<div>
-  <ul id="catalog-items" class="catalog-list">
-  <@cat.itemList listModel=items />
-  </ul>
-</div>
 
 </@page.common>

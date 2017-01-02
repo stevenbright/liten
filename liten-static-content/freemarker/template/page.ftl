@@ -29,9 +29,10 @@
       </div>
       <div class="collapse navbar-collapse" id="g-app-navbar-collapse">
         <ul class="nav navbar-nav">
-          <li><a href="#">Articles</a></li>
+          <li><a href="/g/cat/index">Listing</a></li>
+          <li><a href="/g/cat/hints">Hints</a></li>
           <li class="nav-divider"></li>
-          <li><a href="#">About</a></li>
+          <li><a href="/g/about">About</a></li>
           <li class="nav-divider"></li>
           <li><a href="/g/logout">Logout</a></li>
         </ul>
