@@ -17,7 +17,7 @@ import java.util.Date;
 @Controller
 @RequestMapping("/g/download")
 @ParametersAreNonnullByDefault
-public final class DownloadController {
+public final class DownloadController extends BaseHtmlController {
 
   @RequestMapping("/origin/{originId}/item/{itemId}")
   public String getDownloadUrl(@PathVariable("originId") long originId,
@@ -35,7 +35,7 @@ public final class DownloadController {
   @RequestMapping("/demo/text/{id}")
   @ResponseBody
   public ResponseEntity<String> demoText(@PathVariable("id") String id) {
-    final StringBuilder testContent = new StringBuilder(100);
+    @SuppressWarnings("StringBufferReplaceableByString") final StringBuilder testContent = new StringBuilder(100);
     testContent.append("Test File\n");
     testContent.append("ID: ").append(id).append('\n');
     testContent.append("Generated at ").append(new Date()).append('\n');

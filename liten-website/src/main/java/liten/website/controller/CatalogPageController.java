@@ -1,6 +1,5 @@
 package liten.website.controller;
 
-import com.truward.orion.user.service.spring.SecurityControllerMixin;
 import liten.dao.model.ModelWithId;
 import liten.website.exception.ResourceNotFoundException;
 import liten.website.model.IceEntryAdapter;
@@ -11,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -32,7 +30,7 @@ import java.util.Map;
 @Controller
 @RequestMapping("/g/cat")
 @ParametersAreNonnullByDefault
-public final class CatalogPageController implements SecurityControllerMixin, LocaleControllerMixin {
+public final class CatalogPageController extends BaseHtmlController {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
   private final DefaultCatalogService catalogService;

@@ -1,6 +1,5 @@
 package liten.website.controller;
 
-import com.truward.orion.user.service.spring.SecurityControllerMixin;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -14,7 +13,7 @@ import java.util.Map;
  */
 @Controller
 @RequestMapping("/g/")
-public final class PublicPageController implements SecurityControllerMixin {
+public final class PublicPageController extends BaseHtmlController {
 
   @RequestMapping("/login")
   public ModelAndView login(@RequestParam(value = "error", required = false) String loginError) {
@@ -28,7 +27,7 @@ public final class PublicPageController implements SecurityControllerMixin {
   public ModelAndView index() {
     return new ModelAndView("page/index", "currentTime", System.currentTimeMillis());
   }
-
+  
   @RequestMapping("/about")
   public ModelAndView about() {
     final Map<String, Object> params = newMapWithAccount();
