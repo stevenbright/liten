@@ -6,9 +6,9 @@
 
 <h2>Catalog Index<small>&nbsp;&nbsp;&raquo; ${displayItemTypeTitle}</small></h2>
 
-<#-- Filtering labels -->
 <div class="container">
   <div class="row">
+    <#-- Filtering labels -->
     <div class="col-md-6">
       <@p.loadMoreButton nextUrl=nextUrl targetListSelector="#catalog-items" loadButtonClass="btn-catalog-pagination" />
     </div>
@@ -32,6 +32,5 @@
     </div>
   </div><#-- row (bottom controls) -->
 </div>
-<br/>
 
 </@page.common>

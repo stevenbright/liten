@@ -10,8 +10,25 @@
 <p>If you did enable javascript prior to getting this page, please, update your browser.</p>
 </div>
 
-<ul>
-  <li><a href="/g/cat/index">Catalog Index</a></li>
-</ul>
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      <h3>Favorites</h3>
+      <p>TBD</p>
+    </div>
+  </div><#-- row (favorites) -->
+  <div class="row">
+    <div class="col-md-12">
+      <h3>Recent Additions</h3>
+      <p>TBD</p>
+    </div>
+  </div><#-- row (recent additions) -->
+  <div class="row">
+    <div class="col-md-12">
+      <h3>Recommendations</h3>
+      <p>TBD</p>
+    </div>
+  </div><#-- row (recommendations) -->
+</div>
 
 </@page.common>

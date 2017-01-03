@@ -4,7 +4,7 @@ import liten.dao.model.ModelWithId;
 import liten.website.exception.ResourceNotFoundException;
 import liten.website.model.IceEntryAdapter;
 import liten.website.model.PaginationHelper;
-import liten.website.service.DefaultCatalogService;
+import liten.website.service.CatalogService;
 import liten.website.util.RequestParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,9 +33,9 @@ import java.util.Map;
 public final class CatalogPageController extends BaseHtmlController {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  private final DefaultCatalogService catalogService;
+  private final CatalogService catalogService;
 
-  public CatalogPageController(DefaultCatalogService catalogService) {
+  public CatalogPageController(CatalogService catalogService) {
     this.catalogService = catalogService;
   }
 
