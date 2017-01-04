@@ -3,6 +3,7 @@ package liten.website.service;
 import liten.catalog.dao.CatalogQueryDao;
 import liten.catalog.dao.CatalogUpdaterDao;
 import liten.catalog.dao.model.*;
+import liten.dao.model.ModelWithId;
 import liten.website.model.IceEntryAdapter;
 import liten.website.model.PaginationHelper;
 
@@ -35,7 +36,7 @@ public final class DefaultCatalogService implements CatalogService {
   }
 
   @Override
-  public IceEntryAdapter getEntry(long id, String userLanguage) {
+  public IceEntryAdapter getDetailedEntry(long id, String userLanguage) {
     final IceEntry entry = queryDao.getEntry(id);
     return getEntryAdapter(queryDao, userLanguage, entry);
   }
@@ -43,6 +44,11 @@ public final class DefaultCatalogService implements CatalogService {
   public List<String> getSkuNameHints(@Nullable String type,
                                       @Nullable String namePrefix) {
     return queryDao.getSkuNameHints(type, namePrefix);
+  }
+
+  @Override
+  public PaginationHelper<IceEntryAdapter> getRightRelationEntries(long id, String userLanguage) {
+    return new IceEntryRelationsPaginationHelper(queryDao, userLanguage, id);
   }
 
   /*
@@ -68,11 +74,12 @@ public final class DefaultCatalogService implements CatalogService {
   private static IceEntryAdapter getEntryAdapter(CatalogQueryDao queryDao,
                                                  String userLanguage,
                                                  IceEntry entry) {
-    List<IceEntry> relatedEntries = new ArrayList<>();
-    Map<String, List<IceEntry>> fromRelations = new HashMap<>();
+    final List<IceEntry> relatedEntries = new ArrayList<>();
+    final Map<String, List<IceEntry>> fromRelations = new HashMap<>();
+    final String itemType = entry.getItem().getType();
 
-    if (entry.getItem().getType().equals("book")) {
-      // get relations
+    if (itemType.equals("book")) {
+      // get incoming relations2
       final List<IceRelation> relations = queryDao.getRelations(IceRelationQuery.newBuilder()
           .setLimit(100)
           .setRelatedItemId(entry.getItem().getId())
@@ -106,6 +113,48 @@ public final class DefaultCatalogService implements CatalogService {
     }
 
     return new IceEntryAdapter(entry, relatedEntries, defaultSkuEntry, fromRelations);
+  }
+
+  private static final class IceEntryRelationsPaginationHelper extends PaginationHelper<IceEntryAdapter> {
+    private final CatalogQueryDao queryDao;
+    private final String userLanguage;
+    private final long itemId;
+
+    public IceEntryRelationsPaginationHelper(CatalogQueryDao queryDao, String userLanguage, long itemId) {
+      this.queryDao = queryDao;
+      this.userLanguage = userLanguage;
+      this.itemId = ModelWithId.requireValidId(itemId, "itemId");
+    }
+
+    @Override
+    protected List<IceEntryAdapter> getItemList(long startItemId, int limit) {
+      final List<IceRelation> relations = queryDao.getRelations(IceRelationQuery.newBuilder()
+          .setRelatedItemId(itemId)
+          .setDirection(IceRelationQuery.Direction.RIGHT)
+          .setStartItemId(startItemId)
+          .setLimit(limit)
+          .build());
+
+      return relations
+          .stream()
+          .map(rel -> getEntryAdapter(queryDao, userLanguage, queryDao.getEntry(rel.getRelatedItemId())))
+          .collect(Collectors.toList());
+    }
+
+    @Override
+    protected long getItemId(IceEntryAdapter item) {
+      return item.getItem().getId();
+    }
+
+    @Override
+    protected String createNextUrl(long startItemId, int limit) {
+      //noinspection StringBufferReplaceableByString
+      final StringBuilder builder = new StringBuilder(100);
+      builder.append("/g/cat/part/").append(itemId);
+      builder.append("/right?startItemId=").append(startItemId);
+      builder.append("&limit=").append(limit);
+      return builder.toString();
+    }
   }
 
   private static final class IceEntryPaginationHelper extends PaginationHelper<IceEntryAdapter> {

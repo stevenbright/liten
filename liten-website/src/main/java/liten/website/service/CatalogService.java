@@ -13,12 +13,16 @@ import java.util.List;
 @ParametersAreNonnullByDefault
 public interface CatalogService {
 
-  List<String> getSkuNameHints(@Nullable String type,
-                               @Nullable String namePrefix);
+  List<String> getSkuNameHints(@Nullable String type, @Nullable String namePrefix);
 
-  IceEntryAdapter getEntry(long id, String userLanguage);
+  IceEntryAdapter getDetailedEntry(long id, String userLanguage);
 
-  PaginationHelper<IceEntryAdapter> getPaginationHelper(String userLanguage,
-                                                        @Nullable String type,
-                                                        @Nullable String namePrefix);
+  PaginationHelper<IceEntryAdapter> getPaginationHelper(
+      String userLanguage,
+      @Nullable String type,
+      @Nullable String namePrefix
+  );
+
+  // e.g. author's books
+  PaginationHelper<IceEntryAdapter> getRightRelationEntries(long id, String userLanguage);
 }

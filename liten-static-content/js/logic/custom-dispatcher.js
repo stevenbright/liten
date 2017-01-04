@@ -1,11 +1,14 @@
 
 import $ from 'jquery';
+import {appendFadeInHtmlBlock} from '../ui/effects';
+
+function catalogIndexHandler() {
+  console.log("Activating catalog index page handler");
+}
 
 const PATHNAME_HANDLERS = {
 
-  '/g/cat/index': function catalogIndexHandler() {
-    console.log("Activating catalog index page handler");
-  }
+  '/g/cat/index': catalogIndexHandler
 }
 
 export function setUpCustomDispatcher() {

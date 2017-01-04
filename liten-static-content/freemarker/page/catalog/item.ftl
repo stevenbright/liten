@@ -25,8 +25,10 @@
 </#if>
 
 </div><#-- Item Details Row -->
-
-
 </div><#-- Container -->
+
+<#-- Related items list (if any) -->
+<div class="related-items deferred-load" deferred-load-url="${nextRightRelationEntriesUrl}">
+</div>
 
 </@page.common>

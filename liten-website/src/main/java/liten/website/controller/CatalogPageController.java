@@ -23,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author Alexander Shabanov
@@ -53,6 +54,26 @@ public final class CatalogPageController extends BaseHtmlController {
         .newModelWithItemsOpt(startItemId, limit);
 
     return new ModelAndView("part/catalog/entries", params);
+  }
+
+  @RequestMapping("/part/{itemId}/right")
+  public ModelAndView rightRelationsPart(
+      @PathVariable("itemId") long itemId,
+      @RequestParam(value = "startItemId", required = false) @Nullable Long startItemId,
+      @RequestParam(value = "limit", required = false) @Nullable Integer limit
+  ) {
+    final Map<String, Object> params = catalogService.getRightRelationEntries(itemId,
+        getUserLanguage()).newModelWithItemsOpt(startItemId, limit);
+
+    return new ModelAndView("part/catalog/entries", params);
+  }
+
+  @RequestMapping("/part/{itemId}/right/container")
+  public ModelAndView rightRelationsPartContainer(@PathVariable("itemId") long itemId) {
+    final Map<String, Object> params = catalogService.getRightRelationEntries(itemId,
+        getUserLanguage()).newModelWithItemsOpt(ModelWithId.INVALID_ID, PaginationHelper.DEFAULT_LIMIT);
+
+    return new ModelAndView("part/catalog/rightEntriesContainer", params);
   }
 
   @RequestMapping("/index")
@@ -100,12 +121,13 @@ public final class CatalogPageController extends BaseHtmlController {
 
   @RequestMapping("/item/{id}")
   public ModelAndView detailPage(@PathVariable("id") long id) {
-    final IceEntryAdapter entry = catalogService.getEntry(id, getUserLanguage());
+    final IceEntryAdapter entry = catalogService.getDetailedEntry(id, getUserLanguage());
     log.trace("entry={}", entry);
 
     final Map<String, Object> params = new HashMap<>();
     params.put("currentTime", System.currentTimeMillis());
     params.put("entry", entry);
+    params.put("nextRightRelationEntriesUrl", "/g/cat/part/" + entry.getId() + "/right/container");
 
     return new ModelAndView("page/catalog/item", params);
   }
