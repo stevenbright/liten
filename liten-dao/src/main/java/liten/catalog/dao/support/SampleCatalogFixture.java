@@ -11,6 +11,7 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Defines fixture data for catalog
@@ -45,6 +46,8 @@ public final class SampleCatalogFixture {
   private static final long BOOK6       = 505L;
   private static final long BOOK7       = 506L;
   private static final long BOOK8       = 507L;
+
+  private static long CUSTOM_ENTITY_LAST = 1000;
 
   public static void addSampleData(CatalogUpdaterDao d) {
     addItem(d, EN, "en", "language", "English", "Английский");
@@ -115,6 +118,32 @@ public final class SampleCatalogFixture {
     d.setRelation(BOOK3, AUTHOR2, "author");
     d.setRelation(BOOK3, AUTHOR3, "author");
 
+    addSciFiStrugatskyNovel(d, "Отель «У Погибшего Альпиниста»", "Dead Mountaineer's Hotel");
+    addSciFiStrugatskyNovel(d, "Малыш", "Space Mowgli");
+    addSciFiStrugatskyNovel(d, "Пикник на обочине", "Roadside Picnic");
+    addSciFiStrugatskyNovel(d, "За миллиард лет до конца света", "Definitely Maybe");
+    addSciFiStrugatskyNovel(d, "Град обреченный", "The Doomed City");
+    addSciFiStrugatskyNovel(d, "Повесть о дружбе и недружбе", "Tale of Friendship and Non-friendship");
+    addSciFiStrugatskyNovel(d, "Жук в муравейнике", "Beetle in the Anthill");
+    addSciFiStrugatskyNovel(d, "Хромая судьба", "Limping Fate");
+    addSciFiStrugatskyNovel(d, "Волны гасят ветер", "The Time Wanderers");
+    addSciFiStrugatskyNovel(d, "Отягощённые злом", "Overburdened with Evil");
+    addSciFiStrugatskyNovel(d, "Второе нашествие марсиан", "The Second Invasion from Mars");
+    addSciFiStrugatskyNovel(d, "Сказка о Тройке", "Tale of the Troika");
+    addSciFiStrugatskyNovel(d, "Обитаемый остров", "Prisoners of Power");
+    addSciFiStrugatskyNovel(d, "Беспокойство", "Disquiet");
+    addSciFiStrugatskyNovel(d, "Улитка на склоне", "Snail on the Slope");
+    addSciFiStrugatskyNovel(d, "Попытка к бегству", "Escape Attempt");
+    addSciFiStrugatskyNovel(d, "Далёкая Радуга", "Far Rainbow");
+    addSciFiStrugatskyNovel(d, "Трудно быть богом", "Hard to Be a God");
+    addSciFiStrugatskyNovel(d, "Понедельник начинается в субботу", "Monday Begins on Saturday");
+    addSciFiStrugatskyNovel(d, "Хищные вещи века", "The Final Circle of Paradise");
+    addSciFiStrugatskyNovel(d, "Извне", "From Beyond");
+    addSciFiStrugatskyNovel(d, "Путь на Амальтею", "Destination: Amaltheia");
+    addSciFiStrugatskyNovel(d, "Полдень, XXII век", "Noon: 22nd Century");
+    addSciFiStrugatskyNovel(d, "Стажеры", "Space Apprentice");
+    addSciFiStrugatskyNovel(d, "Гадкие лебеди", "The Ugly Swans");
+
     d.addEntry(IceEntry.newBuilder().setItem(IceItem.newBuilder().setId(BOOK4).setType("book").build())
         .addSku(IceSku.newBuilder().setId(2).setLanguageId(EN)
             .setTitle("Test 4").build()).build());
@@ -130,6 +159,27 @@ public final class SampleCatalogFixture {
     d.addEntry(IceEntry.newBuilder().setItem(IceItem.newBuilder().setId(BOOK8).setType("book").build())
         .addSku(IceSku.newBuilder().setId(2).setLanguageId(EN)
             .setTitle("Test 8").build()).build());
+  }
+
+  private static void addSciFiStrugatskyNovel(CatalogUpdaterDao d, String ruTitle, String enTitle) {
+    final long id = CUSTOM_ENTITY_LAST + 1;
+    CUSTOM_ENTITY_LAST = id + ThreadLocalRandom.current().nextInt(50) + 1;
+
+    d.addEntry(IceEntry.newBuilder().setItem(IceItem.newBuilder().setId(id).setType("book").build())
+        .addSku(IceSku.newBuilder().setId(1).setLanguageId(RU)
+            .setTitle(ruTitle).build())
+        .addInstance(1, IceInstance.newBuilder()
+            .setCreated(date("2012-10-24")).build())
+        .addSku(IceSku.newBuilder().setId(2).setLanguageId(EN)
+            .setTitle(enTitle).build())
+        .addInstance(2, IceInstance.newBuilder()
+            .setCreated(date("2012-11-02")).build())
+        .build());
+    d.setRelation(id, ORIGIN2, "origin");
+    d.setRelation(id, NOVEL, "genre");
+    d.setRelation(id, SCIFI, "genre");
+    d.setRelation(id, AUTHOR2, "author");
+    d.setRelation(id, AUTHOR3, "author");
   }
 
   public static UtcTime date(String strDate) {
