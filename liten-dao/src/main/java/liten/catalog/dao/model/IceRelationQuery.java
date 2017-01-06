@@ -55,8 +55,6 @@ public final class IceRelationQuery extends PageQuery {
     private Direction direction = Direction.LEFT;
     private Set<String> relationTypes = new HashSet<>();
     private long relatedItemId = ModelWithId.INVALID_ID;
-    private long startItemId = ModelWithId.INVALID_ID;
-    private int limit = DEFAULT_LIMIT;
 
     private Builder() {}
 

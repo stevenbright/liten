@@ -36,12 +36,31 @@ function fetchAndAppendHtml($list, $loadButton, $loadButtons) {
     parseNextPageUrl(htmlPageString, (nextUrl) => {
       $loadButton.attr('next-url', nextUrl);
     }, () => {
+      console.log("nothing to load, removing...");
       // nothing left to load, disable load buttons
       $loadButtons.remove();
     });
 
     appendFadeInHtmlBlock($list, htmlPageString);
   });
+}
+
+function loadMoreHandlerForElement() {
+  const targetListSel = $(this).attr('target-list');
+  const $targetList = $(targetListSel);
+  if ($targetList.length === 0) {
+    console.warn('Target list is missing for load button', this);
+    return;
+  }
+
+  const loadButtonsClass = $(this).attr('load-button-class');
+  const $loadButtons = $('.' + loadButtonsClass);
+  if ($loadButtons.length === 0) {
+    console.warn('Load buttons class is missing for load button', this);
+    return;
+  }
+
+  fetchAndAppendHtml($targetList, $(this), $loadButtons);
 }
 
 function loadDeferredForElement() {
@@ -62,21 +81,6 @@ function loadDeferredForElement() {
 export function setUpPaginationHandlers() {
   $('.deferred-load').each(loadDeferredForElement);
 
-  $('.load-more').click(function () {
-    const targetListSel = $(this).attr('target-list');
-    const $targetList = $(targetListSel);
-    if ($targetList.length === 0) {
-      console.warn('Target list is missing for load button', this);
-      return;
-    }
-
-    const loadButtonsClass = $(this).attr('load-button-class');
-    const $loadButtons = $('.' + loadButtonsClass);
-    if ($loadButtons.length === 0) {
-      console.warn('Load buttons class is missing for load button', this);
-      return;
-    }
-
-    fetchAndAppendHtml($targetList, $(this), $loadButtons);
-  });
+  // Note: 'on' used here to assign handlers for dynamically created elements
+  $(document).on('click', '.load-more', loadMoreHandlerForElement);
 }
