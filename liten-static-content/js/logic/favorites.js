@@ -2,7 +2,8 @@
 import $ from 'jquery';
 
 export function setUpFavoritesHandlers() {
-  $(".fav-link").click(function (event) {
+  // set up global click handler
+  $(document).on('click', '.fav-link', function(event) {
     event.preventDefault(); // suppress navigation
 
     const self = $(this);

@@ -1,12 +1,12 @@
 
 import $ from 'jquery';
 
-import {setUpPaginationHandlers} from './logic/pagination';
+import {setUpDataLoaderHandlers} from './logic/data-loader';
 import {setUpFavoritesHandlers} from './logic/favorites';
 import {setUpCustomDispatcher} from './logic/custom-dispatcher'
 
 // Set up global handlers
-setUpPaginationHandlers();
+setUpDataLoaderHandlers();
 setUpFavoritesHandlers();
 
 // Set up custom page dispatcher code

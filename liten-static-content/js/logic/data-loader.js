@@ -1,9 +1,32 @@
 
 import $ from 'jquery';
-import {appendFadeInHtmlBlock} from '../ui/effects';
 
 const NEXT_OPEN_TAG     = '<next>';
 const NEXT_CLOSE_TAG    = '</next>';
+
+export function appendFadeInHtmlBlock($container, htmlString) {
+  // NOTE:  two approaches are possible here, one uses jquery abstractions (and works on pretty old browsers),
+  //        while the other uses insertAdjacentHTML, the standard API in all the modern browsers (and old IEs too!).
+  //
+  // First approach (jquery way):
+  //        const $element = $($.parseHTML(htmlString));
+  //        $element.appendTo($container);
+  //
+  // Other approach (pure HTML):
+  //        $container.each(function () { this.insertAdjacentHTML('beforeend', htmlString); });
+  //
+  // Links:
+  //    https://developer.mozilla.org/en-US/docs/Web/API/Element/insertAdjacentHTML
+  //    https://msdn.microsoft.com/en-us/library/ms536452(v=vs.85).aspx
+
+  // Note on use of jquery (in favor of insertAdjacentHTML) - this approach uses fadeIn animation which
+  // is easier to implement with jquery
+  const $element = $($.parseHTML(htmlString));
+  setUpDataLoaderHandlers($element);
+
+  $element.appendTo($container);
+  $element.hide().fadeIn();
+}
 
 export function parseNextPageUrl(htmlPageString, onNextUrlPresentFn, onNextUrlAbsentFn) {
   // next URL should be appended in HTML comment containing next URL enclosed in 'next' tags,
@@ -25,6 +48,8 @@ export function parseNextPageUrl(htmlPageString, onNextUrlPresentFn, onNextUrlAb
 
 function fetchAndAppendHtml($list, $loadButton, $loadButtons) {
   const pageUrl = $loadButton.attr('next-url');
+  console.log("About to fetch", pageUrl);
+
   const $deferred = $.ajax(pageUrl);
 
   $deferred.fail(function () {
@@ -42,6 +67,12 @@ function fetchAndAppendHtml($list, $loadButton, $loadButtons) {
     });
 
     appendFadeInHtmlBlock($list, htmlPageString);
+
+    // scroll to
+    const top = $list.children().last().offset().top;
+    $('html, body').animate({
+      scrollTop: top
+    }, 500);
   });
 }
 
@@ -74,13 +105,16 @@ function loadDeferredForElement() {
 
   $deferred.done(function (htmlString) {
     const $element = $($.parseHTML(htmlString));
+    setUpDataLoaderHandlers($element);
     $element.appendTo($container);
   });
 }
 
-export function setUpPaginationHandlers() {
-  $('.deferred-load').each(loadDeferredForElement);
+export function setUpDataLoaderHandlers($target) {
+  $target = $target || $(document.body);
+  //console.log("> target", $target);
 
+  $('.deferred-load', $target).each(loadDeferredForElement);
   // Note: 'on' used here to assign handlers for dynamically created elements
-  $(document).on('click', '.load-more', loadMoreHandlerForElement);
+  $('.load-more', $target).click(loadMoreHandlerForElement);
 }
