@@ -10,9 +10,21 @@ import java.util.Set;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Filter for ICE item relations
+ * Filter for ICE item relations.
  */
 public final class IceRelationQuery extends PageQuery {
+
+  /**
+   * Defines what part of relation should be retrieved.
+   *
+   * LEFT:  (known, shall be specified) ->  (unknown, to be retrieved)
+   * RIGHT: (unknown, to be retrieved)  ->  (known, shall be specified)
+   *
+   * Ex:
+   *      book -> author
+   *      book -> genre
+   *      book -> origin
+   */
   public enum Direction {
     LEFT,
     RIGHT

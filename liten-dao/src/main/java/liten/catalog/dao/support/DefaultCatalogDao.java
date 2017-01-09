@@ -244,14 +244,14 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
         throw new IllegalStateException("Unknown direction=" + query.getDirection());
     }
 
-    queryBuilder.append("SELECT e.name AS type, ir.")
-        .append(opposingParamName).append(" AS id FROM ice_item_relations AS ir\n")
+    queryBuilder.append("SELECT ir.")
+        .append(opposingParamName).append(" AS id, e.name AS type FROM ice_item_relations AS ir\n")
         .append("INNER JOIN entity_type AS e ON e.id=ir.type_id\n")
         .append("WHERE ir.").append(relatedParamName).append(" = ?");
     params.add(query.getRelatedItemId());
 
     if (ModelWithId.isValidId(query.getStartItemId())) {
-      queryBuilder.append(" AND (? > ir.").append(opposingParamName).append(")");
+      queryBuilder.append(" AND (ir.").append(opposingParamName).append(" > ?)");
       params.add(query.getStartItemId());
     }
 
@@ -270,7 +270,8 @@ public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterD
       queryBuilder.append(')');
     }
 
-    queryBuilder.append(" ORDER BY id LIMIT ?");
+    queryBuilder.append(" ORDER BY ir.").append(opposingParamName);
+    queryBuilder.append(" LIMIT ?");
     params.add(query.getLimit());
 
     return db.query(queryBuilder.toString(), IceRelationRowMapper.INSTANCE, params.toArray(new Object[params.size()]));

@@ -208,6 +208,49 @@ public final class CatalogDaoTest {
     assertEquals(asList(i[1], i[3], i[7]), queryDao.getRelations(IceRelationQuery.newBuilder()
         .setRelatedItemId(i[2])
         .build()).stream().map(IceRelation::getRelatedItemId).collect(Collectors.toList()));
+
+    assertEquals(singletonList(i[1]), queryDao.getRelations(IceRelationQuery.newBuilder()
+        .setRelatedItemId(i[2])
+        .setDirection(IceRelationQuery.Direction.RIGHT)
+        .build()).stream().map(IceRelation::getRelatedItemId).collect(Collectors.toList()));
+
+    // paginated query (left relation)
+    assertEquals(asList(i[2], i[3]), queryDao.getRelations(IceRelationQuery.newBuilder()
+        .setRelatedItemId(i[1])
+        .setDirection(IceRelationQuery.Direction.LEFT)
+        .setLimit(2)
+        .build()).stream().map(IceRelation::getRelatedItemId).collect(Collectors.toList()));
+    assertEquals(asList(i[4], i[5]), queryDao.getRelations(IceRelationQuery.newBuilder()
+        .setRelatedItemId(i[1])
+        .setStartItemId(i[3])
+        .setDirection(IceRelationQuery.Direction.LEFT)
+        .setLimit(2)
+        .build()).stream().map(IceRelation::getRelatedItemId).collect(Collectors.toList()));
+    assertEquals(singletonList(i[7]), queryDao.getRelations(IceRelationQuery.newBuilder()
+        .setRelatedItemId(i[1])
+        .setStartItemId(i[5])
+        .setDirection(IceRelationQuery.Direction.LEFT)
+        .setLimit(2)
+        .build()).stream().map(IceRelation::getRelatedItemId).collect(Collectors.toList()));
+
+    // paginated query (right relation)
+    assertEquals(asList(i[1], i[2]), queryDao.getRelations(IceRelationQuery.newBuilder()
+        .setRelatedItemId(i[7])
+        .setDirection(IceRelationQuery.Direction.RIGHT)
+        .setLimit(2)
+        .build()).stream().map(IceRelation::getRelatedItemId).collect(Collectors.toList()));
+    assertEquals(asList(i[4], i[5]), queryDao.getRelations(IceRelationQuery.newBuilder()
+        .setRelatedItemId(i[7])
+        .setStartItemId(i[2])
+        .setDirection(IceRelationQuery.Direction.RIGHT)
+        .setLimit(2)
+        .build()).stream().map(IceRelation::getRelatedItemId).collect(Collectors.toList()));
+    assertEquals(singletonList(i[6]), queryDao.getRelations(IceRelationQuery.newBuilder()
+        .setRelatedItemId(i[7])
+        .setStartItemId(i[5])
+        .setDirection(IceRelationQuery.Direction.RIGHT)
+        .setLimit(2)
+        .build()).stream().map(IceRelation::getRelatedItemId).collect(Collectors.toList()));
   }
 
   @Test
