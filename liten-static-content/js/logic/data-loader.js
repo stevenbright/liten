@@ -4,7 +4,33 @@ import $ from 'jquery';
 const NEXT_OPEN_TAG     = '<next>';
 const NEXT_CLOSE_TAG    = '</next>';
 
-function appendFadeInHtmlBlock($container, htmlString) {
+const EFFECTS = {
+  'fade-in': function ($elements) {
+    $elements.hide().fadeIn();
+
+    // scroll to the added elements
+    const top = $list.children().last().offset().top;
+    $('html, body').animate({
+      scrollTop: top
+    }, 500);
+  }
+};
+
+function applyEffect($elements, $container) {
+  const effect = $container.attr('effect');
+  if (!effect) {
+    return;
+  }
+
+  if (!EFFECTS.hasOwnProperty(effect)) {
+    console.warn("Unknown effect", effect);
+    return;
+  }
+
+  return EFFECTS[effect]($elements, $container);
+}
+
+function appendHtmlString($container, htmlString) {
   // NOTE:  two approaches are possible here, one uses jquery abstractions (and works on pretty old browsers),
   //        while the other uses insertAdjacentHTML, the standard API in all the modern browsers (and old IEs too!).
   //
@@ -21,11 +47,12 @@ function appendFadeInHtmlBlock($container, htmlString) {
 
   // Note on use of jquery (in favor of insertAdjacentHTML) - this approach uses fadeIn animation which
   // is easier to implement with jquery
-  const $element = $($.parseHTML(htmlString));
-  setUpDataLoaderHandlers($element);
+  const $elements = $($.parseHTML(htmlString));
+  setUpDataLoaderHandlers($elements);
 
-  $element.appendTo($container);
-  $element.hide().fadeIn();
+  $elements.appendTo($container);
+  applyEffect($elements, $container);
+  $elements.hide().fadeIn();
 }
 
 export function parseNextPageUrl(htmlPageString, onNextUrlPresentFn, onNextUrlAbsentFn) {
@@ -66,13 +93,7 @@ function fetchAndAppendHtml($list, $loadButton, $loadButtons) {
       $loadButtons.remove();
     });
 
-    appendFadeInHtmlBlock($list, htmlPageString);
-
-    // scroll to
-    const top = $list.children().last().offset().top;
-    $('html, body').animate({
-      scrollTop: top
-    }, 500);
+    appendHtmlString($list, htmlPageString);
   });
 }
 
