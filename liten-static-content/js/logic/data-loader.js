@@ -11,7 +11,13 @@ const EFFECTS = {
 
   'scroll': function scrollEffect($elements, $container) {
     // scroll to the added elements
-    const top = $container.children().last().offset().top;
+    let top;
+    if ($container.children().length > 0) {
+      top = $container.children().last().offset().top;
+    } else {
+      top = $container.offset().top;
+    }
+
     $('html, body').animate({
       scrollTop: top
     }, 1000);
