@@ -134,9 +134,7 @@ function loadDeferredForElement() {
   });
 
   $deferred.done(function (htmlString) {
-    const $element = $($.parseHTML(htmlString));
-    setUpDataLoaderHandlers($element);
-    $element.appendTo($container);
+    appendHtmlString($container, htmlString);
   });
 }
 
