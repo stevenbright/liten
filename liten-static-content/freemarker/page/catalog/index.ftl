@@ -18,7 +18,7 @@
   </div><#-- row (upper controls) -->
   <div class="row">
     <div class="col-md-12">
-      <ul id="catalog-items" class="catalog-list">
+      <ul id="catalog-items" class="catalog-list" effect="fade-in scroll">
       <@cat.itemList listModel=items />
       </ul>
     </div>

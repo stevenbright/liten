@@ -5,29 +5,34 @@ const NEXT_OPEN_TAG     = '<next>';
 const NEXT_CLOSE_TAG    = '</next>';
 
 const EFFECTS = {
-  'fade-in': function ($elements) {
+  'fade-in': function fadeInEffect($elements) {
     $elements.hide().fadeIn();
+  },
 
+  'scroll': function scrollEffect($elements, $container) {
     // scroll to the added elements
-    const top = $list.children().last().offset().top;
+    const top = $container.children().last().offset().top;
     $('html, body').animate({
       scrollTop: top
-    }, 500);
+    }, 1000);
   }
 };
 
 function applyEffect($elements, $container) {
-  const effect = $container.attr('effect');
-  if (!effect) {
+  const effectAttr = $container.attr('effect');
+  if (!effectAttr) {
     return;
   }
 
-  if (!EFFECTS.hasOwnProperty(effect)) {
-    console.warn("Unknown effect", effect);
-    return;
+  const effects = effectAttr.split(" ");
+  for (var i = 0; i < effects.length; ++i) {
+    const effect = effects[i];
+    if (!EFFECTS.hasOwnProperty(effect)) {
+      console.warn("Unknown effect", effect);
+      continue;
+    }
+    EFFECTS[effect]($elements, $container)
   }
-
-  return EFFECTS[effect]($elements, $container);
 }
 
 function appendHtmlString($container, htmlString) {
@@ -48,11 +53,15 @@ function appendHtmlString($container, htmlString) {
   // Note on use of jquery (in favor of insertAdjacentHTML) - this approach uses fadeIn animation which
   // is easier to implement with jquery
   const $elements = $($.parseHTML(htmlString));
+
+  // bind dataloader jQuery handlers
   setUpDataLoaderHandlers($elements);
 
+  // append elements to the container
   $elements.appendTo($container);
+
+  // apply UI effects to the newly added elements
   applyEffect($elements, $container);
-  $elements.hide().fadeIn();
 }
 
 export function parseNextPageUrl(htmlPageString, onNextUrlPresentFn, onNextUrlAbsentFn) {
