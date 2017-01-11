@@ -56,8 +56,8 @@ function appendHtmlString($container, htmlString) {
   //    https://developer.mozilla.org/en-US/docs/Web/API/Element/insertAdjacentHTML
   //    https://msdn.microsoft.com/en-us/library/ms536452(v=vs.85).aspx
 
-  // Note on use of jquery (in favor of insertAdjacentHTML) - this approach uses fadeIn animation which
-  // is easier to implement with jquery
+  // Note on use of jquery (in favor of insertAdjacentHTML) - to be able to represent newly inserted
+  // HTML as jQuery object
   const $elements = $($.parseHTML(htmlString));
 
   // bind dataloader jQuery handlers
