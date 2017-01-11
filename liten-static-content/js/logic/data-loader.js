@@ -4,7 +4,7 @@ import $ from 'jquery';
 const NEXT_OPEN_TAG     = '<next>';
 const NEXT_CLOSE_TAG    = '</next>';
 
-export function appendFadeInHtmlBlock($container, htmlString) {
+function appendFadeInHtmlBlock($container, htmlString) {
   // NOTE:  two approaches are possible here, one uses jquery abstractions (and works on pretty old browsers),
   //        while the other uses insertAdjacentHTML, the standard API in all the modern browsers (and old IEs too!).
   //

@@ -1,6 +1,5 @@
 
 import $ from 'jquery';
-import {appendFadeInHtmlBlock} from '../ui/effects';
 
 function catalogIndexHandler() {
   console.log("Activating catalog index page handler");
