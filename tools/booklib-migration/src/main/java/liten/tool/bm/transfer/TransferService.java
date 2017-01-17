@@ -7,7 +7,7 @@ public interface TransferService {
 
   boolean prepare();
 
-  Long transferNext(Long startId);
+  String transferNext(String startId);
 
   void complete();
 }

@@ -10,10 +10,7 @@
 
   <bean id="app" class="liten.tool.bm.MigrationRunner" autowire="constructor"/>
 
-  <!--
   <import resource="dao/datasource-context.xml"/>
   <import resource="dao/dao-context.xml"/>
   <import resource="dao/tx-context.xml"/>
-  <import resource="service.xml"/>
-  -->
 </beans>

@@ -5,8 +5,8 @@
 
   <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
     <property name="driverClassName"  value="org.h2.Driver" />
-    <property name="url"              value="${eol.dao.dataSource.url}" />
-    <property name="username"         value="${eol.dao.dataSource.username}" />
-    <property name="password"         value="${eol.dao.dataSource.password}" />
+    <property name="url"              value="${liten.tool.bm.dao.dataSource.url}" />
+    <property name="username"         value="${liten.tool.bm.dao.dataSource.username}" />
+    <property name="password"         value="${liten.tool.bm.dao.dataSource.password}" />
   </bean>
 </beans>
