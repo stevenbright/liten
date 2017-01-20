@@ -101,7 +101,7 @@ function fetchAndAppendHtml($list, $loadButton, $loadButtons) {
   $deferred.done(function (htmlPageString) {
     //console.log("Retrieved htmlPageString ", htmlPageString, " for url", pageUrl);
     parseNextPageUrl(htmlPageString, (nextUrl) => {
-      $loadButton.attr('next-url', nextUrl);
+      $loadButtons.attr('next-url', nextUrl);
     }, () => {
       console.log("nothing to load, removing...");
       // nothing left to load, disable load buttons

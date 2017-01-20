@@ -19,17 +19,12 @@
 
   <bean class="liten.website.controller.rest.P13nRestController" autowire="constructor"/>
 
-  <!-- Converters for RPC -->
-  <bean id="litenWebsite.webmvc.protobufConverter"
-        class="com.truward.brikar.protobuf.http.ProtobufHttpMessageConverter" />
-  <bean id="litenWebsite.webmvc.jsonProtobufConverter"
-        class="com.truward.brikar.protobuf.http.json.ProtobufJsonHttpMessageConverter" />
-
   <!-- Annotation driven support for MVC controllers -->
   <mvc:annotation-driven>
     <!-- custom marshallers -->
-    <mvc:message-converters>
+    <mvc:message-converters register-defaults="false">
       <ref bean="litenWebsite.webmvc.jsonProtobufConverter"/>
+      <ref bean="litenWebsite.webmvc.stringConverter"/>
     </mvc:message-converters>
   </mvc:annotation-driven>
 

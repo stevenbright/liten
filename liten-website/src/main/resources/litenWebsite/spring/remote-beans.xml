@@ -6,10 +6,18 @@
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
         http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
+  <!-- Converters for RPC -->
+  <bean id="litenWebsite.webmvc.protobufConverter"
+        class="com.truward.brikar.protobuf.http.ProtobufHttpMessageConverter" />
+  <bean id="litenWebsite.webmvc.jsonProtobufConverter"
+        class="com.truward.brikar.protobuf.http.json.ProtobufJsonHttpMessageConverter" />
+  <bean id="litenWebsite.webmvc.stringConverter"
+        class="org.springframework.http.converter.StringHttpMessageConverter" />
+
   <bean id="litenWebsite.restOperationsFactory" class="com.truward.brikar.client.rest.RestOperationsFactory">
     <constructor-arg>
       <util:list>
-        <bean class="com.truward.brikar.protobuf.http.ProtobufHttpMessageConverter" />
+        <ref bean="litenWebsite.webmvc.jsonProtobufConverter"/>
       </util:list>
     </constructor-arg>
     <property name="credentials">
