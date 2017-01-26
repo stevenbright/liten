@@ -1,4 +1,5 @@
 liten
 =====
 
-Cool project!
+Demo CI project
+
