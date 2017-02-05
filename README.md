@@ -17,7 +17,7 @@ You'll need:
 ## URLs
 
 * Main URL: ``http://127.0.0.1:8080/g/index``
-* Health check (standard): ``curl -X POST http://127.0.0.1:8080/rest/health``
+* Health check (standard): ``curl -X POST http://127.0.0.1:8080/api/health``
 * Admin (standard): ``http://127.0.0.1:8080/g/admin/config``
 
 Sample request with originating request ID ``oid``:
