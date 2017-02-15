@@ -47,11 +47,11 @@ public final class BooklibTransferService implements TransferService {
 
   @Override
   public boolean prepare() {
-    log.info("About to run migration...");
+    log.info("Preparing transfer...");
 
     try {
-      final int count = db.queryForObject("SELECT COUNT(0) FROM item", Integer.class);
-      log.info("Number of existing items: {}", count);
+      final int count = db.queryForObject("SELECT COUNT(0) FROM book_meta", Integer.class);
+      log.info("Number of items about to be migrated: {}", count);
     } catch (DataAccessException ignored) {
       log.warn("There is no items table, schema is invalid, returning");
       return false;
@@ -136,7 +136,7 @@ public final class BooklibTransferService implements TransferService {
   @Override
   public void complete() {
     final int origBookCount = db.queryForObject("SELECT COUNT(0) FROM book_meta", Integer.class);
-    final int actualBookCount = db.queryForObject("SELECT COUNT(0) FROM item WHERE type_id=?",
+    final int actualBookCount = db.queryForObject("SELECT COUNT(0) FROM ice_item WHERE type_id=?",
         Integer.class, bookTypeId);
 
     assert origBookCount == actualBookCount;
@@ -159,7 +159,7 @@ public final class BooklibTransferService implements TransferService {
   //
 
   private Long getOrAddItem(String itemName, Long itemTypeId) {
-    final List<Long> existingIds = db.queryForList("SELECT id FROM item WHERE name=? AND type_id=?",
+    final List<Long> existingIds = db.queryForList("SELECT id FROM ice_item WHERE alias=? AND type_id=?",
         Long.class, itemName, itemTypeId);
     if (!existingIds.isEmpty()) {
       assert existingIds.size() == 1;
@@ -171,7 +171,7 @@ public final class BooklibTransferService implements TransferService {
 
   private Long addItem(String itemName, Long itemTypeId) {
     final Long id = getNextItemId();
-    db.update("INSERT INTO item (id, name, type_id) VALUES (?, ?, ?)", id, itemName, itemTypeId);
+    db.update("INSERT INTO ice_item (id, alias, type_id) VALUES (?, ?, ?)", id, itemName, itemTypeId);
     return id;
   }
 

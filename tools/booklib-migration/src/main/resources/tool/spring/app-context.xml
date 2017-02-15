@@ -13,4 +13,6 @@
   <import resource="dao/datasource-context.xml"/>
   <import resource="dao/dao-context.xml"/>
   <import resource="dao/tx-context.xml"/>
+
+  <bean id="transferService" class="liten.tool.bm.transfer.support.BooklibTransferService" autowire="constructor"/>
 </beans>
