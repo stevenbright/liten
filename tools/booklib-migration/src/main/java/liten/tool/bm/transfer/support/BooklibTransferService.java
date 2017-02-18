@@ -58,12 +58,12 @@ public final class BooklibTransferService implements TransferService {
     }
 
     // Get relation entity types
-    this.bookTypeId = getOrAddEntityType("book");
-    this.authorTypeId = getOrAddEntityType("author");
-    this.genreTypeId = getOrAddEntityType("genre");
-    this.originTypeId = getOrAddEntityType("origin");
-    this.languageTypeId = getOrAddEntityType("language");
-    this.seriesTypeId = getOrAddEntityType("series");
+    this.bookTypeId = getEntityTypeId("book");
+    this.authorTypeId = getEntityTypeId("author");
+    this.genreTypeId = getEntityTypeId("genre");
+    this.originTypeId = getEntityTypeId("origin");
+    this.languageTypeId = getEntityTypeId("language");
+    this.seriesTypeId = getEntityTypeId("series");
 
     // Create ID mappings
     this.genreToItem = insertNamedValues("genre", db.query("SELECT id, code FROM genre", new NamedValueRowMapper("code")));
@@ -180,7 +180,7 @@ public final class BooklibTransferService implements TransferService {
   }
 
   private Map<Long, Long> insertNamedValues(String typeName, List<NamedValue> values) {
-    final Long entityTypeId = getOrAddEntityType(typeName);
+    final Long entityTypeId = getEntityTypeId(typeName);
     final Map<Long, Long> result = new HashMap<>(values.size() * 2);
 
     for (final NamedValue value : values) {
@@ -212,16 +212,17 @@ public final class BooklibTransferService implements TransferService {
     }, bookId);
   }
 
-  private Long getOrAddEntityType(String entityName) {
+  private Long getEntityTypeId(String entityName) {
     final List<Long> existingIds = db.queryForList("SELECT id FROM entity_type WHERE name=?", Long.class, entityName);
     if (!existingIds.isEmpty()) {
       assert existingIds.size() == 1;
       return existingIds.get(0);
     }
 
-    final Long id = getNextEntityTypeId();
-    db.update("INSERT INTO entity_type (id, name) VALUES (?, ?)", id, entityName);
-    return id;
+    throw new IllegalStateException("Unknown entityName=" + entityName);
+//    final Long id = getNextEntityTypeId();
+//    db.update("INSERT INTO entity_type (id, name) VALUES (?, ?)", id, entityName);
+//    return id;
   }
 
   private Long getNextEntityTypeId() {
