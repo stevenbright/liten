@@ -2,6 +2,8 @@ package liten.tool.bm.transfer.support;
 
 import com.truward.time.UtcTime;
 import com.truward.time.jdbc.UtcTimeSqlUtil;
+import liten.catalog.dao.CatalogQueryDao;
+import liten.catalog.dao.CatalogUpdaterDao;
 import liten.tool.bm.transfer.TransferService;
 import liten.tool.bm.transfer.support.model.BookMeta;
 import liten.tool.bm.transfer.support.model.NamedValue;
@@ -11,16 +13,20 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Implementation of data transfer service
  */
+@Transactional(value = "tool.txManager", propagation = Propagation.REQUIRED)
 public final class BooklibTransferService implements TransferService {
 
   private static final int BOOK_TRANSFER_LIMIT = 1000;
@@ -28,12 +34,8 @@ public final class BooklibTransferService implements TransferService {
   private final Logger log = LoggerFactory.getLogger(getClass());
   private final JdbcOperations db;
 
-  private Long bookTypeId;
-  private Long authorTypeId;
-  private Long genreTypeId;
-  private Long originTypeId;
-  private Long languageTypeId;
-  private Long seriesTypeId;
+  private final CatalogQueryDao queryDao;
+  private final CatalogUpdaterDao updaterDao;
 
   private Map<Long, Long> genreToItem;
   private Map<Long, Long> personToItem;
@@ -41,8 +43,12 @@ public final class BooklibTransferService implements TransferService {
   private Map<Long, Long> langToItem;
   private Map<Long, Long> seriesToItem;
 
-  public BooklibTransferService(JdbcOperations db) {
+  public BooklibTransferService(JdbcOperations db,
+                                CatalogQueryDao queryDao,
+                                CatalogUpdaterDao updaterDao) {
     this.db = db;
+    this.queryDao = Objects.requireNonNull(queryDao, "queryDao");
+    this.updaterDao = Objects.requireNonNull(updaterDao, "updaterDao");
   }
 
   @Override
@@ -56,14 +62,6 @@ public final class BooklibTransferService implements TransferService {
       log.warn("There is no items table, schema is invalid, returning");
       return false;
     }
-
-    // Get relation entity types
-    this.bookTypeId = getEntityTypeId("book");
-    this.authorTypeId = getEntityTypeId("author");
-    this.genreTypeId = getEntityTypeId("genre");
-    this.originTypeId = getEntityTypeId("origin");
-    this.languageTypeId = getEntityTypeId("language");
-    this.seriesTypeId = getEntityTypeId("series");
 
     // Create ID mappings
     this.genreToItem = insertNamedValues("genre", db.query("SELECT id, code FROM genre", new NamedValueRowMapper("code")));
@@ -136,10 +134,7 @@ public final class BooklibTransferService implements TransferService {
   @Override
   public void complete() {
     final int origBookCount = db.queryForObject("SELECT COUNT(0) FROM book_meta", Integer.class);
-    final int actualBookCount = db.queryForObject("SELECT COUNT(0) FROM ice_item WHERE type_id=?",
-        Integer.class, bookTypeId);
-
-    assert origBookCount == actualBookCount;
+    log.info("origBookCount={}", origBookCount);
 
     db.update("DROP TABLE book_genre");
     db.update("DROP TABLE book_author");
@@ -170,13 +165,9 @@ public final class BooklibTransferService implements TransferService {
   }
 
   private Long addItem(String itemName, Long itemTypeId) {
-    final Long id = getNextItemId();
+    final Long id = queryDao.getNextItemId();
     db.update("INSERT INTO ice_item (id, alias, type_id) VALUES (?, ?, ?)", id, itemName, itemTypeId);
     return id;
-  }
-
-  private Long getNextItemId() {
-    return db.queryForObject("SELECT seq_item.nextval", Long.class);
   }
 
   private Map<Long, Long> insertNamedValues(String typeName, List<NamedValue> values) {
@@ -189,6 +180,10 @@ public final class BooklibTransferService implements TransferService {
     }
 
     return result;
+  }
+
+  private Long getEntityTypeId(String n) {
+    throw new UnsupportedOperationException("TODO: refactor - this needs to be replaced w/ something else");
   }
 
   private void insertCodedRelations(Long lhs, List<Long> codedRhsList, Map<Long, Long> map, Long typeId) {
@@ -210,19 +205,6 @@ public final class BooklibTransferService implements TransferService {
 
       return result;
     }, bookId);
-  }
-
-  private Long getEntityTypeId(String entityName) {
-    final List<Long> existingIds = db.queryForList("SELECT id FROM entity_type WHERE name=?", Long.class, entityName);
-    if (!existingIds.isEmpty()) {
-      assert existingIds.size() == 1;
-      return existingIds.get(0);
-    }
-
-    throw new IllegalStateException("Unknown entityName=" + entityName);
-//    final Long id = getNextEntityTypeId();
-//    db.update("INSERT INTO entity_type (id, name) VALUES (?, ?)", id, entityName);
-//    return id;
   }
 
   private Long getNextEntityTypeId() {

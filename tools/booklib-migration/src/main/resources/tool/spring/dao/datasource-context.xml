@@ -3,23 +3,23 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-  <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+  <bean id="tool.dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
     <property name="driverClassName"  value="org.h2.Driver" />
     <property name="url"              value="${liten.tool.bm.dao.dataSource.url}" />
     <property name="username"         value="${liten.tool.bm.dao.dataSource.username}" />
     <property name="password"         value="${liten.tool.bm.dao.dataSource.password}" />
   </bean>
 
-  <bean id="initScripts" class="java.lang.String">
+  <bean id="tool.initScripts" class="java.lang.String">
     <constructor-arg value="${liten.tool.bm.dao.initScripts}" />
   </bean>
 
   <bean class="org.springframework.jdbc.datasource.init.DataSourceInitializer">
-    <property name="dataSource" ref="dataSource" />
+    <property name="dataSource" ref="tool.dataSource" />
     <property name="databasePopulator">
       <bean class="org.springframework.jdbc.datasource.init.ResourceDatabasePopulator">
         <property name="scripts">
-          <bean factory-bean="initScripts" factory-method="split">
+          <bean factory-bean="tool.initScripts" factory-method="split">
             <constructor-arg value=","/>
           </bean>
         </property>

@@ -11,5 +11,7 @@
     <property name="dataSource" ref="litenWebsite.dao.dataSource"/>
   </bean>
 
-  <bean class="liten.catalog.dao.support.DefaultCatalogDao" autowire="constructor"/>
+  <bean class="liten.catalog.dao.support.DefaultCatalogDao">
+    <constructor-arg ref="litenWebsite.dao.jdbcTemplate"/>
+  </bean>
 </beans>

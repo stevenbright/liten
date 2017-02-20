@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  * @author Alexander Shabanov
  */
 @ParametersAreNonnullByDefault
-@Transactional(propagation = Propagation.REQUIRED)
+@Transactional(value = "litenDao.dao.txManager", propagation = Propagation.REQUIRED)
 public final class DefaultCatalogDao implements CatalogQueryDao, CatalogUpdaterDao {
 
   private final Logger log = LoggerFactory.getLogger(getClass());

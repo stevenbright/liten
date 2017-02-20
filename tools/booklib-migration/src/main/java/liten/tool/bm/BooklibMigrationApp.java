@@ -25,7 +25,7 @@ public final class BooklibMigrationApp {
       context.start();
 
       // get Runnable application bean and run it
-      context.getBean("app", Runnable.class).run();
+      context.getBean("tool.app", Runnable.class).run();
     }
   }
 
