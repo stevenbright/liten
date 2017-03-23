@@ -19,6 +19,7 @@
   </description>
 
   <modules>
+    <module>liten-kvdao</module>
     <module>liten-dao</module>
     <module>liten-static-content</module>
     <module>liten-website</module>
@@ -96,6 +97,13 @@
         <version>${brikar.version}</version>
       </dependency>
 
+      <!-- Google Guava https://mvnrepository.com/artifact/com.google.guava/guava -->
+      <dependency>
+        <groupId>com.google.guava</groupId>
+        <artifactId>guava</artifactId>
+        <version>20.0</version>
+      </dependency>
+
       <!-- UTC time -->
       <dependency>
         <groupId>com.truward.time</groupId>
@@ -125,6 +133,13 @@
         <groupId>org.springframework</groupId>
         <artifactId>spring-jdbc</artifactId>
         <version>${spring.version}</version>
+      </dependency>
+
+      <!-- Key-Value DB -->
+      <dependency>
+        <groupId>org.jetbrains.xodus</groupId>
+        <artifactId>xodus-openAPI</artifactId>
+        <version>1.0.4</version>
       </dependency>
 
       <!-- DB Drivers -->
