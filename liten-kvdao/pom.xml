@@ -31,6 +31,12 @@
       <artifactId>guava</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>com.truward.semantic</groupId>
+      <artifactId>semantic-id</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+
     <!-- UTC time -->
     <dependency>
       <groupId>com.truward.time</groupId>
