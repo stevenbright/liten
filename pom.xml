@@ -35,6 +35,8 @@
 
     <utc-time.version>1.0.6</utc-time.version>
 
+    <xodus.version>1.0.4</xodus.version>
+
     <!--  compiler settings -->
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
@@ -139,7 +141,7 @@
       <dependency>
         <groupId>org.jetbrains.xodus</groupId>
         <artifactId>xodus-openAPI</artifactId>
-        <version>1.0.4</version>
+        <version>${xodus.version}</version>
       </dependency>
 
       <!-- DB Drivers -->
@@ -147,11 +149,6 @@
         <groupId>com.h2database</groupId>
         <artifactId>h2</artifactId>
         <version>1.4.190</version>
-      </dependency>
-      <dependency> <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
-        <groupId>org.postgresql</groupId>
-        <artifactId>postgresql</artifactId>
-        <version>9.4.1209.jre7</version>
       </dependency>
 
       <!-- Connection Pooling -->
