@@ -11,7 +11,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Alexander Shabanov
  */
-public final class CatalogDaoTest extends XodusTestBase {
+public final class IseCatalogDaoTest extends XodusTestBase {
 
   @Test
   public void shouldCreateDb() {

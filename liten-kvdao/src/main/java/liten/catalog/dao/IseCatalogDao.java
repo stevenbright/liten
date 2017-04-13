@@ -1,5 +1,7 @@
 package liten.catalog.dao;
 
+import liten.catalog.model.Ise;
+
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
@@ -7,9 +9,9 @@ import java.util.List;
  * @author Alexander Shabanov
  */
 @ParametersAreNonnullByDefault
-public interface CatalogDao {
+public interface IseCatalogDao {
 
-  Object getById(String id);
+  Ise.Item getById(String itemId);
 
   List<String> getNameHints(String prefix);
 }

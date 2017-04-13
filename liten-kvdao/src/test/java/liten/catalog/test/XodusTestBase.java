@@ -22,7 +22,7 @@ public abstract class XodusTestBase {
       return;
     }
 
-    tempDir = Files.createTempDirectory("CatalogDaoTest");
+    tempDir = Files.createTempDirectory("IseCatalogDaoTest");
     final String dirPath = tempDir.toFile().getAbsolutePath();
 
     environment = Environments.newInstance(dirPath);
