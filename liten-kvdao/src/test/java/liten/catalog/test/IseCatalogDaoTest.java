@@ -1,29 +1,57 @@
 package liten.catalog.test;
 
-import jetbrains.exodus.env.Store;
+import liten.catalog.dao.IseCatalogDao;
+import liten.catalog.dao.support.DefaultIseCatalogDao;
+import liten.catalog.model.Ise;
+import org.junit.Before;
 import org.junit.Test;
 
-import static jetbrains.exodus.bindings.StringBinding.entryToString;
-import static jetbrains.exodus.bindings.StringBinding.stringToEntry;
-import static jetbrains.exodus.env.StoreConfig.WITHOUT_DUPLICATES;
+import java.util.Collections;
+import java.util.List;
+
 import static org.junit.Assert.assertEquals;
 
 /**
  * @author Alexander Shabanov
  */
 public final class IseCatalogDaoTest extends XodusTestBase {
+  private IseCatalogDao catalogDao;
+
+  @Before
+  public void init() {
+    catalogDao = new DefaultIseCatalogDao(environment);
+  }
 
   @Test
-  public void shouldCreateDb() {
-    final Store store = environment.computeInTransaction(txn ->
-        environment.openStore("Messages", WITHOUT_DUPLICATES, txn));
+  public void shouldSaveItem() {
+    final Ise.Item item = Ise.Item.newBuilder()
+        .setAlias("Alias")
+        .setType("book")
+        .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("First"))
+        .build();
 
-    environment.executeInTransaction((txn) ->
-    { store.put(txn, stringToEntry("Hello"),
-        stringToEntry("World!")); });
+    doInTestTransaction(tx -> {
+      final String id = catalogDao.persist(tx, item);
 
-    final String str = environment.computeInTransaction(txn ->
-        entryToString(store.get(txn, stringToEntry("Hello"))));
-    assertEquals("World!", str);
+      final Ise.Item savedItem = catalogDao.getById(tx, id);
+      assertEquals(Ise.Item.newBuilder(item).setId(id).build(), savedItem);
+      final List<String> prefixes = catalogDao.getNameHints(tx, null, "");
+      assertEquals(Collections.singletonList("F"), prefixes);
+    });
+  }
+
+  @Test
+  public void shouldGetEmptyPrefixes() {
+    List<String> prefixes = environment.computeInTransaction(tx -> catalogDao.getNameHints(tx, null, ""));
+    assertEquals(Collections.emptyList(), prefixes);
+
+    prefixes = environment.computeInTransaction(tx -> catalogDao.getNameHints(tx, null, "A"));
+    assertEquals(Collections.emptyList(), prefixes);
+
+    prefixes = environment.computeInTransaction(tx -> catalogDao.getNameHints(tx, "book", ""));
+    assertEquals(Collections.emptyList(), prefixes);
+
+    prefixes = environment.computeInTransaction(tx -> catalogDao.getNameHints(tx, "book", "A"));
+    assertEquals(Collections.emptyList(), prefixes);
   }
 }

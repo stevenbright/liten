@@ -2,6 +2,8 @@ package liten.catalog.test;
 
 import jetbrains.exodus.env.Environment;
 import jetbrains.exodus.env.Environments;
+import jetbrains.exodus.env.Transaction;
+import jetbrains.exodus.env.TransactionalExecutable;
 import org.junit.After;
 import org.junit.Before;
 
@@ -41,5 +43,15 @@ public abstract class XodusTestBase {
     }
 
     //Files.delete(tempDir);
+  }
+
+  protected void doInTestTransaction(TransactionalExecutable executable) {
+    final Transaction tx = environment.beginTransaction();
+    try {
+      executable.execute(tx);
+    } finally {
+      tx.revert();
+      tx.abort();
+    }
   }
 }

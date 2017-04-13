@@ -1,7 +1,9 @@
 package liten.catalog.dao;
 
+import jetbrains.exodus.env.Transaction;
 import liten.catalog.model.Ise;
 
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
@@ -11,7 +13,9 @@ import java.util.List;
 @ParametersAreNonnullByDefault
 public interface IseCatalogDao {
 
-  Ise.Item getById(String itemId);
+  Ise.Item getById(Transaction tx, String itemId);
 
-  List<String> getNameHints(String prefix);
+  String persist(Transaction tx, Ise.Item item);
+
+  List<String> getNameHints(Transaction tx, @Nullable String type, String prefix);
 }
