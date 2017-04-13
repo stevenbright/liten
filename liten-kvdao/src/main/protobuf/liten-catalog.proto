@@ -1,0 +1,61 @@
+//
+// Dao model for Ice Item Catalog
+//
+
+syntax = "proto3";
+
+package liten.catalog.model;
+
+option java_package = "liten.catalog.model";
+option java_outer_classname = "Ice";
+
+message Item {
+  string id = 1;
+
+  // type of an item, e.g. book
+  string type = 2;
+
+  repeated Sku skus = 3;
+
+  // Custom item-specific data
+
+  // short name under which an item is known (usually for the sake of creating short URLs)
+  string alias = 10;
+
+  // external IDs under which this item is known
+  repeated ExternalId externalIds = 11;
+}
+
+message ExternalId {
+  string idType = 1;
+  string idValue = 2;
+}
+
+message Sku {
+  string id = 1;
+  string title = 2;
+  string language = 3;
+
+  repeated Entry = 10;
+
+  // Custom sku-specific data
+  string wikipediaUrl = 100;
+}
+
+message Entry {
+  string id = 1;
+  long createdTimestamp = 2;
+
+  // Custom item-specific info
+  DownloadInfo = 10;
+}
+
+message DownloadInfo {
+  string originId = 1;
+  string downloadId = 2;
+  int fileSize = 3;
+
+  string downloadType = 4;
+}
+
+
