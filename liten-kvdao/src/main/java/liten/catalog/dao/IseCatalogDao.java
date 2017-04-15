@@ -15,6 +15,9 @@ public interface IseCatalogDao {
 
   Ise.Item getById(Transaction tx, String itemId);
 
+  @Nullable
+  Ise.Item getByExternalId(Transaction tx, Ise.ExternalId externalId);
+
   String persist(Transaction tx, Ise.Item item);
 
   List<String> getNameHints(Transaction tx, @Nullable String type, String prefix);

@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  * @author Alexander Shabanov
@@ -23,7 +24,7 @@ public final class IseCatalogDaoTest extends XodusTestBase {
   }
 
   @Test
-  public void shouldSaveItem() {
+  public void shouldSaveSimpleItem() {
     final Ise.Item item = Ise.Item.newBuilder()
         .setAlias("Alias")
         .setType("book")
@@ -53,5 +54,43 @@ public final class IseCatalogDaoTest extends XodusTestBase {
 
     prefixes = environment.computeInTransaction(tx -> catalogDao.getNameHints(tx, "book", "A"));
     assertEquals(Collections.emptyList(), prefixes);
+  }
+
+  @Test
+  public void shouldSaveThenUpdateThenLookupByExternalId() {
+    final Ise.ExternalId extId1 = Ise.ExternalId.newBuilder().setIdType("librus").setIdValue("987654").build();
+    final Ise.ExternalId extId2 = Ise.ExternalId.newBuilder().setIdType("isbn").setIdValue("1-22-33").build();
+    final Ise.ExternalId extId3 = Ise.ExternalId.newBuilder().setIdType("imdb").setIdValue("ABC123").build();
+
+    final Ise.Item item = Ise.Item.newBuilder()
+        .setAlias("Alias")
+        .setType("book")
+        .addExternalIds(extId1).addExternalIds(extId2)
+        .addSkus(Ise.Sku.newBuilder()
+            .setId("S1")
+            .setLanguage("en")
+            .setTitle("First")
+            .addEntries(Ise.Entry.newBuilder()
+                .setId("I1").setCreatedTimestamp(1234000L)))
+        .build();
+
+    doInTestTransaction(tx -> {
+      final String id = catalogDao.persist(tx, item);
+
+      Ise.Item savedItem = catalogDao.getById(tx, id);
+      assertEquals(Ise.Item.newBuilder(item).setId(id).build(), savedItem);
+      assertEquals(savedItem, catalogDao.getByExternalId(tx, extId1));
+      assertEquals(savedItem, catalogDao.getByExternalId(tx, extId2));
+      assertNull(catalogDao.getByExternalId(tx, extId3));
+
+      savedItem = Ise.Item.newBuilder(savedItem).clearExternalIds().addExternalIds(extId3).build();
+      catalogDao.persist(tx, savedItem);
+
+      final Ise.Item anotherItem = catalogDao.getById(tx, id);
+      assertEquals(savedItem, anotherItem);
+      assertNull(catalogDao.getByExternalId(tx, extId1));
+      assertNull(catalogDao.getByExternalId(tx, extId2));
+      assertEquals(savedItem, catalogDao.getByExternalId(tx, extId3));
+    });
   }
 }

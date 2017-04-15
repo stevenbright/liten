@@ -7,6 +7,8 @@ import jetbrains.exodus.ByteIterable;
 import jetbrains.exodus.env.*;
 import liten.catalog.dao.IseCatalogDao;
 import liten.catalog.model.Ise;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Nullable;
@@ -16,6 +18,8 @@ import java.util.*;
 
 import static com.truward.xodus.util.ProtoEntity.entryToProto;
 import static com.truward.xodus.util.ProtoEntity.protoToEntry;
+import static jetbrains.exodus.bindings.StringBinding.entryToString;
+import static jetbrains.exodus.bindings.StringBinding.stringToEntry;
 
 /**
  * @author Alexander Shabanov
@@ -24,9 +28,11 @@ import static com.truward.xodus.util.ProtoEntity.protoToEntry;
 public final class DefaultIseCatalogDao implements IseCatalogDao {
   private static final IdCodec ITEM_CODEC = SemanticIdCodec.forPrefixNames("S1");
 
+  private final Logger log = LoggerFactory.getLogger(getClass());
   private final Random random;
   private final Store itemStore;
   private final Store externalIdStore;
+  private final int itemRandKeyLength;
 
   public DefaultIseCatalogDao(Environment environment) {
     this.random = new SecureRandom();
@@ -34,6 +40,7 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
         environment.openStore("item", StoreConfig.WITHOUT_DUPLICATES, tx));
     this.externalIdStore = environment.computeInTransaction(tx ->
         environment.openStore("external-id", StoreConfig.WITH_DUPLICATES, tx));
+    this.itemRandKeyLength = 4;
   }
 
   @Override
@@ -42,31 +49,53 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
     return entryToProto(itemStore.get(tx, new ArrayByteIterable(key)), Ise.Item.getDefaultInstance());
   }
 
+  @Nullable
+  @Override
+  public Ise.Item getByExternalId(Transaction tx, Ise.ExternalId externalId) {
+    final ByteIterable idKey = externalIdStore.get(tx, protoToEntry(externalId));
+    if (idKey == null) {
+      return null;
+    }
+
+    return getById(tx, entryToString(idKey));
+  }
+
   @Override
   public String persist(Transaction tx, Ise.Item item) {
-    // try to find by an external ID
-    for (final Ise.ExternalId externalId : item.getExternalIdsList()) {
-      final ByteIterable idCandidate = externalIdStore.get(tx, protoToEntry(externalId));
-
-    }
+    validateItem(item);
 
     // lookup for an ID
     String id = item.getId();
-    byte[] key;
+    ByteIterable idKey;
+    boolean overrideExisting = false;
     if (StringUtils.hasLength(id)) {
-      key = ITEM_CODEC.decodeBytes(id);
+      overrideExisting = true;
     } else {
-      // get unique key
-      int keySize = 4;
-      do {
-        key = new byte[keySize];
-        random.nextBytes(key);
-      } while (itemStore.get(tx, new ArrayByteIterable(key)) != null);
-      id = ITEM_CODEC.encodeBytes(key);
+      id = findUniqueKey(tx, itemStore, ITEM_CODEC, random, itemRandKeyLength);
       item = Ise.Item.newBuilder(item).setId(id).build();
     }
+    idKey = asBytesKey(ITEM_CODEC, id);
 
-    itemStore.put(tx, new ArrayByteIterable(key), protoToEntry(item));
+    if (overrideExisting) {
+      // cleanup external keys on old item
+      final ByteIterable existingItemBytes = itemStore.get(tx, idKey);
+      if (existingItemBytes != null) {
+        Ise.Item oldItem = entryToProto(existingItemBytes, Ise.Item.getDefaultInstance());
+        log.trace("Dropping old item with id={}", id);
+        for (final Ise.ExternalId externalId : oldItem.getExternalIdsList()) {
+          externalIdStore.delete(tx, protoToEntry(externalId));
+        }
+      }
+    }
+
+    // put item itself
+    itemStore.put(tx, idKey, protoToEntry(item));
+
+    // and add associated external IDs
+    for (final Ise.ExternalId externalId : item.getExternalIdsList()) {
+      externalIdStore.put(tx, protoToEntry(externalId), stringToEntry(id));
+    }
+
     return id;
   }
 
@@ -94,5 +123,42 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
     }
 
     return new ArrayList<>(prefixes);
+  }
+
+  //
+  // Private
+  //
+
+  private static void validateItem(Ise.Item item) {
+    final Set<String> skuIds = new HashSet<>(item.getSkusCount() * 2);
+    final Set<String> entryIds = new HashSet<>();
+    for (final Ise.Sku sku : item.getSkusList()) {
+      if (!skuIds.add(sku.getId())) {
+        throw new IllegalArgumentException("Duplicate SkuId=" + sku.getId());
+      }
+
+      entryIds.clear();
+      for (final Ise.Entry entry : sku.getEntriesList()) {
+        if (!entryIds.add(entry.getId())) {
+          throw new IllegalArgumentException("Duplicate EntryId=" + entry.getId() + " for SkuId=" + sku.getId());
+        }
+      }
+    }
+  }
+
+  private static ByteIterable asBytesKey(IdCodec codec, String id) {
+    return new ArrayByteIterable(codec.decodeBytes(id));
+  }
+
+  private static String findUniqueKey(Transaction tx, Store store, IdCodec codec, Random random, int startKeyLength) {
+    // get unique key
+    int keySize = startKeyLength;
+    byte[] keyBytes;
+    do {
+      keyBytes = new byte[keySize];
+      random.nextBytes(keyBytes);
+      ++keySize;
+    } while (store.get(tx, new ArrayByteIterable(keyBytes)) != null);
+    return codec.encodeBytes(keyBytes);
   }
 }
