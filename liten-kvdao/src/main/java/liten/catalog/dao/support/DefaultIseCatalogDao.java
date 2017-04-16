@@ -65,7 +65,7 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
   @Override
   public List<String> getNameHints(Transaction tx, @Nullable String type, String prefix) {
     final Cursor cursor = itemStore.openCursor(tx);
-    final Set<String> prefixes = new HashSet<>();
+    final Set<String> prefixes = new TreeSet<>(); // use for built-in sorting capabilities
     final int len = prefix.length() + 1;
     final boolean hasType = StringUtils.hasLength(type);
 

@@ -1,16 +1,17 @@
 package liten.catalog.test;
 
+import com.truward.dao.ItemNotFoundException;
 import liten.catalog.dao.IseCatalogDao;
 import liten.catalog.dao.support.DefaultIseCatalogDao;
 import liten.catalog.model.Ise;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 /**
  * @author Alexander Shabanov
@@ -18,26 +19,23 @@ import static org.junit.Assert.assertNull;
 public final class IseCatalogDaoTest extends XodusTestBase {
   private IseCatalogDao catalogDao;
 
+  final Ise.Item templateItem = Ise.Item.newBuilder().setAlias("Alias").setType("book").build();
+
+  final Ise.ExternalId extId1 = Ise.ExternalId.newBuilder().setIdType("librus").setIdValue("987654").build();
+  final Ise.ExternalId extId2 = Ise.ExternalId.newBuilder().setIdType("isbn").setIdValue("1-22-33").build();
+  final Ise.ExternalId extId3 = Ise.ExternalId.newBuilder().setIdType("imdb").setIdValue("ABC123").build();
+
   @Before
   public void init() {
     catalogDao = new DefaultIseCatalogDao(environment);
   }
 
   @Test
-  public void shouldSaveSimpleItem() {
-    final Ise.Item item = Ise.Item.newBuilder()
-        .setAlias("Alias")
-        .setType("book")
-        .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("First"))
-        .build();
-
+  public void shouldGetNullItemForNonExistentExternalIds() {
     doInTestTransaction(tx -> {
-      final String id = catalogDao.persist(tx, item);
-
-      final Ise.Item savedItem = catalogDao.getById(tx, id);
-      assertEquals(Ise.Item.newBuilder(item).setId(id).build(), savedItem);
-      final List<String> prefixes = catalogDao.getNameHints(tx, null, "");
-      assertEquals(Collections.singletonList("F"), prefixes);
+      assertNull(catalogDao.getByExternalId(tx, extId1));
+      assertNull(catalogDao.getByExternalId(tx, extId2));
+      assertNull(catalogDao.getByExternalId(tx, extId3));
     });
   }
 
@@ -56,11 +54,25 @@ public final class IseCatalogDaoTest extends XodusTestBase {
     assertEquals(Collections.emptyList(), prefixes);
   }
 
+  @Test
+  public void shouldSaveSimpleItem() {
+    final Ise.Item item = Ise.Item.newBuilder(templateItem)
+        .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("First"))
+        .build();
+
+    doInTestTransaction(tx -> {
+      final String id = catalogDao.persist(tx, item);
+
+      final Ise.Item savedItem = catalogDao.getById(tx, id);
+      assertEquals(Ise.Item.newBuilder(item).setId(id).build(), savedItem);
+      final List<String> prefixes = catalogDao.getNameHints(tx, null, "");
+      assertEquals(Collections.singletonList("F"), prefixes);
+    });
+  }
+
   @Test(expected = IllegalArgumentException.class)
   public void shouldFailSavingItemWithDuplicateSkuId() {
-    environment.executeInTransaction(tx -> catalogDao.persist(tx, Ise.Item.newBuilder()
-        .setAlias("Alias")
-        .setType("book")
+    environment.executeInTransaction(tx -> catalogDao.persist(tx, Ise.Item.newBuilder(templateItem)
         .addSkus(Ise.Sku.newBuilder().setId("S1").setLanguage("en").setTitle("One"))
         .addSkus(Ise.Sku.newBuilder().setId("S1").setLanguage("es").setTitle("Dos"))
         .build()));
@@ -68,9 +80,7 @@ public final class IseCatalogDaoTest extends XodusTestBase {
 
   @Test(expected = IllegalArgumentException.class)
   public void shouldFailSavingItemWithDuplicateEntryId() {
-    environment.executeInTransaction(tx -> catalogDao.persist(tx, Ise.Item.newBuilder()
-        .setAlias("Alias")
-        .setType("book")
+    environment.executeInTransaction(tx -> catalogDao.persist(tx, Ise.Item.newBuilder(templateItem)
         .addSkus(Ise.Sku.newBuilder().setId("S1").setLanguage("en").setTitle("One"))
         .addSkus(Ise.Sku.newBuilder().setId("S2").setLanguage("es")
             .addEntries(Ise.Entry.newBuilder().setId("I1"))
@@ -81,19 +91,15 @@ public final class IseCatalogDaoTest extends XodusTestBase {
 
   @Test
   public void shouldSaveThenUpdateThenLookupByExternalId() {
-    final Ise.ExternalId extId1 = Ise.ExternalId.newBuilder().setIdType("librus").setIdValue("987654").build();
-    final Ise.ExternalId extId2 = Ise.ExternalId.newBuilder().setIdType("isbn").setIdValue("1-22-33").build();
-    final Ise.ExternalId extId3 = Ise.ExternalId.newBuilder().setIdType("imdb").setIdValue("ABC123").build();
-
-    final Ise.Item item = Ise.Item.newBuilder()
-        .setAlias("Alias")
-        .setType("book")
+    final Ise.Item item = Ise.Item.newBuilder(templateItem)
         .addExternalIds(extId1).addExternalIds(extId2)
         .addSkus(Ise.Sku.newBuilder()
             .setId("S1")
             .setLanguage("en")
             .setTitle("First")
-            .addEntries(Ise.Entry.newBuilder().setId("I1").setCreatedTimestamp(1234000L))
+            .addEntries(Ise.Entry.newBuilder().setId("I1")
+                .setDownloadInfo(Ise.DownloadInfo.newBuilder().setDownloadId("123").setDownloadType("librus"))
+                .setCreatedTimestamp(1234000L))
             .addEntries(Ise.Entry.newBuilder().setId("I2")))
         .build();
 
@@ -114,6 +120,70 @@ public final class IseCatalogDaoTest extends XodusTestBase {
       assertNull(catalogDao.getByExternalId(tx, extId1));
       assertNull(catalogDao.getByExternalId(tx, extId2));
       assertEquals(savedItem, catalogDao.getByExternalId(tx, extId3));
+    });
+  }
+
+  @Test
+  public void shouldUseSingleTransaction() {
+    final Ise.Item item = Ise.Item.newBuilder(templateItem)
+        .addExternalIds(extId1).addExternalIds(extId2).addExternalIds(extId3)
+        .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("First"))
+        .build();
+
+    final String id = doInTestTransaction(tx -> {
+      return catalogDao.persist(tx, item);
+    });
+
+    doInTestTransaction(tx -> {
+      assertNull(catalogDao.getByExternalId(tx, extId1));
+      assertNull(catalogDao.getByExternalId(tx, extId2));
+      assertNull(catalogDao.getByExternalId(tx, extId3));
+
+      try {
+        catalogDao.getById(tx, id);
+        fail("Changes made in transaction that was rolled back shall not be visible outside");
+      } catch (ItemNotFoundException e) {
+        assertTrue(e.getMessage().length() > 0);
+      }
+    });
+  }
+
+  @Test
+  public void shouldGetPrefixes() {
+    doInTestTransaction(tx -> {
+      final Ise.Item item1 = Ise.Item.newBuilder().setAlias("num").setType("numbers")
+          .addExternalIds(extId1)
+          .addSkus(Ise.Sku.newBuilder().setId("EN-1").setLanguage("en").setTitle("One"))
+          .addSkus(Ise.Sku.newBuilder().setId("EN-2").setLanguage("en").setTitle("Two"))
+          .addSkus(Ise.Sku.newBuilder().setId("EN-3").setLanguage("en").setTitle("Three"))
+          .addSkus(Ise.Sku.newBuilder().setId("EN-4").setLanguage("en").setTitle("Four"))
+          .addSkus(Ise.Sku.newBuilder().setId("EN-5").setLanguage("en").setTitle("Five"))
+          .addSkus(Ise.Sku.newBuilder().setId("ES-1").setLanguage("es").setTitle("Uno"))
+          .addSkus(Ise.Sku.newBuilder().setId("ES-2").setLanguage("es").setTitle("Dos"))
+          .addSkus(Ise.Sku.newBuilder().setId("ES-3").setLanguage("es").setTitle("Tres"))
+          .addSkus(Ise.Sku.newBuilder().setId("ES-4").setLanguage("es").setTitle("Cuatro"))
+          .addSkus(Ise.Sku.newBuilder().setId("ES-5").setLanguage("es").setTitle("Cinco"))
+          .build();
+      final Ise.Item item2 = Ise.Item.newBuilder().setAlias("times").setType("newspaper")
+          .addExternalIds(extId2)
+          .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("Times"))
+          .build();
+
+      final String[] ids = {
+          catalogDao.persist(tx, item1),
+          catalogDao.persist(tx, item2),
+      };
+
+      assertEquals(Ise.Item.newBuilder(item1).setId(ids[0]).build(), catalogDao.getById(tx, ids[0]));
+      assertEquals(Ise.Item.newBuilder(item2).setId(ids[1]).build(), catalogDao.getById(tx, ids[1]));
+
+      assertEquals(Arrays.asList("C", "D", "F", "O", "T", "U"), catalogDao.getNameHints(tx, "numbers", ""));
+      assertEquals(Arrays.asList("Th", "Tr", "Tw"), catalogDao.getNameHints(tx, "numbers", "T"));
+      assertEquals(Arrays.asList("Th", "Ti", "Tr", "Tw"), catalogDao.getNameHints(tx, "", "T"));
+      assertEquals(Collections.singletonList("Ti"), catalogDao.getNameHints(tx, "newspaper", "T"));
+      assertEquals(Collections.emptyList(), catalogDao.getNameHints(tx, "book", "T"));
+      assertEquals(Collections.emptyList(), catalogDao.getNameHints(tx, "", "One"));
+      assertEquals(Collections.singletonList("Cuat"), catalogDao.getNameHints(tx, "numbers", "Cua"));
     });
   }
 }
