@@ -56,6 +56,29 @@ public final class IseCatalogDaoTest extends XodusTestBase {
     assertEquals(Collections.emptyList(), prefixes);
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void shouldFailSavingItemWithDuplicateSkuId() {
+    environment.executeInTransaction(tx -> catalogDao.persist(tx, Ise.Item.newBuilder()
+        .setAlias("Alias")
+        .setType("book")
+        .addSkus(Ise.Sku.newBuilder().setId("S1").setLanguage("en").setTitle("One"))
+        .addSkus(Ise.Sku.newBuilder().setId("S1").setLanguage("es").setTitle("Dos"))
+        .build()));
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void shouldFailSavingItemWithDuplicateEntryId() {
+    environment.executeInTransaction(tx -> catalogDao.persist(tx, Ise.Item.newBuilder()
+        .setAlias("Alias")
+        .setType("book")
+        .addSkus(Ise.Sku.newBuilder().setId("S1").setLanguage("en").setTitle("One"))
+        .addSkus(Ise.Sku.newBuilder().setId("S2").setLanguage("es")
+            .addEntries(Ise.Entry.newBuilder().setId("I1"))
+            .addEntries(Ise.Entry.newBuilder().setId("I1"))
+            .setTitle("Dos"))
+        .build()));
+  }
+
   @Test
   public void shouldSaveThenUpdateThenLookupByExternalId() {
     final Ise.ExternalId extId1 = Ise.ExternalId.newBuilder().setIdType("librus").setIdValue("987654").build();
@@ -70,8 +93,8 @@ public final class IseCatalogDaoTest extends XodusTestBase {
             .setId("S1")
             .setLanguage("en")
             .setTitle("First")
-            .addEntries(Ise.Entry.newBuilder()
-                .setId("I1").setCreatedTimestamp(1234000L)))
+            .addEntries(Ise.Entry.newBuilder().setId("I1").setCreatedTimestamp(1234000L))
+            .addEntries(Ise.Entry.newBuilder().setId("I2")))
         .build();
 
     doInTestTransaction(tx -> {
