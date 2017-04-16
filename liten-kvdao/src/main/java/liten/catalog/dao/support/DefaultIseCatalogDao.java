@@ -2,6 +2,8 @@ package liten.catalog.dao.support;
 
 import com.truward.semantic.id.IdCodec;
 import com.truward.semantic.id.SemanticIdCodec;
+import com.truward.xodus.util.KeyGenerator;
+import com.truward.xodus.util.KeyUtil;
 import jetbrains.exodus.ArrayByteIterable;
 import jetbrains.exodus.ByteIterable;
 import jetbrains.exodus.env.*;
@@ -32,7 +34,7 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
   private final Random random;
   private final Store itemStore;
   private final Store externalIdStore;
-  private final int itemRandKeyLength;
+  private final KeyGenerator keyGenerator;
 
   public DefaultIseCatalogDao(Environment environment) {
     this.random = new SecureRandom();
@@ -40,7 +42,7 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
         environment.openStore("item", StoreConfig.WITHOUT_DUPLICATES, tx));
     this.externalIdStore = environment.computeInTransaction(tx ->
         environment.openStore("external-id", StoreConfig.WITH_DUPLICATES, tx));
-    this.itemRandKeyLength = 4;
+    this.keyGenerator = KeyUtil.createKeyGenerator(itemStore, ITEM_CODEC, random);
   }
 
   @Override
@@ -71,10 +73,10 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
     if (StringUtils.hasLength(id)) {
       overrideExisting = true;
     } else {
-      id = findUniqueKey(tx, itemStore, ITEM_CODEC, random, itemRandKeyLength);
+      id = keyGenerator.getUniqueKey(tx);
       item = Ise.Item.newBuilder(item).setId(id).build();
     }
-    idKey = asBytesKey(ITEM_CODEC, id);
+    idKey = KeyUtil.semanticIdAsKey(ITEM_CODEC, id);
 
     if (overrideExisting) {
       // cleanup external keys on old item
@@ -144,21 +146,5 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
         }
       }
     }
-  }
-
-  private static ByteIterable asBytesKey(IdCodec codec, String id) {
-    return new ArrayByteIterable(codec.decodeBytes(id));
-  }
-
-  private static String findUniqueKey(Transaction tx, Store store, IdCodec codec, Random random, int startKeyLength) {
-    // get unique key
-    int keySize = startKeyLength;
-    byte[] keyBytes;
-    do {
-      keyBytes = new byte[keySize];
-      random.nextBytes(keyBytes);
-      ++keySize;
-    } while (store.get(tx, new ArrayByteIterable(keyBytes)) != null);
-    return codec.encodeBytes(keyBytes);
   }
 }
