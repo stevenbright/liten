@@ -20,11 +20,11 @@ import static org.junit.Assert.*;
 public final class IseCatalogDaoTest extends XodusTestBase {
   private IseCatalogDao catalogDao;
 
-  final Ise.Item templateItem = Ise.Item.newBuilder().setType("book").build();
+  private final Ise.Item templateItem = Ise.Item.newBuilder().setType("book").build();
 
-  final Ise.ExternalId extId1 = Ise.ExternalId.newBuilder().setIdType("librus").setIdValue("987654").build();
-  final Ise.ExternalId extId2 = Ise.ExternalId.newBuilder().setIdType("isbn").setIdValue("1-22-33").build();
-  final Ise.ExternalId extId3 = Ise.ExternalId.newBuilder().setIdType("imdb").setIdValue("ABC123").build();
+  private final Ise.ExternalId extId1 = Ise.ExternalId.newBuilder().setIdType("librus").setIdValue("987654").build();
+  private final Ise.ExternalId extId2 = Ise.ExternalId.newBuilder().setIdType("isbn").setIdValue("1-22-33").build();
+  private final Ise.ExternalId extId3 = Ise.ExternalId.newBuilder().setIdType("imdb").setIdValue("ABC123").build();
 
   @Before
   public void init() {
