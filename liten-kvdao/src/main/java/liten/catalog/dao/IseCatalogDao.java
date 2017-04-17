@@ -12,6 +12,9 @@ import java.util.List;
  */
 @ParametersAreNonnullByDefault
 public interface IseCatalogDao {
+  String AUTHOR_RELATION_NAME = "author";
+  String GENRE_RELATION_NAME = "genre";
+  String SERIES_RELATION_NAME = "series";
 
   Ise.Item getById(Transaction tx, String itemId);
 

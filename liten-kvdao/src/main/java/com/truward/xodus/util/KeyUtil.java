@@ -5,9 +5,12 @@ import jetbrains.exodus.ArrayByteIterable;
 import jetbrains.exodus.ByteIterable;
 import jetbrains.exodus.env.Store;
 import jetbrains.exodus.env.Transaction;
+import org.springframework.util.StringUtils;
 
+import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Random;
+import java.util.function.Supplier;
 
 /**
  * Utility class for operating on Xodus Keys.
@@ -23,6 +26,20 @@ public final class KeyUtil {
 
   public static ByteIterable semanticIdAsKey(IdCodec codec, String id) {
     return new ArrayByteIterable(codec.decodeBytes(id));
+  }
+
+  public static void assertValidId(IdCodec codec, String id, Supplier<String> messageSupplier) {
+    if (codec.canDecode(id)) {
+      return;
+    }
+
+    throw new IllegalArgumentException(messageSupplier.get());
+  }
+
+  public static void assertValidOptionalId(IdCodec codec, @Nullable String id, Supplier<String> messageSupplier) {
+    if (StringUtils.hasLength(id)) {
+      assertValidId(codec, id, messageSupplier);
+    }
   }
 
   //

@@ -1,7 +1,8 @@
 package liten.catalog.test;
 
-import com.truward.dao.ItemNotFoundException;
+import com.truward.dao.exception.ItemNotFoundException;
 import liten.catalog.dao.IseCatalogDao;
+import liten.catalog.dao.exception.DuplicateExternalIdException;
 import liten.catalog.dao.support.DefaultIseCatalogDao;
 import liten.catalog.model.Ise;
 import org.junit.Before;
@@ -19,7 +20,7 @@ import static org.junit.Assert.*;
 public final class IseCatalogDaoTest extends XodusTestBase {
   private IseCatalogDao catalogDao;
 
-  final Ise.Item templateItem = Ise.Item.newBuilder().setAlias("Alias").setType("book").build();
+  final Ise.Item templateItem = Ise.Item.newBuilder().setType("book").build();
 
   final Ise.ExternalId extId1 = Ise.ExternalId.newBuilder().setIdType("librus").setIdValue("987654").build();
   final Ise.ExternalId extId2 = Ise.ExternalId.newBuilder().setIdType("isbn").setIdValue("1-22-33").build();
@@ -149,9 +150,28 @@ public final class IseCatalogDaoTest extends XodusTestBase {
   }
 
   @Test
+  public void shouldNotOverrideExistingExternalId() {
+    doInTestTransaction(tx -> {
+      final String id1 = catalogDao.persist(tx, Ise.Item.newBuilder().setType("book")
+          .addExternalIds(extId1).addExternalIds(extId2)
+          .build());
+      try {
+        catalogDao.persist(tx, Ise.Item.newBuilder().setType("book")
+            .addExternalIds(extId2)
+            .build());
+        fail("Should not be able to persist another item with the same external ID");
+      } catch (DuplicateExternalIdException e) {
+        assertEquals(extId2, e.getExternalId());
+        assertEquals(id1, e.getMappedItemId());
+        assertTrue(e.getFailedItemId().length() > 0);
+      }
+    });
+  }
+
+  @Test
   public void shouldGetPrefixes() {
     doInTestTransaction(tx -> {
-      final Ise.Item item1 = Ise.Item.newBuilder().setAlias("num").setType("numbers")
+      final Ise.Item item1 = Ise.Item.newBuilder().setType("numbers")
           .addExternalIds(extId1)
           .addSkus(Ise.Sku.newBuilder().setId("EN-1").setLanguage("en").setTitle("One"))
           .addSkus(Ise.Sku.newBuilder().setId("EN-2").setLanguage("en").setTitle("Two"))
@@ -164,7 +184,7 @@ public final class IseCatalogDaoTest extends XodusTestBase {
           .addSkus(Ise.Sku.newBuilder().setId("ES-4").setLanguage("es").setTitle("Cuatro"))
           .addSkus(Ise.Sku.newBuilder().setId("ES-5").setLanguage("es").setTitle("Cinco"))
           .build();
-      final Ise.Item item2 = Ise.Item.newBuilder().setAlias("times").setType("newspaper")
+      final Ise.Item item2 = Ise.Item.newBuilder().setType("newspaper")
           .addExternalIds(extId2)
           .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("Times"))
           .build();

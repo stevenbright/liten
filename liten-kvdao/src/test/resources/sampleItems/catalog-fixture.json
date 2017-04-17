@@ -1,0 +1,16 @@
+{
+  "items": [
+    {
+      "type": "book",
+      "externalIds": [
+        {"idValue": "123456", "idType": "librus"}
+      ],
+      "skus": [
+        {
+          "id": "1",
+          "title": "The Tale of Troika"
+        }
+      ]
+    }
+  ]
+}

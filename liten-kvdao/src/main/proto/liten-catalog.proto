@@ -17,13 +17,11 @@ message Item {
 
   repeated Sku skus = 3;
 
-  // Custom item-specific data
-
-  // short name under which an item is known (usually for the sake of creating short URLs)
-  string alias = 10;
-
   // external IDs under which this item is known
-  repeated ExternalId externalIds = 11;
+  repeated ExternalId externalIds = 4;
+
+  // extra data, associated with an item
+  ItemExtras extras = 5;
 }
 
 message ExternalId {
@@ -36,10 +34,9 @@ message Sku {
   string title = 2;
   string language = 3;
 
-  repeated Entry entries = 10;
+  repeated Entry entries = 4;
 
-  // Custom sku-specific data
-  string wikipediaUrl = 100;
+  SkuExtras extras = 5;
 }
 
 message Entry {
@@ -47,7 +44,7 @@ message Entry {
   int64 createdTimestamp = 2;
 
   // Custom item-specific info
-  DownloadInfo downloadInfo = 10;
+  DownloadInfo downloadInfo = 3;
 }
 
 message DownloadInfo {
@@ -58,4 +55,51 @@ message DownloadInfo {
   string downloadType = 4;
 }
 
+message ForwardRelationId {
+  string fromItemId = 1;
+  string relationType = 2;
+}
 
+//
+// Extras
+//
+
+message ItemExtras {
+  BookItemExtras book = 1;
+}
+
+message BookItemExtras {
+  repeated string authorIds = 1;
+  repeated string genreIds = 2;
+  string seriesId = 3;
+  int32 seriesPos = 4;
+}
+
+
+message SkuExtras {
+  string wikipediaUrl = 1;
+}
+
+//
+// Syntetic structures
+// (Query support, aggregation data, etc)
+//
+
+message ItemQuery {
+  // parameter, indicating where to start
+  string cursor = 1;
+  // size of the resultant output
+  int32 limit = 2;
+
+  //
+  // Extra query parameters
+  //
+
+  string namePrefix = 3;
+  string type = 4;
+}
+
+message ItemQueryResult {
+  repeated Item items = 1;
+  string cursor = 2;
+}

@@ -8,6 +8,7 @@ import jetbrains.exodus.ArrayByteIterable;
 import jetbrains.exodus.ByteIterable;
 import jetbrains.exodus.env.*;
 import liten.catalog.dao.IseCatalogDao;
+import liten.catalog.dao.exception.DuplicateExternalIdException;
 import liten.catalog.model.Ise;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,7 @@ import java.util.*;
 
 import static com.truward.xodus.util.ProtoEntity.entryToProto;
 import static com.truward.xodus.util.ProtoEntity.protoToEntry;
+import static java.util.Objects.requireNonNull;
 import static jetbrains.exodus.bindings.StringBinding.entryToString;
 import static jetbrains.exodus.bindings.StringBinding.stringToEntry;
 
@@ -28,33 +30,52 @@ import static jetbrains.exodus.bindings.StringBinding.stringToEntry;
  */
 @ParametersAreNonnullByDefault
 public final class DefaultIseCatalogDao implements IseCatalogDao {
+  private static final String ITEM_STORE_NAME = "item";
+  private static final String EXTERNAL_ID_STORE_NAME = "external-id";
+  private static final String FORWARD_RELATIONS_STORE_NAME = "forward-relations";
+
   private static final IdCodec ITEM_CODEC = SemanticIdCodec.forPrefixNames("S1");
 
   private final Logger log = LoggerFactory.getLogger(getClass());
-  private final Store itemStore;
-  private final Store externalIdStore;
+  private final Stores stores;
   private final KeyGenerator keyGenerator;
 
+  private static final class Stores {
+    final Store item;
+    final Store externalId;
+    final Store forwardRelations;
+
+    public Stores(Environment environment, Transaction tx) {
+      // bytesFromSemanticId(item.id) -> item
+      this.item = environment.openStore(ITEM_STORE_NAME, StoreConfig.WITHOUT_DUPLICATES, tx);
+
+      // ExternalId -> item.id(semantic ID)
+      this.externalId = environment.openStore(EXTERNAL_ID_STORE_NAME, StoreConfig.WITHOUT_DUPLICATES, tx);
+
+      // ForwardRelationId -> item.id(semantic ID)
+      // e.g.:
+      //      fromItemId=SomeAuthorId, type=author -> bookId
+      this.forwardRelations = environment.openStore(FORWARD_RELATIONS_STORE_NAME, StoreConfig.WITH_DUPLICATES, tx);
+    }
+  }
+
   public DefaultIseCatalogDao(Environment environment) {
-    this.itemStore = environment.computeInTransaction(tx ->
-        environment.openStore("item", StoreConfig.WITHOUT_DUPLICATES, tx));
-    this.externalIdStore = environment.computeInTransaction(tx ->
-        environment.openStore("external-id", StoreConfig.WITH_DUPLICATES, tx));
+    this.stores = environment.computeInTransaction(tx -> new Stores(environment, tx));
 
     final Random random = new SecureRandom();
-    this.keyGenerator = KeyUtil.createKeyGenerator(itemStore, ITEM_CODEC, random);
+    this.keyGenerator = KeyUtil.createKeyGenerator(stores.item, ITEM_CODEC, random);
   }
 
   @Override
   public Ise.Item getById(Transaction tx, String id) {
     final byte[] key = ITEM_CODEC.decodeBytes(id);
-    return entryToProto(itemStore.get(tx, new ArrayByteIterable(key)), Ise.Item.getDefaultInstance());
+    return entryToProto(stores.item.get(tx, new ArrayByteIterable(key)), Ise.Item.getDefaultInstance());
   }
 
   @Nullable
   @Override
   public Ise.Item getByExternalId(Transaction tx, Ise.ExternalId externalId) {
-    final ByteIterable idKey = externalIdStore.get(tx, protoToEntry(externalId));
+    final ByteIterable idKey = stores.externalId.get(tx, protoToEntry(externalId));
     if (idKey == null) {
       return null;
     }
@@ -64,7 +85,7 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
 
   @Override
   public List<String> getNameHints(Transaction tx, @Nullable String type, String prefix) {
-    final Cursor cursor = itemStore.openCursor(tx);
+    final Cursor cursor = stores.item.openCursor(tx);
     final Set<String> prefixes = new TreeSet<>(); // use for built-in sorting capabilities
     final int len = prefix.length() + 1;
     final boolean hasType = StringUtils.hasLength(type);
@@ -79,6 +100,7 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
 
       for (final Ise.Sku sku : item.getSkusList()) {
         final String title = sku.getTitle();
+
         if (title.length() >= len && title.startsWith(prefix)) {
           prefixes.add(title.substring(0, len));
         }
@@ -92,46 +114,147 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
   public String persist(Transaction tx, Ise.Item item) {
     validateItem(item);
 
-    // lookup for an ID
-    String id = item.getId();
+    // lookup for an ID and find out if this is an override
     ByteIterable idKey;
     boolean overrideExisting = false;
-    if (StringUtils.hasLength(id)) {
+    if (StringUtils.hasLength(item.getId())) {
       overrideExisting = true;
     } else {
-      id = keyGenerator.getUniqueKey(tx);
+      final String id = keyGenerator.getUniqueKey(tx);
       item = Ise.Item.newBuilder(item).setId(id).build();
     }
-    idKey = KeyUtil.semanticIdAsKey(ITEM_CODEC, id);
+    idKey = KeyUtil.semanticIdAsKey(ITEM_CODEC, item.getId());
 
+    // cleanup item relations if it is an override
     if (overrideExisting) {
-      // cleanup external keys on old item
-      final ByteIterable existingItemBytes = itemStore.get(tx, idKey);
+      final ByteIterable existingItemBytes = stores.item.get(tx, idKey);
       if (existingItemBytes != null) {
-        Ise.Item oldItem = entryToProto(existingItemBytes, Ise.Item.getDefaultInstance());
-        log.trace("Dropping old item with id={}", id);
-        for (final Ise.ExternalId externalId : oldItem.getExternalIdsList()) {
-          externalIdStore.delete(tx, protoToEntry(externalId));
-        }
+        log.trace("Dropping old item with id={}", item.getId());
+        cleanupItemRelations(tx, entryToProto(existingItemBytes, Ise.Item.getDefaultInstance()));
       }
     }
 
     // put item itself
-    itemStore.put(tx, idKey, protoToEntry(item));
+    stores.item.put(tx, idKey, protoToEntry(item));
+    setupItemRelations(tx, item);
 
-    // and add associated external IDs
-    for (final Ise.ExternalId externalId : item.getExternalIdsList()) {
-      externalIdStore.put(tx, protoToEntry(externalId), stringToEntry(id));
-    }
-
-    return id;
+    return item.getId();
   }
 
   //
   // Private
   //
 
+  private void setupItemRelations(Transaction tx, Ise.Item item) {
+    final String id = item.getId();
+
+    // setup external IDs
+    final ByteIterable itemIdEntry = stringToEntry(id);
+    for (final Ise.ExternalId externalId : item.getExternalIdsList()) {
+      if (!stores.externalId.add(tx, protoToEntry(externalId), itemIdEntry)) {
+        throw new DuplicateExternalIdException(externalId, id,
+            entryToString(requireNonNull(stores.externalId.get(tx, protoToEntry(externalId)))));
+      }
+    }
+
+    // extras-specific logic
+    if (item.hasExtras()) {
+      final Ise.ItemExtras itemExtras = item.getExtras();
+
+      if (itemExtras.hasBook()) {
+        final Ise.BookItemExtras bookExtras = itemExtras.getBook();
+
+        // authors->book
+        setRelations(tx, AUTHOR_RELATION_NAME, bookExtras.getAuthorIdsList(), id);
+        // genres->book
+        setRelations(tx, GENRE_RELATION_NAME, bookExtras.getGenreIdsList(), id);
+        // series->book
+        if (StringUtils.hasLength(bookExtras.getSeriesId())) {
+          setRelations(tx, SERIES_RELATION_NAME, Collections.singletonList(bookExtras.getSeriesId()), id);
+        }
+      }
+    }
+  }
+
+  private void cleanupItemRelations(Transaction tx, Ise.Item item) {
+    // drop external IDs
+    for (final Ise.ExternalId externalId : item.getExternalIdsList()) {
+      stores.externalId.delete(tx, protoToEntry(externalId));
+    }
+
+    // drop author relations
+    final Cursor forwardRelationsCursor = stores.forwardRelations.openCursor(tx);
+    if (item.getExtras().hasBook()) {
+      final Ise.BookItemExtras bookExtras = item.getExtras().getBook();
+      dropRelations(forwardRelationsCursor, AUTHOR_RELATION_NAME, bookExtras.getAuthorIdsList(), item.getId());
+      dropRelations(forwardRelationsCursor, GENRE_RELATION_NAME, bookExtras.getGenreIdsList(), item.getId());
+
+      if (StringUtils.hasLength(bookExtras.getSeriesId())) {
+        dropRelations(forwardRelationsCursor, SERIES_RELATION_NAME,
+            Collections.singletonList(bookExtras.getSeriesId()), item.getId());
+      }
+    }
+  }
+
+  private void setRelations(Transaction tx, String type, List<String> fromItemIds, String toItemId) {
+    assert ITEM_CODEC.canDecode(toItemId) && !ITEM_CODEC.canDecode(type);
+
+    for (final String fromItemId : fromItemIds) {
+      assert ITEM_CODEC.canDecode(fromItemId);
+
+      final Ise.ForwardRelationId forwardRelationId = Ise.ForwardRelationId.newBuilder()
+          .setFromItemId(fromItemId)
+          .setRelationType(type)
+          .build();
+
+      if (!stores.forwardRelations.add(tx, protoToEntry(forwardRelationId), stringToEntry(toItemId))) {
+        // should never happen
+        log.warn("Non-overridden forward relation: fromItemId={}, type={}, toItemId={}", fromItemId, type, toItemId);
+      }
+    }
+  }
+
+  private void dropRelations(Cursor forwardRelationsCursor, String type, List<String> fromItemIds, String toItemId) {
+    assert ITEM_CODEC.canDecode(toItemId) && !ITEM_CODEC.canDecode(type);
+
+    for (final String fromItemId : fromItemIds) {
+      assert ITEM_CODEC.canDecode(fromItemId);
+
+      final Ise.ForwardRelationId forwardRelationId = Ise.ForwardRelationId.newBuilder()
+          .setFromItemId(fromItemId)
+          .setRelationType(type)
+          .build();
+
+      if (forwardRelationsCursor.getSearchBoth(protoToEntry(forwardRelationId), stringToEntry(toItemId))) {
+        forwardRelationsCursor.deleteCurrent();
+      }
+    }
+  }
+
   private static void validateItem(Ise.Item item) {
+    KeyUtil.assertValidOptionalId(ITEM_CODEC, item.getId(), () -> "Invalid item id=" + item.getId());
+
+    // validate extras
+    if (item.hasExtras()) {
+      final Ise.ItemExtras itemExtras = item.getExtras();
+      if (itemExtras.hasBook()) {
+        final Ise.BookItemExtras bookExtras = itemExtras.getBook();
+        KeyUtil.assertValidOptionalId(ITEM_CODEC, bookExtras.getSeriesId(),
+            () -> "Invalid seriesId=" + bookExtras.getSeriesId() + " for item id=" + item.getId());
+
+        for (final String authorId : bookExtras.getAuthorIdsList()) {
+          KeyUtil.assertValidId(ITEM_CODEC, authorId,
+              () -> "Invalid authorId=" + authorId + " for item id=" + item.getId());
+        }
+
+        for (final String genreId : bookExtras.getGenreIdsList()) {
+          KeyUtil.assertValidId(ITEM_CODEC, genreId,
+              () -> "Invalid genreId=" + genreId + " for item id=" + item.getId());
+        }
+      }
+    }
+
+    // validate SKUs and entries within each SKU
     final Set<String> skuIds = new HashSet<>(item.getSkusCount() * 2);
     final Set<String> entryIds = new HashSet<>();
     for (final Ise.Sku sku : item.getSkusList()) {

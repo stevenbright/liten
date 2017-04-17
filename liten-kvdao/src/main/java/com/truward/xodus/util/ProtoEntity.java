@@ -2,8 +2,8 @@ package com.truward.xodus.util;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
-import com.truward.dao.ItemDeserializationException;
-import com.truward.dao.ItemNotFoundException;
+import com.truward.dao.exception.ItemDeserializationException;
+import com.truward.dao.exception.ItemNotFoundException;
 import jetbrains.exodus.ArrayByteIterable;
 import jetbrains.exodus.ByteIterable;
 

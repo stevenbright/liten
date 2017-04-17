@@ -1,4 +1,4 @@
-package com.truward.dao;
+package com.truward.dao.exception;
 
 import org.jetbrains.annotations.NonNls;
 
