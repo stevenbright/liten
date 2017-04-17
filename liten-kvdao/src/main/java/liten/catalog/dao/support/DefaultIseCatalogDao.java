@@ -85,29 +85,30 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
 
   @Override
   public List<String> getNameHints(Transaction tx, @Nullable String type, String prefix) {
-    final Cursor cursor = stores.item.openCursor(tx);
-    final Set<String> prefixes = new TreeSet<>(); // use for built-in sorting capabilities
-    final int len = prefix.length() + 1;
-    final boolean hasType = StringUtils.hasLength(type);
+    try (final Cursor cursor = stores.item.openCursor(tx)) {
+      final Set<String> prefixes = new TreeSet<>(); // use for built-in sorting capabilities
+      final int len = prefix.length() + 1;
+      final boolean hasType = StringUtils.hasLength(type);
 
-    // Bruteforce traverse (really bad performance)
-    // TODO: indexes
-    while (cursor.getNext()) {
-      final Ise.Item item = entryToProto(cursor.getValue(), Ise.Item.getDefaultInstance());
-      if (hasType && !type.equals(item.getType())) {
-        continue;
-      }
+      // Bruteforce traverse (really bad performance)
+      // TODO: indexes
+      while (cursor.getNext()) {
+        final Ise.Item item = entryToProto(cursor.getValue(), Ise.Item.getDefaultInstance());
+        if (hasType && !type.equals(item.getType())) {
+          continue;
+        }
 
-      for (final Ise.Sku sku : item.getSkusList()) {
-        final String title = sku.getTitle();
+        for (final Ise.Sku sku : item.getSkusList()) {
+          final String title = sku.getTitle();
 
-        if (title.length() >= len && title.startsWith(prefix)) {
-          prefixes.add(title.substring(0, len));
+          if (title.length() >= len && title.startsWith(prefix)) {
+            prefixes.add(title.substring(0, len));
+          }
         }
       }
-    }
 
-    return new ArrayList<>(prefixes);
+      return new ArrayList<>(prefixes);
+    }
   }
 
   @Override
@@ -116,49 +117,89 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
       return Ise.ItemQueryResult.getDefaultInstance(); // too few results requested
     }
 
-    final Cursor cursor = stores.item.openCursor(tx);
-    if (StringUtils.hasLength(query.getCursor())) {
-      final ByteIterable cursorKey = new ArrayByteIterable(ITEM_CODEC.decodeBytes(query.getCursor()));
-      final ByteIterable nextCursorKey = cursor.getSearchKeyRange(cursorKey);
-      if (nextCursorKey == null) {
-        return Ise.ItemQueryResult.getDefaultInstance(); // no results greater than given cursor key
+    try (final Cursor cursor = stores.item.openCursor(tx)) {
+      if (StringUtils.hasLength(query.getCursor())) {
+        final ByteIterable cursorKey = new ArrayByteIterable(ITEM_CODEC.decodeBytes(query.getCursor()));
+        final ByteIterable nextCursorKey = cursor.getSearchKeyRange(cursorKey);
+        if (nextCursorKey == null) {
+          return Ise.ItemQueryResult.getDefaultInstance(); // no results greater than given cursor key
+        }
       }
-    }
 
-    final Ise.ItemQueryResult.Builder resultBuilder = Ise.ItemQueryResult.newBuilder();
-    final int limit = Math.min(query.getLimit(), MAX_LIMIT);
+      final Ise.ItemQueryResult.Builder resultBuilder = Ise.ItemQueryResult.newBuilder();
+      final int limit = Math.min(query.getLimit(), MAX_LIMIT);
 
-    while (cursor.getNext()) {
-      final Ise.Item item = entryToProto(cursor.getValue(), Ise.Item.getDefaultInstance());
+      // TODO: optimize - now brute-force iteration is used
+      while (cursor.getNext()) {
+        final Ise.Item item = entryToProto(cursor.getValue(), Ise.Item.getDefaultInstance());
 
-      if (StringUtils.hasLength(query.getNamePrefix())) {
-        boolean matches = false;
-        for (final Ise.Sku sku : item.getSkusList()) {
-          if (sku.getTitle().regionMatches(true, 0, query.getNamePrefix(),
-              0, query.getNamePrefix().length())) {
-            matches = true;
-            break;
+        if (StringUtils.hasLength(query.getNamePrefix())) {
+          boolean matches = false;
+          for (final Ise.Sku sku : item.getSkusList()) {
+            if (sku.getTitle().regionMatches(true, 0, query.getNamePrefix(),
+                0, query.getNamePrefix().length())) {
+              matches = true;
+              break;
+            }
+          }
+
+          if (!matches) {
+            continue;
           }
         }
 
-        if (!matches) {
+        if (StringUtils.hasLength(query.getType()) && !query.getType().equals(item.getType())) {
           continue;
+        }
+
+        // item matches, insert it into the list
+        resultBuilder.addItems(item);
+        if (resultBuilder.getItemsCount() >= limit) {
+          resultBuilder.setCursor(KeyUtil.keyAsSemanticId(ITEM_CODEC, cursor.getKey()));
+          break;
         }
       }
 
-      if (StringUtils.hasLength(query.getType()) && !query.getType().equals(item.getType())) {
-        continue;
+      return resultBuilder.build();
+    }
+  }
+
+  @Override
+  public Ise.ItemRelationQueryResult getRelations(Transaction tx, Ise.ItemRelationQuery query) {
+    if (!ITEM_CODEC.canDecode(query.getFromItemId())) {
+      throw new IllegalArgumentException("fromItemId");
+    }
+
+    if (query.getLimit() <= 0) {
+      return Ise.ItemRelationQueryResult.getDefaultInstance(); // too few results requested
+    }
+
+    final ByteIterable forwardRelationIdKey = protoToEntry(Ise.ForwardRelationId.newBuilder()
+        .setFromItemId(query.getFromItemId())
+        .setRelationType(query.getType())
+        .build());
+
+    final Ise.ItemRelationQueryResult.Builder resultBuilder = Ise.ItemRelationQueryResult.newBuilder();
+    final int limit = Math.min(query.getLimit(), MAX_LIMIT);
+
+    try (Cursor cursor = stores.forwardRelations.openCursor(tx)) {
+      if (query.getCursor().length() > 0) {
+        if (!cursor.getSearchBoth(forwardRelationIdKey, stringToEntry(query.getCursor()))) {
+          return Ise.ItemRelationQueryResult.getDefaultInstance(); // cursor non-existent
+        }
       }
 
-      // item matches, insert it into the list
-      resultBuilder.addItems(item);
-      if (resultBuilder.getItemsCount() >= limit) {
-        resultBuilder.setCursor(KeyUtil.keyAsSemanticId(ITEM_CODEC, cursor.getKey()));
-        break;
+      while (cursor.getNextDup()) {
+        final String toItemId = entryToString(cursor.getValue());
+        resultBuilder.addToItemIds(toItemId);
+        if (resultBuilder.getToItemIdsCount() >= limit) {
+          resultBuilder.setCursor(toItemId);
+          break;
+        }
       }
     }
 
-    return resultBuilder.build();
+    return null;
   }
 
   @Override
@@ -234,15 +275,16 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
     }
 
     // drop author relations
-    final Cursor forwardRelationsCursor = stores.forwardRelations.openCursor(tx);
     if (item.getExtras().hasBook()) {
-      final Ise.BookItemExtras bookExtras = item.getExtras().getBook();
-      dropRelations(forwardRelationsCursor, AUTHOR_RELATION_NAME, bookExtras.getAuthorIdsList(), item.getId());
-      dropRelations(forwardRelationsCursor, GENRE_RELATION_NAME, bookExtras.getGenreIdsList(), item.getId());
+      try (final Cursor forwardRelationsCursor = stores.forwardRelations.openCursor(tx)) {
+        final Ise.BookItemExtras bookExtras = item.getExtras().getBook();
+        dropRelations(forwardRelationsCursor, AUTHOR_RELATION_NAME, bookExtras.getAuthorIdsList(), item.getId());
+        dropRelations(forwardRelationsCursor, GENRE_RELATION_NAME, bookExtras.getGenreIdsList(), item.getId());
 
-      if (StringUtils.hasLength(bookExtras.getSeriesId())) {
-        dropRelations(forwardRelationsCursor, SERIES_RELATION_NAME,
-            Collections.singletonList(bookExtras.getSeriesId()), item.getId());
+        if (StringUtils.hasLength(bookExtras.getSeriesId())) {
+          dropRelations(forwardRelationsCursor, SERIES_RELATION_NAME,
+              Collections.singletonList(bookExtras.getSeriesId()), item.getId());
+        }
       }
     }
   }

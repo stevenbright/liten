@@ -100,6 +100,25 @@ message ItemQuery {
 }
 
 message ItemQueryResult {
-  repeated Item items = 1;
-  string cursor = 2;
+  string cursor = 1;
+  repeated Item items = 2;
+}
+
+message ItemRelationQuery {
+  // parameter, indicating where to start
+  string cursor = 1;
+  // size of the resultant output
+  int32 limit = 2;
+
+  //
+  // Extra query parameters
+  //
+
+  string fromItemId = 3;
+  string type = 4;
+}
+
+message ItemRelationQueryResult {
+  string cursor = 1;
+  repeated string toItemIds = 2;
 }

@@ -28,6 +28,8 @@ public interface IseCatalogDao {
 
   Ise.ItemQueryResult getItems(Transaction tx, Ise.ItemQuery query);
 
+  Ise.ItemRelationQueryResult getRelations(Transaction tx, Ise.ItemRelationQuery query);
+
   //
   // Update methods
   //
