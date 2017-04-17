@@ -111,6 +111,57 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
   }
 
   @Override
+  public Ise.ItemQueryResult getItems(Transaction tx, Ise.ItemQuery query) {
+    if (query.getLimit() <= 0) {
+      return Ise.ItemQueryResult.getDefaultInstance(); // too few results requested
+    }
+
+    final Cursor cursor = stores.item.openCursor(tx);
+    if (StringUtils.hasLength(query.getCursor())) {
+      final ByteIterable cursorKey = new ArrayByteIterable(ITEM_CODEC.decodeBytes(query.getCursor()));
+      final ByteIterable nextCursorKey = cursor.getSearchKeyRange(cursorKey);
+      if (nextCursorKey == null) {
+        return Ise.ItemQueryResult.getDefaultInstance(); // no results greater than given cursor key
+      }
+    }
+
+    final Ise.ItemQueryResult.Builder resultBuilder = Ise.ItemQueryResult.newBuilder();
+    final int limit = Math.min(query.getLimit(), MAX_LIMIT);
+
+    while (cursor.getNext()) {
+      final Ise.Item item = entryToProto(cursor.getValue(), Ise.Item.getDefaultInstance());
+
+      if (StringUtils.hasLength(query.getNamePrefix())) {
+        boolean matches = false;
+        for (final Ise.Sku sku : item.getSkusList()) {
+          if (sku.getTitle().regionMatches(true, 0, query.getNamePrefix(),
+              0, query.getNamePrefix().length())) {
+            matches = true;
+            break;
+          }
+        }
+
+        if (!matches) {
+          continue;
+        }
+      }
+
+      if (StringUtils.hasLength(query.getType()) && !query.getType().equals(item.getType())) {
+        continue;
+      }
+
+      // item matches, insert it into the list
+      resultBuilder.addItems(item);
+      if (resultBuilder.getItemsCount() >= limit) {
+        resultBuilder.setCursor(KeyUtil.keyAsSemanticId(ITEM_CODEC, cursor.getKey()));
+        break;
+      }
+    }
+
+    return resultBuilder.build();
+  }
+
+  @Override
   public String persist(Transaction tx, Ise.Item item) {
     validateItem(item);
 

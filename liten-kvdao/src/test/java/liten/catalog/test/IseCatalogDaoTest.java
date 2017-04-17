@@ -1,16 +1,17 @@
 package liten.catalog.test;
 
 import com.truward.dao.exception.ItemNotFoundException;
+import jetbrains.exodus.env.Transaction;
 import liten.catalog.dao.IseCatalogDao;
 import liten.catalog.dao.exception.DuplicateExternalIdException;
 import liten.catalog.dao.support.DefaultIseCatalogDao;
 import liten.catalog.model.Ise;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.util.StringUtils;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 
@@ -169,6 +170,39 @@ public final class IseCatalogDaoTest extends XodusTestBase {
   }
 
   @Test
+  public void shouldGetEmptyItemQueryResult() {
+    final Ise.ItemQueryResult itemQueryResult = environment.computeInTransaction(tx -> catalogDao.getItems(tx,
+        Ise.ItemQuery.newBuilder().setLimit(IseCatalogDao.DEFAULT_LIMIT).build()));
+
+    assertTrue(itemQueryResult.getCursor().length() == 0);
+    assertEquals(0, itemQueryResult.getItemsCount());
+  }
+
+  @Test
+  public void shouldGetItemPages() {
+    doInTestTransaction(tx -> {
+      final Set<Ise.Item> items = new HashSet<>();
+      for (int i = 0; i < 40; ++i) {
+        final Ise.Item item = Ise.Item.newBuilder()
+            .setType(i % 3 == 0 ? "author" : "book")
+            .addSkus(Ise.Sku.newBuilder()
+                .setId("1")
+                .setTitle("x" + i + "-item")
+                .build())
+            .build();
+        final String id = catalogDao.persist(tx, item);
+        items.add(Ise.Item.newBuilder(item).setId(id).build());
+      }
+
+      assertEquals(items, new HashSet<>(getAllItems(tx, Ise.ItemQuery.newBuilder().setLimit(7).build())));
+      assertEquals(items.stream().filter(i -> i.getType().equals("author")).collect(Collectors.toSet()),
+          new HashSet<>(getAllItems(tx, Ise.ItemQuery.newBuilder().setType("author").setLimit(3).build())));
+
+      return null;
+    });
+  }
+
+  @Test
   public void shouldGetPrefixes() {
     doInTestTransaction(tx -> {
       final Ise.Item item1 = Ise.Item.newBuilder().setType("numbers")
@@ -205,5 +239,25 @@ public final class IseCatalogDaoTest extends XodusTestBase {
       assertEquals(Collections.emptyList(), catalogDao.getNameHints(tx, "", "One"));
       assertEquals(Collections.singletonList("Cuat"), catalogDao.getNameHints(tx, "numbers", "Cua"));
     });
+  }
+
+  //
+  // Private
+  //
+
+  private List<Ise.Item> getAllItems(Transaction tx, Ise.ItemQuery templateItemQuery) {
+    final List<Ise.Item> retrievedItems = new ArrayList<>();
+    for (String nextCursor = "";;) {
+      final Ise.ItemQueryResult queryResult = catalogDao.getItems(tx, Ise.ItemQuery.newBuilder(templateItemQuery)
+          .setCursor(nextCursor)
+          .build());
+      retrievedItems.addAll(queryResult.getItemsList());
+      if (queryResult.getCursor().length() == 0) {
+        break;
+      }
+      nextCursor = queryResult.getCursor();
+    }
+
+    return retrievedItems;
   }
 }

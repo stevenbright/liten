@@ -9,6 +9,7 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Arrays;
 import java.util.Random;
 import java.util.function.Supplier;
 
@@ -26,6 +27,14 @@ public final class KeyUtil {
 
   public static ByteIterable semanticIdAsKey(IdCodec codec, String id) {
     return new ArrayByteIterable(codec.decodeBytes(id));
+  }
+
+  public static String keyAsSemanticId(IdCodec codec, ByteIterable key) {
+    byte[] keyBytes = key.getBytesUnsafe();
+    if (keyBytes.length > key.getLength()) {
+      keyBytes = Arrays.copyOf(keyBytes, key.getLength());
+    }
+    return codec.encodeBytes(keyBytes);
   }
 
   public static void assertValidId(IdCodec codec, String id, Supplier<String> messageSupplier) {
