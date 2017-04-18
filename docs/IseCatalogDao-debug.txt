@@ -1,0 +1,30 @@
+
+
+# Debug Code
+
+
+```
+        System.out.println(String.format("Non-overridden forward relation: fromItemId=%s, type=%s, toItemId=%s",
+            fromItemId, type, toItemId));
+        debugRelations(tx);
+
+  private void debugRelations(Transaction tx) {
+    try (final Cursor cursor = stores.forwardRelations.openCursor(tx)) {
+      while (cursor.getNext()) {
+        final Ise.ForwardRelationId fwdRel = entryToProto(cursor.getKey(), Ise.ForwardRelationId.getDefaultInstance());
+        final String value = entryToString(cursor.getValue());
+
+        System.out.println(String.format(" : R(%s) %s -> %s", fwdRel.getRelationType(),
+            debugGetItemStr(tx, fwdRel.getFromItemId()), debugGetItemStr(tx, value)));
+      }
+    }
+    System.out.println("--");
+  }
+
+  private String debugGetItemStr(Transaction tx, String id) {
+    final Ise.Item i = getById(tx, id);
+    return "{id=" + i.getId() + ", title=" + i.getSkusList().stream().findFirst().get().getTitle() + "}";
+  }
+```
+
+

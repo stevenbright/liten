@@ -1,5 +1,6 @@
 package liten.catalog.dao.support;
 
+import com.truward.dao.exception.InvalidCursorException;
 import com.truward.semantic.id.IdCodec;
 import com.truward.semantic.id.SemanticIdCodec;
 import com.truward.xodus.util.KeyGenerator;
@@ -122,7 +123,7 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
         final ByteIterable cursorKey = new ArrayByteIterable(ITEM_CODEC.decodeBytes(query.getCursor()));
         final ByteIterable nextCursorKey = cursor.getSearchKeyRange(cursorKey);
         if (nextCursorKey == null) {
-          return Ise.ItemQueryResult.getDefaultInstance(); // no results greater than given cursor key
+          throw new InvalidCursorException(query.getCursor());
         }
       }
 
@@ -183,13 +184,17 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
     final int limit = Math.min(query.getLimit(), MAX_LIMIT);
 
     try (Cursor cursor = stores.forwardRelations.openCursor(tx)) {
+      boolean hasNext;
       if (query.getCursor().length() > 0) {
         if (!cursor.getSearchBoth(forwardRelationIdKey, stringToEntry(query.getCursor()))) {
-          return Ise.ItemRelationQueryResult.getDefaultInstance(); // cursor non-existent
+          throw new InvalidCursorException(query.getCursor());
         }
+        hasNext = cursor.getNextDup(); // jump to the value next to cursor
+      } else {
+        hasNext = (cursor.getSearchKey(forwardRelationIdKey) != null); // try jump to the first value
       }
 
-      while (cursor.getNextDup()) {
+      for (; hasNext; hasNext = cursor.getNextDup()) {
         final String toItemId = entryToString(cursor.getValue());
         resultBuilder.addToItemIds(toItemId);
         if (resultBuilder.getToItemIdsCount() >= limit) {
@@ -199,7 +204,7 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
       }
     }
 
-    return null;
+    return resultBuilder.build();
   }
 
   @Override
@@ -300,7 +305,7 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
           .setRelationType(type)
           .build();
 
-      if (!stores.forwardRelations.add(tx, protoToEntry(forwardRelationId), stringToEntry(toItemId))) {
+      if (!stores.forwardRelations.put(tx, protoToEntry(forwardRelationId), stringToEntry(toItemId))) {
         // should never happen
         log.warn("Non-overridden forward relation: fromItemId={}, type={}, toItemId={}", fromItemId, type, toItemId);
       }
