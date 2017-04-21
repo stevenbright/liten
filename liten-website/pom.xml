@@ -83,6 +83,12 @@
       <version>${project.version}</version>
     </dependency>
 
+    <dependency>
+      <groupId>liten</groupId>
+      <artifactId>liten-kvdao</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
     <!-- Protobuf Message Converters -->
     <dependency>
       <groupId>com.truward.brikar.protobuf</groupId>

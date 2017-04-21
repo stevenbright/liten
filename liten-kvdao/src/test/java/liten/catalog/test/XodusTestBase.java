@@ -3,6 +3,8 @@ package liten.catalog.test;
 import jetbrains.exodus.env.*;
 import org.junit.After;
 import org.junit.Before;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.FileSystemUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -28,7 +30,7 @@ public abstract class XodusTestBase {
   }
 
   @After
-  public void disposeEnvironment() throws IOException {
+  public void disposeEnvironment() {
     if (environment == null) {
       return;
     }
@@ -39,7 +41,7 @@ public abstract class XodusTestBase {
       environment = null;
     }
 
-    //Files.delete(tempDir);
+    FileSystemUtils.deleteRecursively(tempDir.toFile());
   }
 
   protected void doInTestTransaction(TransactionalExecutable executable) {
