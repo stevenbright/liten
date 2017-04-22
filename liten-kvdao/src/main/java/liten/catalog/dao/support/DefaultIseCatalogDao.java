@@ -262,12 +262,12 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
         final Ise.BookItemExtras bookExtras = itemExtras.getBook();
 
         // authors->book
-        setRelations(tx, AUTHOR_RELATION_NAME, bookExtras.getAuthorIdsList(), id);
+        setRelations(tx, AUTHOR, bookExtras.getAuthorIdsList(), id);
         // genres->book
-        setRelations(tx, GENRE_RELATION_NAME, bookExtras.getGenreIdsList(), id);
+        setRelations(tx, GENRE, bookExtras.getGenreIdsList(), id);
         // series->book
         if (StringUtils.hasLength(bookExtras.getSeriesId())) {
-          setRelations(tx, SERIES_RELATION_NAME, Collections.singletonList(bookExtras.getSeriesId()), id);
+          setRelations(tx, SERIES, Collections.singletonList(bookExtras.getSeriesId()), id);
         }
       }
     }
@@ -283,11 +283,11 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
     if (item.getExtras().hasBook()) {
       try (final Cursor forwardRelationsCursor = stores.forwardRelations.openCursor(tx)) {
         final Ise.BookItemExtras bookExtras = item.getExtras().getBook();
-        dropRelations(forwardRelationsCursor, AUTHOR_RELATION_NAME, bookExtras.getAuthorIdsList(), item.getId());
-        dropRelations(forwardRelationsCursor, GENRE_RELATION_NAME, bookExtras.getGenreIdsList(), item.getId());
+        dropRelations(forwardRelationsCursor, AUTHOR, bookExtras.getAuthorIdsList(), item.getId());
+        dropRelations(forwardRelationsCursor, GENRE, bookExtras.getGenreIdsList(), item.getId());
 
         if (StringUtils.hasLength(bookExtras.getSeriesId())) {
-          dropRelations(forwardRelationsCursor, SERIES_RELATION_NAME,
+          dropRelations(forwardRelationsCursor, SERIES,
               Collections.singletonList(bookExtras.getSeriesId()), item.getId());
         }
       }

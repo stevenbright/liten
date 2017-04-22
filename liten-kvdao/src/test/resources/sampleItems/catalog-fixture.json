@@ -1,16 +1,1166 @@
 {
   "items": [
     {
-      "type": "book",
-      "externalIds": [
-        {"idValue": "123456", "idType": "librus"}
-      ],
+      "id": "S1.A010",
+      "type": "author",
       "skus": [
         {
           "id": "1",
-          "title": "The Tale of Troika"
+          "title": "Leo Tolstoy",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Лев Николаевич Толстой",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": []
+    },
+    {
+      "id": "S1.A040",
+      "type": "author",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Arkady Strugatsky",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Аркадий Стругацкий",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": []
+    },
+    {
+      "id": "S1.A050",
+      "type": "author",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Boris Strugatsky",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Борис Стругацкий",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": []
+    },
+    {
+      "id": "S1.B010",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Holy Bible",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Библия",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": [],
+      "extras": {
+        "book": {
+          "authorIds": [],
+          "genreIds": [
+            "S1.G070"
+          ]
+        }
+      }
+    },
+    {
+      "id": "S1.G010",
+      "type": "genre",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Novel",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Новелла",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": []
+    },
+    {
+      "id": "S1.G030",
+      "type": "genre",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Fantasy",
+          "language": "en",
+          "entries": []
+        }
+      ],
+      "externalIds": []
+    },
+    {
+      "id": "S1.G040",
+      "type": "genre",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Detective",
+          "language": "en",
+          "entries": []
+        }
+      ],
+      "externalIds": []
+    },
+    {
+      "id": "S1.G050",
+      "type": "genre",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Sci-Fi",
+          "language": "en",
+          "entries": []
+        }
+      ],
+      "externalIds": []
+    },
+    {
+      "id": "S1.G070",
+      "type": "genre",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Religion",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Религия",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": []
+    },
+    {
+      "id": "S1.HGYVB",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Definitely Maybe",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "За миллиард лет до конца света",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": [],
+      "extras": {
+        "book": {
+          "authorIds": [
+            "S1.A040",
+            "S1.A050"
+          ],
+          "genreIds": [
+            "S1.G010",
+            "S1.G050"
+          ]
+        }
+      }
+    },
+    {
+      "id": "S1.X010",
+      "type": "language",
+      "skus": [
+        {
+          "id": "1",
+          "title": "English",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Английский",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": [
+        {
+          "idType": "alias",
+          "idValue": "en"
         }
       ]
+    },
+    {
+      "id": "S1.X020",
+      "type": "language",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Russian",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Русский",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": [
+        {
+          "idType": "alias",
+          "idValue": "ru"
+        }
+      ]
+    },
+    {
+      "id": "S1.XRQ98",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Hard to Be a God",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Трудно быть богом",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": [],
+      "extras": {
+        "book": {
+          "authorIds": [
+            "S1.A040",
+            "S1.A050"
+          ],
+          "genreIds": [
+            "S1.G010",
+            "S1.G050"
+          ]
+        }
+      }
+    },
+    {
+      "id": "S1.3HHX5",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Snail on the Slope",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Улитка на склоне",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": [],
+      "extras": {
+        "book": {
+          "authorIds": [
+            "S1.A040",
+            "S1.A050"
+          ],
+          "genreIds": [
+            "S1.G010",
+            "S1.G050"
+          ]
+        }
+      }
+    },
+    {
+      "id": "S1.4H2Y1",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Limping Fate",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Хромая судьба",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": [],
+      "extras": {
+        "book": {
+          "authorIds": [
+            "S1.A040",
+            "S1.A050"
+          ],
+          "genreIds": [
+            "S1.G010",
+            "S1.G050"
+          ]
+        }
+      }
+    },
+    {
+      "id": "S1.69NT9",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Test 8",
+          "language": "en",
+          "entries": []
+        }
+      ],
+      "externalIds": []
+    },
+    {
+      "id": "S1.9SSEE",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Prisoners of Power",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Обитаемый остров",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": [],
+      "extras": {
+        "book": {
+          "authorIds": [
+            "S1.A040",
+            "S1.A050"
+          ],
+          "genreIds": [
+            "S1.G010",
+            "S1.G050"
+          ]
+        }
+      }
+    },
+    {
+      "id": "S1.ESDZ1",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Tale of Friendship and Non-friendship",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Повесть о дружбе и недружбе",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": [],
+      "extras": {
+        "book": {
+          "authorIds": [
+            "S1.A040",
+            "S1.A050"
+          ],
+          "genreIds": [
+            "S1.G010",
+            "S1.G050"
+          ]
+        }
+      }
+    },
+    {
+      "id": "S1.G990",
+      "type": "genre",
+      "skus": [
+        {
+          "id": "1",
+          "title": "philosophy",
+          "language": "en",
+          "entries": []
+        }
+      ],
+      "externalIds": []
+    },
+    {
+      "id": "S1.NHSB8",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Escape Attempt",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Попытка к бегству",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": [],
+      "extras": {
+        "book": {
+          "authorIds": [
+            "S1.A040",
+            "S1.A050"
+          ],
+          "genreIds": [
+            "S1.G010",
+            "S1.G050"
+          ]
+        }
+      }
+    },
+    {
+      "id": "S1.S1C87",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "The Time Wanderers",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Волны гасят ветер",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": [],
+      "extras": {
+        "book": {
+          "authorIds": [
+            "S1.A040",
+            "S1.A050"
+          ],
+          "genreIds": [
+            "S1.G010",
+            "S1.G050"
+          ]
+        }
+      }
+    },
+    {
+      "id": "S1.XHM99",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Noon: 22nd Century",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Полдень, XXII век",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": [],
+      "extras": {
+        "book": {
+          "authorIds": [
+            "S1.A040",
+            "S1.A050"
+          ],
+          "genreIds": [
+            "S1.G010",
+            "S1.G050"
+          ]
+        }
+      }
+    },
+    {
+      "id": "S1.A28C1",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Roadside Picnic",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Пикник на обочине",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": [],
+      "extras": {
+        "book": {
+          "authorIds": [
+            "S1.A040",
+            "S1.A050"
+          ],
+          "genreIds": [
+            "S1.G010",
+            "S1.G050"
+          ]
+        }
+      }
+    },
+    {
+      "id": "S1.B210",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "War and Peace",
+          "language": "en",
+          "entries": [
+            {
+              "createdTimestamp": 1348444800000,
+              "downloadInfo": {
+                "originId": "15",
+                "downloadId": "1013",
+                "fileSize": 1213453,
+                "downloadType": "librus"
+              }
+            }
+          ]
+        },
+        {
+          "id": "2",
+          "title": "Война и мир",
+          "language": "ru",
+          "entries": [
+            {
+              "createdTimestamp": 1352073600000,
+              "downloadInfo": {
+                "originId": "15",
+                "downloadId": "1011",
+                "fileSize": 1532145,
+                "downloadType": "librus"
+              }
+            }
+          ]
+        }
+      ],
+      "externalIds": [],
+      "extras": {
+        "book": {
+          "authorIds": [
+            "S1.A010"
+          ],
+          "genreIds": [
+            "S1.G010"
+          ]
+        }
+      }
+    },
+    {
+      "id": "S1.B250",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "The Land of Crimson Clouds",
+          "language": "en",
+          "entries": [
+            {
+              "createdTimestamp": 1351814400000,
+              "downloadInfo": {
+                "originId": "15",
+                "downloadId": "1024",
+                "fileSize": 111250,
+                "downloadType": "librus"
+              }
+            }
+          ]
+        },
+        {
+          "id": "2",
+          "title": "Страна багровых туч",
+          "language": "ru",
+          "entries": [
+            {
+              "createdTimestamp": 1351036800000,
+              "downloadInfo": {
+                "originId": "15",
+                "downloadId": "1025",
+                "fileSize": 125460,
+                "downloadType": "librus"
+              }
+            }
+          ]
+        }
+      ],
+      "externalIds": [],
+      "extras": {
+        "book": {
+          "authorIds": [
+            "S1.A040",
+            "S1.A050"
+          ],
+          "genreIds": [
+            "S1.G010",
+            "S1.G050"
+          ]
+        }
+      }
+    },
+    {
+      "id": "S1.D20H5",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Test 7",
+          "language": "en",
+          "entries": []
+        }
+      ],
+      "externalIds": []
+    },
+    {
+      "id": "S1.NAFRD",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Test 5",
+          "language": "en",
+          "entries": []
+        }
+      ],
+      "externalIds": []
+    },
+    {
+      "id": "S1.K34E4",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "From Beyond",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Извне",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": [],
+      "extras": {
+        "book": {
+          "authorIds": [
+            "S1.A040",
+            "S1.A050"
+          ],
+          "genreIds": [
+            "S1.G010",
+            "S1.G050"
+          ]
+        }
+      }
+    },
+    {
+      "id": "S1.PVE0D",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Space Mowgli",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Малыш",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": [],
+      "extras": {
+        "book": {
+          "authorIds": [
+            "S1.A040",
+            "S1.A050"
+          ],
+          "genreIds": [
+            "S1.G010",
+            "S1.G050"
+          ]
+        }
+      }
+    },
+    {
+      "id": "S1.2C9N1",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Test 4",
+          "language": "en",
+          "entries": []
+        }
+      ],
+      "externalIds": []
+    },
+    {
+      "id": "S1.3C1MA",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Space Apprentice",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Стажеры",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": [],
+      "extras": {
+        "book": {
+          "authorIds": [
+            "S1.A040",
+            "S1.A050"
+          ],
+          "genreIds": [
+            "S1.G010",
+            "S1.G050"
+          ]
+        }
+      }
+    },
+    {
+      "id": "S1.5M6X7",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "The Second Invasion from Mars",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Второе нашествие марсиан",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": [],
+      "extras": {
+        "book": {
+          "authorIds": [
+            "S1.A040",
+            "S1.A050"
+          ],
+          "genreIds": [
+            "S1.G010",
+            "S1.G050"
+          ]
+        }
+      }
+    },
+    {
+      "id": "S1.FC5BA",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Tale of the Troika",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Сказка о Тройке",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": [],
+      "extras": {
+        "book": {
+          "authorIds": [
+            "S1.A040",
+            "S1.A050"
+          ],
+          "genreIds": [
+            "S1.G010",
+            "S1.G050"
+          ]
+        }
+      }
+    },
+    {
+      "id": "S1.N472E",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "The Ugly Swans",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Гадкие лебеди",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": [],
+      "extras": {
+        "book": {
+          "authorIds": [
+            "S1.A040",
+            "S1.A050"
+          ],
+          "genreIds": [
+            "S1.G010",
+            "S1.G050"
+          ]
+        }
+      }
+    },
+    {
+      "id": "S1.NWYT6",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Test 6",
+          "language": "en",
+          "entries": []
+        }
+      ],
+      "externalIds": []
+    },
+    {
+      "id": "S1.V4QJ9",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "The Doomed City",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Град обреченный",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": [],
+      "extras": {
+        "book": {
+          "authorIds": [
+            "S1.A040",
+            "S1.A050"
+          ],
+          "genreIds": [
+            "S1.G010",
+            "S1.G050"
+          ]
+        }
+      }
+    },
+    {
+      "id": "S1.6DMW3",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Disquiet",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Беспокойство",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": [],
+      "extras": {
+        "book": {
+          "authorIds": [
+            "S1.A040",
+            "S1.A050"
+          ],
+          "genreIds": [
+            "S1.G010",
+            "S1.G050"
+          ]
+        }
+      }
+    },
+    {
+      "id": "S1.D5S53",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "The Final Circle of Paradise",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Хищные вещи века",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": [],
+      "extras": {
+        "book": {
+          "authorIds": [
+            "S1.A040",
+            "S1.A050"
+          ],
+          "genreIds": [
+            "S1.G010",
+            "S1.G050"
+          ]
+        }
+      }
+    },
+    {
+      "id": "S1.6YJK6",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Overburdened with Evil",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Отягощённые злом",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": [],
+      "extras": {
+        "book": {
+          "authorIds": [
+            "S1.A040",
+            "S1.A050"
+          ],
+          "genreIds": [
+            "S1.G010",
+            "S1.G050"
+          ]
+        }
+      }
+    },
+    {
+      "id": "S1.DENBE",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Far Rainbow",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Далёкая Радуга",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": [],
+      "extras": {
+        "book": {
+          "authorIds": [
+            "S1.A040",
+            "S1.A050"
+          ],
+          "genreIds": [
+            "S1.G010",
+            "S1.G050"
+          ]
+        }
+      }
+    },
+    {
+      "id": "S1.GYV43",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Beetle in the Anthill",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Жук в муравейнике",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": [],
+      "extras": {
+        "book": {
+          "authorIds": [
+            "S1.A040",
+            "S1.A050"
+          ],
+          "genreIds": [
+            "S1.G010",
+            "S1.G050"
+          ]
+        }
+      }
+    },
+    {
+      "id": "S1.N6VBD",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Destination: Amaltheia",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Путь на Амальтею",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": [],
+      "extras": {
+        "book": {
+          "authorIds": [
+            "S1.A040",
+            "S1.A050"
+          ],
+          "genreIds": [
+            "S1.G010",
+            "S1.G050"
+          ]
+        }
+      }
+    },
+    {
+      "id": "S1.PZKZ7",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Dead Mountaineer's Hotel",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Отель «У Погибшего Альпиниста»",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": [],
+      "extras": {
+        "book": {
+          "authorIds": [
+            "S1.A040",
+            "S1.A050"
+          ],
+          "genreIds": [
+            "S1.G010",
+            "S1.G050"
+          ]
+        }
+      }
+    },
+    {
+      "id": "S1.Q75TA",
+      "type": "book",
+      "skus": [
+        {
+          "id": "1",
+          "title": "Monday Begins on Saturday",
+          "language": "en",
+          "entries": []
+        },
+        {
+          "id": "2",
+          "title": "Понедельник начинается в субботу",
+          "language": "ru",
+          "entries": []
+        }
+      ],
+      "externalIds": [],
+      "extras": {
+        "book": {
+          "authorIds": [
+            "S1.A040",
+            "S1.A050"
+          ],
+          "genreIds": [
+            "S1.G010",
+            "S1.G050"
+          ]
+        }
+      }
     }
   ]
 }

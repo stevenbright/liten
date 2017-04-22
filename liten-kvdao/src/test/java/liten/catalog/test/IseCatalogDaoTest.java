@@ -12,6 +12,9 @@ import org.junit.Test;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static liten.catalog.dao.IseCatalogDao.AUTHOR;
+import static liten.catalog.dao.IseCatalogDao.BOOK;
+import static liten.catalog.dao.IseCatalogDao.GENRE;
 import static org.junit.Assert.*;
 
 /**
@@ -20,7 +23,7 @@ import static org.junit.Assert.*;
 public final class IseCatalogDaoTest extends XodusTestBase {
   private IseCatalogDao catalogDao;
 
-  private final Ise.Item templateItem = Ise.Item.newBuilder().setType("book").build();
+  private final Ise.Item templateItem = Ise.Item.newBuilder().setType(BOOK).build();
 
   private final Ise.ExternalId extId1 = Ise.ExternalId.newBuilder().setIdType("librus").setIdValue("987654").build();
   private final Ise.ExternalId extId2 = Ise.ExternalId.newBuilder().setIdType("isbn").setIdValue("1-22-33").build();
@@ -48,10 +51,10 @@ public final class IseCatalogDaoTest extends XodusTestBase {
     prefixes = environment.computeInTransaction(tx -> catalogDao.getNameHints(tx, null, "A"));
     assertEquals(Collections.emptyList(), prefixes);
 
-    prefixes = environment.computeInTransaction(tx -> catalogDao.getNameHints(tx, "book", ""));
+    prefixes = environment.computeInTransaction(tx -> catalogDao.getNameHints(tx, BOOK, ""));
     assertEquals(Collections.emptyList(), prefixes);
 
-    prefixes = environment.computeInTransaction(tx -> catalogDao.getNameHints(tx, "book", "A"));
+    prefixes = environment.computeInTransaction(tx -> catalogDao.getNameHints(tx, BOOK, "A"));
     assertEquals(Collections.emptyList(), prefixes);
   }
 
@@ -152,11 +155,11 @@ public final class IseCatalogDaoTest extends XodusTestBase {
   @Test
   public void shouldNotOverrideExistingExternalId() {
     doInTestTransaction(tx -> {
-      final String id1 = catalogDao.persist(tx, Ise.Item.newBuilder().setType("book")
+      final String id1 = catalogDao.persist(tx, Ise.Item.newBuilder().setType(BOOK)
           .addExternalIds(extId1).addExternalIds(extId2)
           .build());
       try {
-        catalogDao.persist(tx, Ise.Item.newBuilder().setType("book")
+        catalogDao.persist(tx, Ise.Item.newBuilder().setType(BOOK)
             .addExternalIds(extId2)
             .build());
         fail("Should not be able to persist another item with the same external ID");
@@ -180,44 +183,44 @@ public final class IseCatalogDaoTest extends XodusTestBase {
   @Test
   public void shouldGetForwardRelations() {
     doInTestTransaction(tx -> {
-      final String authorId1 = catalogDao.persist(tx, Ise.Item.newBuilder().setType("author")
+      final String authorId1 = catalogDao.persist(tx, Ise.Item.newBuilder().setType(AUTHOR)
           .addSkus(Ise.Sku.newBuilder().setTitle("Leo Tolstoy").build())
           .build());
-      final String authorId2 = catalogDao.persist(tx, Ise.Item.newBuilder().setType("author")
+      final String authorId2 = catalogDao.persist(tx, Ise.Item.newBuilder().setType(AUTHOR)
           .addSkus(Ise.Sku.newBuilder().setTitle("Arkady Strugatsky").build())
           .build());
-      final String authorId3 = catalogDao.persist(tx, Ise.Item.newBuilder().setType("author")
+      final String authorId3 = catalogDao.persist(tx, Ise.Item.newBuilder().setType(AUTHOR)
           .addSkus(Ise.Sku.newBuilder().setTitle("Boris Strugatsky").build())
           .build());
-      final String authorId4 = catalogDao.persist(tx, Ise.Item.newBuilder().setType("author")
+      final String authorId4 = catalogDao.persist(tx, Ise.Item.newBuilder().setType(AUTHOR)
           .addSkus(Ise.Sku.newBuilder().setTitle("John Doe").build())
           .build());
 
-      final String book1 = catalogDao.persist(tx, Ise.Item.newBuilder().setType("book")
+      final String book1 = catalogDao.persist(tx, Ise.Item.newBuilder().setType(BOOK)
           .setExtras(Ise.ItemExtras.newBuilder().setBook(Ise.BookItemExtras.newBuilder()
               .addAuthorIds(authorId2).addAuthorIds(authorId3)))
           .addSkus(Ise.Sku.newBuilder().setTitle("Far Rainbow").build())
           .build());
-      final String book2 = catalogDao.persist(tx, Ise.Item.newBuilder().setType("book")
+      final String book2 = catalogDao.persist(tx, Ise.Item.newBuilder().setType(BOOK)
           .setExtras(Ise.ItemExtras.newBuilder().setBook(Ise.BookItemExtras.newBuilder()
               .addAuthorIds(authorId1)))
           .addSkus(Ise.Sku.newBuilder().setTitle("War and Peace").build())
           .build());
 
       final Ise.ItemRelationQueryResult q1 = catalogDao.getRelations(tx, Ise.ItemRelationQuery.newBuilder()
-          .setType("author").setFromItemId(authorId2).setLimit(10).build());
+          .setType(AUTHOR).setFromItemId(authorId2).setLimit(10).build());
       assertEquals(Ise.ItemRelationQueryResult.newBuilder().addToItemIds(book1).build(), q1);
 
       final Ise.ItemRelationQueryResult q2 = catalogDao.getRelations(tx, Ise.ItemRelationQuery.newBuilder()
-          .setType("author").setFromItemId(authorId3).setLimit(10).build());
+          .setType(AUTHOR).setFromItemId(authorId3).setLimit(10).build());
       assertEquals(Ise.ItemRelationQueryResult.newBuilder().addToItemIds(book1).build(), q2);
 
       final Ise.ItemRelationQueryResult q3 = catalogDao.getRelations(tx, Ise.ItemRelationQuery.newBuilder()
-          .setType("author").setFromItemId(authorId1).setLimit(10).build());
+          .setType(AUTHOR).setFromItemId(authorId1).setLimit(10).build());
       assertEquals(Ise.ItemRelationQueryResult.newBuilder().addToItemIds(book2).build(), q3);
 
       final Ise.ItemRelationQueryResult q4 = catalogDao.getRelations(tx, Ise.ItemRelationQuery.newBuilder()
-          .setType("author").setFromItemId(authorId4).setLimit(10).build());
+          .setType(AUTHOR).setFromItemId(authorId4).setLimit(10).build());
       assertEquals(Ise.ItemRelationQueryResult.getDefaultInstance(), q4);
     });
   }
@@ -225,48 +228,48 @@ public final class IseCatalogDaoTest extends XodusTestBase {
   @Test
   public void shouldGetPaginatedForwardRelations() {
     doInTestTransaction(tx -> {
-      final String authorId = catalogDao.persist(tx, Ise.Item.newBuilder().setType("author")
+      final String authorId = catalogDao.persist(tx, Ise.Item.newBuilder().setType(AUTHOR)
           .addSkus(Ise.Sku.newBuilder().setTitle("Leo Tolstoy").build())
           .build());
-      final String genreId1 = catalogDao.persist(tx, Ise.Item.newBuilder().setType("genre")
+      final String genreId1 = catalogDao.persist(tx, Ise.Item.newBuilder().setType(GENRE)
           .addSkus(Ise.Sku.newBuilder().setTitle("novel").build())
           .build());
-      final String genreId2 = catalogDao.persist(tx, Ise.Item.newBuilder().setType("genre")
+      final String genreId2 = catalogDao.persist(tx, Ise.Item.newBuilder().setType(GENRE)
           .addSkus(Ise.Sku.newBuilder().setTitle("sci-fi").build())
           .build());
 
-      final String book1 = catalogDao.persist(tx, Ise.Item.newBuilder().setType("book")
+      final String book1 = catalogDao.persist(tx, Ise.Item.newBuilder().setType(BOOK)
           .setExtras(Ise.ItemExtras.newBuilder().setBook(Ise.BookItemExtras.newBuilder()
               .addAuthorIds(authorId).addGenreIds(genreId1)))
           .addSkus(Ise.Sku.newBuilder().setTitle("B1").build())
           .build());
-      final String book2 = catalogDao.persist(tx, Ise.Item.newBuilder().setType("book")
+      final String book2 = catalogDao.persist(tx, Ise.Item.newBuilder().setType(BOOK)
           .setExtras(Ise.ItemExtras.newBuilder().setBook(Ise.BookItemExtras.newBuilder()
               .addAuthorIds(authorId).addGenreIds(genreId2)))
           .addSkus(Ise.Sku.newBuilder().setTitle("B2").build())
           .build());
-      final String book3 = catalogDao.persist(tx, Ise.Item.newBuilder().setType("book")
+      final String book3 = catalogDao.persist(tx, Ise.Item.newBuilder().setType(BOOK)
           .setExtras(Ise.ItemExtras.newBuilder().setBook(Ise.BookItemExtras.newBuilder()
               .addAuthorIds(authorId).addGenreIds(genreId1).addGenreIds(genreId2)))
           .addSkus(Ise.Sku.newBuilder().setTitle("B3").build())
           .build());
-      final String book4 = catalogDao.persist(tx, Ise.Item.newBuilder().setType("book")
+      final String book4 = catalogDao.persist(tx, Ise.Item.newBuilder().setType(BOOK)
           .setExtras(Ise.ItemExtras.newBuilder().setBook(Ise.BookItemExtras.newBuilder()
               .addAuthorIds(authorId).addGenreIds(genreId2)))
           .addSkus(Ise.Sku.newBuilder().setTitle("B4").build())
           .build());
-      final String book5 = catalogDao.persist(tx, Ise.Item.newBuilder().setType("book")
+      final String book5 = catalogDao.persist(tx, Ise.Item.newBuilder().setType(BOOK)
           .setExtras(Ise.ItemExtras.newBuilder().setBook(Ise.BookItemExtras.newBuilder()
               .addAuthorIds(authorId).addGenreIds(genreId1)))
           .addSkus(Ise.Sku.newBuilder().setTitle("B5").build())
           .build());
 
       assertEquals(new HashSet<>(Arrays.asList(book1, book2, book3, book4, book5)), getAllRelations(tx,
-          Ise.ItemRelationQuery.newBuilder().setType("author").setFromItemId(authorId).setLimit(2).build()));
+          Ise.ItemRelationQuery.newBuilder().setType(AUTHOR).setFromItemId(authorId).setLimit(2).build()));
       assertEquals(new HashSet<>(Arrays.asList(book1, book3, book5)), getAllRelations(tx,
-          Ise.ItemRelationQuery.newBuilder().setType("genre").setFromItemId(genreId1).setLimit(2).build()));
+          Ise.ItemRelationQuery.newBuilder().setType(GENRE).setFromItemId(genreId1).setLimit(2).build()));
       assertEquals(new HashSet<>(Arrays.asList(book2, book3, book4)), getAllRelations(tx,
-          Ise.ItemRelationQuery.newBuilder().setType("genre").setFromItemId(genreId2).setLimit(2).build()));
+          Ise.ItemRelationQuery.newBuilder().setType(GENRE).setFromItemId(genreId2).setLimit(2).build()));
     });
   }
 
@@ -276,7 +279,7 @@ public final class IseCatalogDaoTest extends XodusTestBase {
       final Set<Ise.Item> items = new HashSet<>();
       for (int i = 0; i < 40; ++i) {
         final Ise.Item item = Ise.Item.newBuilder()
-            .setType(i % 3 == 0 ? "author" : "book")
+            .setType(i % 3 == 0 ? AUTHOR : BOOK)
             .addSkus(Ise.Sku.newBuilder()
                 .setId("1")
                 .setTitle("x" + i + "-item")
@@ -287,8 +290,8 @@ public final class IseCatalogDaoTest extends XodusTestBase {
       }
 
       assertEquals(items, new HashSet<>(getAllItems(tx, Ise.ItemQuery.newBuilder().setLimit(7).build())));
-      assertEquals(items.stream().filter(i -> i.getType().equals("author")).collect(Collectors.toSet()),
-          new HashSet<>(getAllItems(tx, Ise.ItemQuery.newBuilder().setType("author").setLimit(3).build())));
+      assertEquals(items.stream().filter(i -> i.getType().equals(AUTHOR)).collect(Collectors.toSet()),
+          new HashSet<>(getAllItems(tx, Ise.ItemQuery.newBuilder().setType(AUTHOR).setLimit(3).build())));
 
       return null;
     });
@@ -297,13 +300,13 @@ public final class IseCatalogDaoTest extends XodusTestBase {
   @Test
   public void shouldEstablishForwardRelationsForBook() {
     doInTestTransaction(tx -> {
-      final String authorId = catalogDao.persist(tx, Ise.Item.newBuilder().setType("author")
+      final String authorId = catalogDao.persist(tx, Ise.Item.newBuilder().setType(AUTHOR)
           .addSkus(Ise.Sku.newBuilder().setTitle("Author")).build());
-      final String genreId = catalogDao.persist(tx, Ise.Item.newBuilder().setType("genre")
+      final String genreId = catalogDao.persist(tx, Ise.Item.newBuilder().setType(GENRE)
           .addSkus(Ise.Sku.newBuilder().setTitle("Genre")).build());
       final String seriesId = catalogDao.persist(tx, Ise.Item.newBuilder().setType("series")
           .addSkus(Ise.Sku.newBuilder().setTitle("Series")).build());
-      final String bookId = catalogDao.persist(tx, Ise.Item.newBuilder().setType("book")
+      final String bookId = catalogDao.persist(tx, Ise.Item.newBuilder().setType(BOOK)
           .setExtras(Ise.ItemExtras.newBuilder().setBook(Ise.BookItemExtras.newBuilder()
               .addAuthorIds(authorId)
               .addGenreIds(genreId)
@@ -315,9 +318,9 @@ public final class IseCatalogDaoTest extends XodusTestBase {
           .addToItemIds(bookId).build();
 
       assertEquals(expectedQueryResult, catalogDao.getRelations(tx, Ise.ItemRelationQuery.newBuilder()
-          .setFromItemId(authorId).setType("author").setLimit(10).build()));
+          .setFromItemId(authorId).setType(AUTHOR).setLimit(10).build()));
       assertEquals(expectedQueryResult, catalogDao.getRelations(tx, Ise.ItemRelationQuery.newBuilder()
-          .setFromItemId(genreId).setType("genre").setLimit(10).build()));
+          .setFromItemId(genreId).setType(GENRE).setLimit(10).build()));
       assertEquals(expectedQueryResult, catalogDao.getRelations(tx, Ise.ItemRelationQuery.newBuilder()
           .setFromItemId(seriesId).setType("series").setLimit(10).build()));
     });
@@ -356,7 +359,7 @@ public final class IseCatalogDaoTest extends XodusTestBase {
       assertEquals(Arrays.asList("Th", "Tr", "Tw"), catalogDao.getNameHints(tx, "numbers", "T"));
       assertEquals(Arrays.asList("Th", "Ti", "Tr", "Tw"), catalogDao.getNameHints(tx, "", "T"));
       assertEquals(Collections.singletonList("Ti"), catalogDao.getNameHints(tx, "newspaper", "T"));
-      assertEquals(Collections.emptyList(), catalogDao.getNameHints(tx, "book", "T"));
+      assertEquals(Collections.emptyList(), catalogDao.getNameHints(tx, BOOK, "T"));
       assertEquals(Collections.emptyList(), catalogDao.getNameHints(tx, "", "One"));
       assertEquals(Collections.singletonList("Cuat"), catalogDao.getNameHints(tx, "numbers", "Cua"));
     });

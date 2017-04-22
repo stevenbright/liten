@@ -93,7 +93,7 @@ public final class IseCatalogIngestionHelper {
         dumpBuilder.addAllItems(queryResult.getItemsList());
 
         if (queryResult.getCursor().length() > 0) {
-          queryBuilder.setCursor(queryBuilder.getCursor());
+          queryBuilder.setCursor(queryResult.getCursor());
         } else {
           break; // no more items to get
         }
