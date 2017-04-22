@@ -122,3 +122,11 @@ message ItemRelationQueryResult {
   string cursor = 1;
   repeated string toItemIds = 2;
 }
+
+//
+// Import/Export support
+//
+
+message Dump {
+  repeated Item items = 1;
+}

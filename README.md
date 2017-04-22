@@ -9,6 +9,7 @@ You'll need:
 
 * JDK 8
 * maven
+  * More than 100m required to compile the project. Try using ``export MAVEN_OPTS=-Xmx512m`` before running ``mvn clean install`` if you're getting out-of-memory errors.
 * nodejs (a.k.a. node) and npm (comes along with node)
 
 

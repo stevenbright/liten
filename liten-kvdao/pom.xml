@@ -60,6 +60,12 @@
       <artifactId>protobuf-java</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>com.truward.brikar.protobuf</groupId>
+      <artifactId>brikar-protobuf-jackson</artifactId>
+      <version>LATEST</version>
+    </dependency>
+
     <!-- Test scope -->
     <dependency>
       <groupId>org.slf4j</groupId>
