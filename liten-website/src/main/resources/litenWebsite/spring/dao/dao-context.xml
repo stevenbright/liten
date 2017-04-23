@@ -4,14 +4,16 @@
        xsi:schemaLocation="
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-  <import resource="datasource-context.xml"/>
-  <import resource="tx-context.xml"/>
+  <!-- Xodus DAO -->
 
-  <bean id="litenWebsite.dao.jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
-    <property name="dataSource" ref="litenWebsite.dao.dataSource"/>
-  </bean>
+  <bean id="litenWebsite.dao.catalogEnvironmentInitializer"
+        class="liten.website.service.XodusCatalogEnvironmentInitializer"/>
 
-  <bean class="liten.catalog.dao.support.DefaultCatalogDao">
-    <constructor-arg ref="litenWebsite.dao.jdbcTemplate"/>
+  <bean id="litenWebsite.dao.catalogEnvironment"
+        factory-bean="litenWebsite.dao.catalogEnvironmentInitializer"
+        factory-method="getEnvironment"/>
+
+  <bean class="liten.catalog.dao.support.DefaultIseCatalogDao">
+    <constructor-arg ref="litenWebsite.dao.catalogEnvironment"/>
   </bean>
 </beans>

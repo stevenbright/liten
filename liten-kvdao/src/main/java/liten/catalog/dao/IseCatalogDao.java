@@ -1,5 +1,6 @@
 package liten.catalog.dao;
 
+import jetbrains.exodus.env.Environment;
 import jetbrains.exodus.env.Transaction;
 import liten.catalog.model.Ise;
 
@@ -20,6 +21,8 @@ public interface IseCatalogDao {
 
   int DEFAULT_LIMIT = 10;
   int MAX_LIMIT = 30;
+
+  Environment getEnvironment();
 
   Ise.Item getById(Transaction tx, String itemId);
 

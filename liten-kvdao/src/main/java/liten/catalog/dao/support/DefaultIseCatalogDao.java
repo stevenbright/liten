@@ -38,6 +38,7 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
   private static final IdCodec ITEM_CODEC = SemanticIdCodec.forPrefixNames("S1");
 
   private final Logger log = LoggerFactory.getLogger(getClass());
+  private final Environment environment;
   private final Stores stores;
   private final KeyGenerator keyGenerator;
 
@@ -46,7 +47,7 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
     final Store externalId;
     final Store forwardRelations;
 
-    public Stores(Environment environment, Transaction tx) {
+    Stores(Environment environment, Transaction tx) {
       // bytesFromSemanticId(item.id) -> item
       this.item = environment.openStore(ITEM_STORE_NAME, StoreConfig.WITHOUT_DUPLICATES, tx);
 
@@ -61,10 +62,16 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
   }
 
   public DefaultIseCatalogDao(Environment environment) {
+    this.environment = environment;
     this.stores = environment.computeInTransaction(tx -> new Stores(environment, tx));
 
     final Random random = new SecureRandom();
     this.keyGenerator = KeyUtil.createKeyGenerator(stores.item, ITEM_CODEC, random);
+  }
+
+  @Override
+  public Environment getEnvironment() {
+    return environment;
   }
 
   @Override

@@ -6,7 +6,7 @@
 
 <#macro inlineItems listModel>
 <#list listModel as itemModel>
-  <a href="/g/cat/item/${itemModel.id?c}" title="${itemModel.displayTitle}">${itemModel.displayTitle}</a><#if itemModel_has_next>,&nbsp</#if>
+  <a href="/g/cat/item/${itemModel.id}" title="${itemModel.displayTitle}">${itemModel.displayTitle}</a><#if itemModel_has_next>,&nbsp</#if>
 </#list>
 </#macro>
 
@@ -15,13 +15,13 @@
   <#-- Title -->
   <div class="row">
     <div class="col-md-12">
-      <h3><a href="/g/cat/item/${itemModel.id?c}" title="test"><small>${itemModel.id?c}</small>&nbsp;${itemModel.displayTitle}</a></h3>
+      <h3><a href="/g/cat/item/${itemModel.id}" title="test"><small>${itemModel.id}</small>&nbsp;${itemModel.displayTitle}</a></h3>
     </div>
   </div>
   <#-- Authors, Genres, Related Books, ... etc. -->
   <div class="row">
     <div class="col-md-2">
-      <@fav.star isFavorite=false toggleFavoriteUrl="/api/p13n/v1/favs/${itemModel.id?c}/toggle" />
+      <@fav.star isFavorite=false toggleFavoriteUrl="/api/p13n/v1/favs/${itemModel.id}/toggle" />
     </div>
     <#if itemModel.item.type == "book">
     <div class="col-md-5">
@@ -49,7 +49,7 @@
   <tbody>
     <tr>
       <td>ID:</td>
-      <td>${entryModel.id?c}</td>
+      <td>${entryModel.id}</td>
     </tr>
 <#if entryModel.item.type == "book">
     <tr>

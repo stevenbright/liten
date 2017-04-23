@@ -1,18 +1,19 @@
 package liten.website.service;
 
-import liten.catalog.dao.CatalogQueryDao;
-import liten.catalog.dao.CatalogUpdaterDao;
-import liten.catalog.dao.model.*;
-import liten.dao.model.ModelWithId;
-import liten.website.model.IceEntryAdapter;
-import liten.website.model.PaginationHelper;
+import jetbrains.exodus.env.Transaction;
+import liten.catalog.dao.IseCatalogDao;
+import liten.catalog.model.Ise;
+import liten.website.model.IseItemAdapter;
+import com.truward.web.pagination.AbstractPaginationHelper;
+import com.truward.web.pagination.PaginationHelper;
+import org.springframework.util.StringUtils;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -20,35 +21,36 @@ import java.util.stream.Collectors;
  */
 @ParametersAreNonnullByDefault
 public final class DefaultCatalogService implements CatalogService {
-  private final CatalogQueryDao queryDao;
-  private final CatalogUpdaterDao updaterDao;
+  private final IseCatalogDao catalogDao;
 
-  public DefaultCatalogService(CatalogQueryDao queryDao, CatalogUpdaterDao updaterDao) {
-    this.queryDao = Objects.requireNonNull(queryDao, "queryDao");
-    this.updaterDao = Objects.requireNonNull(updaterDao, "updaterDao");
+  public DefaultCatalogService(IseCatalogDao catalogDao) {
+    this.catalogDao = Objects.requireNonNull(catalogDao, "catalogDao");
   }
 
   @Override
-  public PaginationHelper<IceEntryAdapter> getPaginationHelper(String userLanguage,
-                                                               @Nullable String type,
-                                                               @Nullable String namePrefix) {
-    return new IceEntryPaginationHelper(queryDao, userLanguage, type, namePrefix);
+  public PaginationHelper getPaginationHelper(String userLanguage,
+                                              @Nullable String type,
+                                              @Nullable String namePrefix) {
+    return new ItemPagination(catalogDao, userLanguage, type, namePrefix);
   }
 
   @Override
-  public IceEntryAdapter getDetailedEntry(long id, String userLanguage) {
-    final IceEntry entry = queryDao.getEntry(id);
-    return getEntryAdapter(queryDao, userLanguage, entry);
+  public IseItemAdapter getDetailedEntry(String id, String userLanguage) {
+    return catalogDao.getEnvironment().computeInTransaction(tx -> {
+      final Ise.Item item = catalogDao.getById(tx, id);
+      return getItemAdapter(tx, catalogDao, userLanguage, item);
+    });
+  }
+
+  @Override
+  public PaginationHelper getRightRelationEntries(String id, String userLanguage) {
+    return new ForwardRelationsPagination(catalogDao, userLanguage, id);
   }
 
   public List<String> getSkuNameHints(@Nullable String type,
                                       @Nullable String namePrefix) {
-    return queryDao.getSkuNameHints(type, namePrefix);
-  }
-
-  @Override
-  public PaginationHelper<IceEntryAdapter> getRightRelationEntries(long id, String userLanguage) {
-    return new IceEntryRelationsPaginationHelper(queryDao, userLanguage, id);
+    return catalogDao.getEnvironment().computeInTransaction(tx ->
+        catalogDao.getNameHints(tx, type, namePrefix != null ? namePrefix : ""));
   }
 
   /*
@@ -71,144 +73,135 @@ public final class DefaultCatalogService implements CatalogService {
   // Private
   //
 
-  private static IceEntryAdapter getEntryAdapter(CatalogQueryDao queryDao,
-                                                 String userLanguage,
-                                                 IceEntry entry) {
-    final List<IceEntry> relatedEntries = new ArrayList<>();
-    final Map<String, List<IceEntry>> fromRelations = new HashMap<>();
-    final String itemType = entry.getItem().getType();
-
-    if (itemType.equals("book")) {
-      // get incoming relations2
-      final List<IceRelation> relations = queryDao.getRelations(IceRelationQuery.newBuilder()
-          .setLimit(100)
-          .setRelatedItemId(entry.getItem().getId())
-          .setDirection(IceRelationQuery.Direction.LEFT)
-          .build());
-      for (final IceRelation relation : relations) {
-        final List<IceEntry> e = fromRelations.computeIfAbsent(relation.getType(), k -> new ArrayList<>());
-        final IceEntry relatedEntry = queryDao.getEntry(relation.getRelatedItemId());
-        e.add(relatedEntry);
-      }
-    }
-
-    // add language and try to find default entry
-    IceEntry.SkuEntry defaultSkuEntry = null;
-    for (final IceEntry.SkuEntry skuEntry : entry.getSkuEntries()) {
-      final IceEntry language = queryDao.getEntry(skuEntry.getSku().getLanguageId());
-      relatedEntries.add(language);
-
-      // find default SKU entry by matching language alias,
-      // also try to fallback to English if nothing found
-      if (userLanguage.equals(language.getItem().getAlias()) ||
-          (defaultSkuEntry == null && "en".equals(language.getItem().getAlias()))) {
-        // found preferred user language
-        defaultSkuEntry = skuEntry;
-      }
-    }
-
-    if (defaultSkuEntry == null && !entry.getSkuEntries().isEmpty()) {
-      // no default entry - fallback to something
-      defaultSkuEntry = entry.getSkuEntries().get(0);
-    }
-
-    return new IceEntryAdapter(entry, relatedEntries, defaultSkuEntry, fromRelations);
+  private static IseItemAdapter getItemAdapter(Transaction tx,
+                                               IseCatalogDao catalogDao,
+                                               String userLanguage,
+                                               Ise.Item item) {
+    return new IseItemAdapter(item, Collections.emptyList(), null, Collections.emptyMap());
+//    final List<IceEntry> relatedEntries = new ArrayList<>();
+//    final Map<String, List<IceEntry>> fromRelations = new HashMap<>();
+//    final String itemType = entry.getItem().getType();
+//
+//    if (itemType.equals("book")) {
+//      // get incoming relations2
+//      final List<IceRelation> relations = queryDao.getRelations(IceRelationQuery.newBuilder()
+//          .setLimit(100)
+//          .setRelatedItemId(entry.getItem().getId())
+//          .setDirection(IceRelationQuery.Direction.LEFT)
+//          .build());
+//      for (final IceRelation relation : relations) {
+//        final List<IceEntry> e = fromRelations.computeIfAbsent(relation.getType(), k -> new ArrayList<>());
+//        final IceEntry relatedEntry = queryDao.getEntry(relation.getRelatedItemId());
+//        e.add(relatedEntry);
+//      }
+//    }
+//
+//    // add language and try to find default entry
+//    IceEntry.SkuEntry defaultSkuEntry = null;
+//    for (final IceEntry.SkuEntry skuEntry : entry.getSkuEntries()) {
+//      final IceEntry language = queryDao.getEntry(skuEntry.getSku().getLanguageId());
+//      relatedEntries.add(language);
+//
+//      // find default SKU entry by matching language alias,
+//      // also try to fallback to English if nothing found
+//      if (userLanguage.equals(language.getItem().getAlias()) ||
+//          (defaultSkuEntry == null && "en".equals(language.getItem().getAlias()))) {
+//        // found preferred user language
+//        defaultSkuEntry = skuEntry;
+//      }
+//    }
+//
+//    if (defaultSkuEntry == null && !entry.getSkuEntries().isEmpty()) {
+//      // no default entry - fallback to something
+//      defaultSkuEntry = entry.getSkuEntries().get(0);
+//    }
+//
+//    return new IseItemAdapter(entry, relatedEntries, defaultSkuEntry, fromRelations);
   }
 
-  private static final class IceEntryRelationsPaginationHelper extends PaginationHelper<IceEntryAdapter> {
-    private final CatalogQueryDao queryDao;
+  private static final class ForwardRelationsPagination
+      extends AbstractPaginationHelper<IseItemAdapter, Ise.ItemRelationQueryResult> {
+    private final IseCatalogDao catalogDao;
     private final String userLanguage;
-    private final long itemId;
+    private final String itemId;
 
-    public IceEntryRelationsPaginationHelper(CatalogQueryDao queryDao, String userLanguage, long itemId) {
-      this.queryDao = queryDao;
+    public ForwardRelationsPagination(IseCatalogDao catalogDao, String userLanguage, String itemId) {
+      if (!StringUtils.hasLength(itemId)) {
+        throw new IllegalArgumentException("itemId");
+      }
+
+      this.catalogDao = catalogDao;
       this.userLanguage = userLanguage;
-      this.itemId = ModelWithId.requireValidId(itemId, "itemId");
+      this.itemId = itemId;
     }
 
     @Override
-    protected List<IceEntryAdapter> getItemList(long startItemId, int limit) {
-      final List<IceRelation> relations = queryDao.getRelations(IceRelationQuery.newBuilder()
-          .setRelatedItemId(itemId)
-          .setDirection(IceRelationQuery.Direction.RIGHT)
-          .setStartItemId(startItemId)
-          .setLimit(limit)
-          .build());
-
-      return relations
-          .stream()
-          .map(rel -> getEntryAdapter(queryDao, userLanguage, queryDao.getEntry(rel.getRelatedItemId())))
-          .collect(Collectors.toList());
+    protected String getCursor(Ise.ItemRelationQueryResult itemRelationQueryResult) {
+      return itemRelationQueryResult.getCursor();
     }
 
     @Override
-    protected long getItemId(IceEntryAdapter item) {
-      return item.getItem().getId();
+    protected List<IseItemAdapter> getItemList(Ise.ItemRelationQueryResult itemRelationQueryResult) {
+      final List<String> itemIds = itemRelationQueryResult.getToItemIdsList();
+
+      return catalogDao.getEnvironment().computeInTransaction(tx -> {
+        final List<IseItemAdapter> result = new ArrayList<>(itemIds.size());
+        for (final String itemId : itemIds) {
+          result.add(getItemAdapter(tx, catalogDao, userLanguage, catalogDao.getById(tx, itemId)));
+        }
+        return result;
+      });
     }
 
     @Override
-    protected String createNextUrl(long startItemId, int limit) {
-      //noinspection StringBufferReplaceableByString
-      final StringBuilder builder = new StringBuilder(100);
-      builder.append("/g/cat/part/").append(itemId);
-      builder.append("/right?startItemId=").append(startItemId);
-      builder.append("&limit=").append(limit);
-      return builder.toString();
+    protected Ise.ItemRelationQueryResult query(String cursor, int limit) {
+      return catalogDao.getEnvironment().computeInTransaction(tx -> catalogDao.getRelations(tx,
+          Ise.ItemRelationQuery.newBuilder()
+              .setFromItemId(itemId)
+              .setCursor(cursor)
+              .setLimit(limit)
+              .build()));
     }
   }
 
-  private static final class IceEntryPaginationHelper extends PaginationHelper<IceEntryAdapter> {
-    private final CatalogQueryDao queryDao;
+  private static final class ItemPagination extends AbstractPaginationHelper<IseItemAdapter, Ise.ItemQueryResult> {
+    private final IseCatalogDao catalogDao;
     private final String userLanguage;
     private final String type;
     private final String namePrefix;
 
-    IceEntryPaginationHelper(CatalogQueryDao queryDao,
-                             String userLanguage,
-                             @Nullable String type,
-                             @Nullable String namePrefix) {
-      this.queryDao = queryDao;
+    ItemPagination(IseCatalogDao catalogDao,
+                   String userLanguage,
+                   @Nullable String type,
+                   @Nullable String namePrefix) {
+      this.catalogDao = catalogDao;
       this.userLanguage = userLanguage;
       this.type = type;
       this.namePrefix = namePrefix;
     }
 
+
     @Override
-    protected List<IceEntryAdapter> getItemList(long startItemId, int limit) {
-      final List<IceEntry> entries = queryDao.getEntries(IceEntryQuery.newBuilder()
-          .setStartItemId(startItemId)
+    protected String getCursor(Ise.ItemQueryResult itemQueryResult) {
+      return itemQueryResult.getCursor();
+    }
+
+    @Override
+    protected List<IseItemAdapter> getItemList(Ise.ItemQueryResult itemQueryResult) {
+      return catalogDao.getEnvironment().computeInTransaction(tx -> itemQueryResult.getItemsList()
+          .stream()
+          .map(item -> getItemAdapter(tx, catalogDao, userLanguage, item))
+          .collect(Collectors.toList()));
+    }
+
+    @Override
+    protected Ise.ItemQueryResult query(String cursor, int limit) {
+      return catalogDao.getEnvironment().computeInTransaction(tx -> catalogDao.getItems(tx, Ise.ItemQuery.newBuilder()
+          .setCursor(cursor)
+          .setNamePrefix(StringUtils.hasLength(namePrefix) ? namePrefix : "")
+          .setType(StringUtils.hasLength(type) ? type : "")
           .setLimit(limit)
-          .setType(type)
-          .setNamePrefix(namePrefix)
-          .build());
-
-      return entries.stream()
-          .map(e -> getEntryAdapter(queryDao, userLanguage, e))
-          .collect(Collectors.toList());
-    }
-
-    @Override
-    protected long getItemId(IceEntryAdapter item) {
-      return item.getItem().getId();
-    }
-
-    @Override
-    protected String createNextUrl(long startItemId, int limit) {
-      try {
-        final StringBuilder builder = new StringBuilder(100);
-        builder.append("/g/cat/part/entries?startItemId=").append(startItemId);
-        builder.append("&limit=").append(limit);
-        if (type != null) {
-            builder.append("&type=").append(URLEncoder.encode(type, StandardCharsets.UTF_8.name()));
-        }
-        if (namePrefix != null) {
-          builder.append("&namePrefix=").append(URLEncoder.encode(namePrefix, StandardCharsets.UTF_8.name()));
-        }
-
-        return builder.toString();
-      } catch (UnsupportedEncodingException e) {
-        throw new IllegalStateException(e); // should not happen
-      }
+          .build()));
     }
   }
 }

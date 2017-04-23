@@ -14,11 +14,11 @@ import java.util.Set;
 @Controller
 @RequestMapping("/api/p13n/v1")
 public final class P13nRestController extends BaseRestController {
-  private final Set<Long> favorites = new HashSet<>();
+  private final Set<String> favorites = new HashSet<>();
 
   @RequestMapping(value = "/favs/{id}/toggle", method = RequestMethod.POST)
   @ResponseBody
-  public BoolValue toggleFavorite(@PathVariable("id") long id) {
+  public BoolValue toggleFavorite(@PathVariable("id") String id) {
     final boolean isFavorite;
     if (favorites.remove(id)) {
       isFavorite = false;

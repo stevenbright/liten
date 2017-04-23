@@ -1,8 +1,5 @@
-package liten.website.model;
+package com.truward.web.pagination;
 
-import liten.dao.model.ModelWithId;
-
-import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Collections;
 import java.util.HashMap;
@@ -20,16 +17,10 @@ import java.util.Map;
  * @author Alexander Shabanov
  */
 @ParametersAreNonnullByDefault
-public abstract class PaginationHelper<T> {
-  public static final int DEFAULT_LIMIT = 5;
-  public static final int MAX_LIMIT = 100;
+public abstract class AbstractPaginationHelper<TItem, TQueryResult> implements PaginationHelper {
 
-  public Map<String, Object> newModelWithItemsOpt(@Nullable Long startItemId, @Nullable Integer limit) {
-    return newModelWithItems(startItemId == null ? ModelWithId.INVALID_ID : startItemId,
-        limit == null ? DEFAULT_LIMIT : limit);
-  }
-
-  public Map<String, Object> newModelWithItems(long startItemId, int limit) {
+  @Override
+  public final Map<String, Object> newModelWithItems(String cursor, int limit, PaginationUrlCreator urlCreator) {
     if (limit == 0) {
       // edge case - specified limit is empty, so page should be empty and next one unavailable
       final Map<String, Object> params = new HashMap<>();
@@ -43,22 +34,19 @@ public abstract class PaginationHelper<T> {
     }
 
     if (limit > MAX_LIMIT) {
-      // silently refuse to serve more than this many item
+      // silently refuse to serve more than this many items
       limit = MAX_LIMIT;
     }
 
-    final List<T> items = getItemList(startItemId, limit + 1);
+    final TQueryResult queryResult = query(cursor, limit);
+    final List<TItem> items = getItemList(queryResult);
+    final String nextCursor = getCursor(queryResult);
 
     final Map<String, Object> params = new HashMap<>();
 
     final String nextUrl;
     if (items.size() > limit) {
-      // exclude last element which indicates a presence of list continuation
-      params.put("items", items.subList(0, limit));
-
-      final long nextItemId = getItemId(items.get(limit - 1));
-      // TODO: proper URL construction
-      nextUrl = createNextUrl(nextItemId, limit);
+      nextUrl = urlCreator.createUrl(nextCursor, limit);
     } else {
       nextUrl = "";
       params.put("items", items);
@@ -69,9 +57,9 @@ public abstract class PaginationHelper<T> {
     return params;
   }
 
-  protected abstract List<T> getItemList(long startItemId, int limit);
+  protected abstract String getCursor(TQueryResult queryResult);
 
-  protected abstract long getItemId(T item);
+  protected abstract List<TItem> getItemList(TQueryResult queryResult);
 
-  protected abstract String createNextUrl(long startItemId, int limit);
+  protected abstract TQueryResult query(String cursor, int limit);
 }
