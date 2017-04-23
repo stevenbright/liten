@@ -3,9 +3,8 @@ package liten.catalog.dao.support;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
-import com.truward.brikar.protobuf.jackson.ProtobufJacksonUtil;
+import com.truward.protobuf.jackson.ProtobufJacksonUtil;
 import jetbrains.exodus.env.Environment;
-import jetbrains.exodus.env.Transaction;
 import liten.catalog.dao.IseCatalogDao;
 import liten.catalog.model.Ise;
 import org.slf4j.Logger;
@@ -15,8 +14,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Helper class for working with large portions of data.

@@ -61,9 +61,9 @@
     </dependency>
 
     <dependency>
-      <groupId>com.truward.brikar.protobuf</groupId>
-      <artifactId>brikar-protobuf-jackson</artifactId>
-      <version>LATEST</version>
+      <groupId>com.truward.protobuf</groupId>
+      <artifactId>protobuf-jackson</artifactId>
+      <version>1.0.3</version>
     </dependency>
 
     <!-- Test scope -->
