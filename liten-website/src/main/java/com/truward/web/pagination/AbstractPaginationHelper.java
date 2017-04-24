@@ -1,5 +1,7 @@
 package com.truward.web.pagination;
 
+import org.springframework.util.StringUtils;
+
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Collections;
 import java.util.HashMap;
@@ -42,16 +44,11 @@ public abstract class AbstractPaginationHelper<TItem, TQueryResult> implements P
     final List<TItem> items = getItemList(queryResult);
     final String nextCursor = getCursor(queryResult);
 
-    final Map<String, Object> params = new HashMap<>();
+    final Map<String, Object> params = new HashMap<>(4);
 
-    final String nextUrl;
-    if (items.size() > limit) {
-      nextUrl = urlCreator.createUrl(nextCursor, limit);
-    } else {
-      nextUrl = "";
-      params.put("items", items);
-    }
+    params.put("items", items);
 
+    final String nextUrl = StringUtils.hasLength(nextCursor) ? urlCreator.createUrl(nextCursor, limit) : "";
     params.put("nextUrl", nextUrl);
 
     return params;
