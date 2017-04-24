@@ -53,22 +53,6 @@ public final class DefaultCatalogService implements CatalogService {
         catalogDao.getNameHints(tx, type, namePrefix != null ? namePrefix : ""));
   }
 
-  /*
-  TODO: use cache below
-
-  LoadingCache<Key, Graph> graphs = CacheBuilder.newBuilder()
-    .concurrencyLevel(4)
-    .weakKeys()
-    .maximumSize(10000)
-    .expireAfterWrite(10, TimeUnit.MINUTES)
-    .build(
-        new CacheLoader<Key, Graph>() {
-          public Graph load(Key key) throws AnyException {
-            return createExpensiveGraph(key);
-          }
-        });
-   */
-
   //
   // Private
   //
