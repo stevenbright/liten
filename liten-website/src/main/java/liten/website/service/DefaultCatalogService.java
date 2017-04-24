@@ -77,7 +77,20 @@ public final class DefaultCatalogService implements CatalogService {
                                                IseCatalogDao catalogDao,
                                                String userLanguage,
                                                Ise.Item item) {
-    return new IseItemAdapter(item, Collections.emptyList(), null, Collections.emptyMap());
+    // try to find matching entry
+    Ise.Sku defaultSku = null;
+    for (final Ise.Sku sku : item.getSkusList()) {
+      if (defaultSku == null) {
+        defaultSku = sku;
+      }
+
+      if (userLanguage.compareToIgnoreCase(sku.getLanguage()) == 0) {
+        defaultSku = sku;
+        break;
+      }
+    }
+
+    return new IseItemAdapter(item, Collections.emptyList(), defaultSku, Collections.emptyMap());
 //    final List<IceEntry> relatedEntries = new ArrayList<>();
 //    final Map<String, List<IceEntry>> fromRelations = new HashMap<>();
 //    final String itemType = entry.getItem().getType();

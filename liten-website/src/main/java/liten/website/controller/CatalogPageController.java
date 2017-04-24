@@ -131,8 +131,7 @@ public final class CatalogPageController extends BaseHtmlController {
   public String hints(
       @RequestParam(value = "type", required = false) @Nullable String type,
       @RequestParam(value = "namePrefix", required = false) @Nullable String namePrefix,
-      Model model
-  ) throws IOException {
+      Model model) throws IOException {
     // normalize string parameters
     if (namePrefix != null && namePrefix.length() >= 3) {
       return getIndexRedirectDirective(namePrefix, type);
@@ -148,7 +147,7 @@ public final class CatalogPageController extends BaseHtmlController {
     return "page/catalog/hints";
   }
 
-  @RequestMapping("/item/{id}")
+  @RequestMapping("/item/{id:.+}")
   public ModelAndView detailPage(@PathVariable("id") String id) {
     final IseItemAdapter entry = catalogService.getDetailedEntry(id, getUserLanguage());
     log.trace("entry={}", entry);
