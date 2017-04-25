@@ -21,13 +21,17 @@ import java.util.Map;
 @ParametersAreNonnullByDefault
 public abstract class AbstractPaginationHelper<TItem, TQueryResult> implements PaginationHelper {
 
+  // Pre-defined names
+  private static final String ITEMS = "items";
+  private static final String NEXT_URL = "nextUrl";
+
   @Override
   public final Map<String, Object> newModelWithItems(String cursor, int limit, PaginationUrlCreator urlCreator) {
     if (limit == 0) {
       // edge case - specified limit is empty, so page should be empty and next one unavailable
       final Map<String, Object> params = new HashMap<>();
-      params.put("items", Collections.emptyList());
-      params.put("nextUrl", ""); // no next URL as it can't be retrieved
+      params.put(ITEMS, Collections.emptyList());
+      params.put(NEXT_URL, ""); // no next URL as it can't be retrieved
       return params;
     }
 
@@ -46,10 +50,10 @@ public abstract class AbstractPaginationHelper<TItem, TQueryResult> implements P
 
     final Map<String, Object> params = new HashMap<>(4);
 
-    params.put("items", items);
+    params.put(ITEMS, items);
 
     final String nextUrl = StringUtils.hasLength(nextCursor) ? urlCreator.createUrl(nextCursor, limit) : "";
-    params.put("nextUrl", nextUrl);
+    params.put(NEXT_URL, nextUrl);
 
     return params;
   }
