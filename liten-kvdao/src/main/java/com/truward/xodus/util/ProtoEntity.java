@@ -27,7 +27,7 @@ public final class ProtoEntity {
 
     final byte[] bytes = byteIterable.getBytesUnsafe();
     if (bytes == null) {
-      throw new ItemDeserializationException("Can't get bytes for parsing entity " + defaultInstance.getClass());
+      throw new ItemDeserializationException("Can't get bytes that constitute an entity " + defaultInstance.getClass());
     }
 
     try {

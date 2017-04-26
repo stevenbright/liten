@@ -1,4 +1,4 @@
-package liten.website.model.v2;
+package liten.website.model.catalog;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -9,6 +9,14 @@ import java.util.List;
  */
 @ParametersAreNonnullByDefault
 public interface CatalogItem extends CatalogItemRef {
+
+  default boolean hasFavoriteFlag() {
+    return false;
+  }
+
+  default boolean isFavorite() {
+    return false;
+  }
 
   @Nullable
   String getDetailPageCoverUrl();
@@ -28,5 +36,10 @@ public interface CatalogItem extends CatalogItemRef {
     }
 
     return null;
+  }
+
+  default String getDefaultTitle() {
+    final CatalogSku sku = getDefaultSku();
+    return sku != null ? sku.getTitle() : "UnknownItem#" + getId();
   }
 }

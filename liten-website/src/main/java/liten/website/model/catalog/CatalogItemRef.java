@@ -1,4 +1,4 @@
-package liten.website.model.v2;
+package liten.website.model.catalog;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
