@@ -59,7 +59,6 @@ public final class IseItemAdapter {
 
   public final boolean isDownloadUrlPresent() {
     return isDefaultInstancePresent() && getDefaultInstance().hasDownloadInfo();
-
   }
 
   public final String getDownloadUrl() {
