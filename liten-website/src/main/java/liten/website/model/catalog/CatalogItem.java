@@ -3,6 +3,7 @@ package liten.website.model.catalog;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * @author Alexander Shabanov
@@ -39,7 +40,12 @@ public interface CatalogItem extends CatalogItemRef {
   }
 
   default String getDefaultTitle() {
+    return getTitle(() -> "UnknownItem#" + getId());
+  }
+
+  @Nullable
+  default String getTitle(Supplier<String> defaultTitleSupplier) {
     final CatalogSku sku = getDefaultSku();
-    return sku != null ? sku.getTitle() : "UnknownItem#" + getId();
+    return sku != null ? sku.getTitle() : defaultTitleSupplier.get();
   }
 }

@@ -10,11 +10,11 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
 @ParametersAreNonnullByDefault
-public class BaseCatalogItem implements CatalogItem {
+public class GenericCatalogItem implements CatalogItem {
   private final Ise.Item item;
   private final List<CatalogSku> skus;
 
-  public BaseCatalogItem(Ise.Item item, List<CatalogSku> skus) {
+  public GenericCatalogItem(Ise.Item item, List<CatalogSku> skus) {
     this.item = item;
     this.skus = skus;
   }

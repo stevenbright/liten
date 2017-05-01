@@ -8,6 +8,8 @@ import java.util.List;
  */
 public interface CatalogSku {
 
+  String getId();
+
   String getLanguageName();
 
   String getTitle();
