@@ -1,4 +1,4 @@
-package liten.website.model;
+package liten.website.model.deprecated;
 
 import com.truward.time.UtcTime;
 import liten.catalog.dao.IseCatalogDao;

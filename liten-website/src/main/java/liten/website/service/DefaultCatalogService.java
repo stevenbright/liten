@@ -3,7 +3,7 @@ package liten.website.service;
 import jetbrains.exodus.env.Transaction;
 import liten.catalog.dao.IseCatalogDao;
 import liten.catalog.model.Ise;
-import liten.website.model.IseItemAdapter;
+import liten.website.model.deprecated.IseItemAdapter;
 import com.truward.web.pagination.AbstractPaginationHelper;
 import com.truward.web.pagination.PaginationHelper;
 import org.springframework.util.StringUtils;

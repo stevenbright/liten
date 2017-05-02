@@ -1,7 +1,7 @@
 package liten.website.controller;
 
 import liten.website.exception.ResourceNotFoundException;
-import liten.website.model.IseItemAdapter;
+import liten.website.model.deprecated.IseItemAdapter;
 import com.truward.web.pagination.PaginationHelper;
 import com.truward.web.pagination.PaginationUrlCreator;
 import liten.website.service.CatalogService;

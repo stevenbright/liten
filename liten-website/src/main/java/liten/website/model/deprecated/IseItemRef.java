@@ -1,4 +1,4 @@
-package liten.website.model;
+package liten.website.model.deprecated;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
