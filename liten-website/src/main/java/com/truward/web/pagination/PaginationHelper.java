@@ -12,14 +12,26 @@ import java.util.Map;
 @ParametersAreNonnullByDefault
 public interface PaginationHelper {
 
+  /**
+   * Name, which is used to identify item list in the returned pagination map.
+   */
+  String ITEMS = "items";
+
+  /**
+   * Name, which is used to identify next URL in the returned pagination map.
+   */
+  String NEXT_URL = "nextUrl";
+
   int DEFAULT_LIMIT = 5;
+
   int MAX_LIMIT = 100;
 
   Map<String, Object> newModelWithItems(String cursor, int limit, PaginationUrlCreator urlCreator);
 
-  default Map<String, Object> newModelWithItemsOpt(@Nullable String cursor,
-                                                   @Nullable Integer limit,
-                                                   PaginationUrlCreator urlCreator) {
+  default Map<String, Object> newModelWithItemsOpt(
+      @Nullable String cursor,
+      @Nullable Integer limit,
+      PaginationUrlCreator urlCreator) {
     return newModelWithItems(StringUtils.hasLength(cursor) ? cursor : "",
         limit == null ? DEFAULT_LIMIT : limit, urlCreator);
   }

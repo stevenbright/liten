@@ -21,10 +21,6 @@ import java.util.Map;
 @ParametersAreNonnullByDefault
 public abstract class AbstractPaginationHelper<TItem, TQueryResult> implements PaginationHelper {
 
-  // Pre-defined names
-  private static final String ITEMS = "items";
-  private static final String NEXT_URL = "nextUrl";
-
   @Override
   public final Map<String, Object> newModelWithItems(String cursor, int limit, PaginationUrlCreator urlCreator) {
     if (limit == 0) {
