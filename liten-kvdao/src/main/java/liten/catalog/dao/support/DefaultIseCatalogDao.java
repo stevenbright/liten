@@ -11,6 +11,7 @@ import jetbrains.exodus.env.*;
 import liten.catalog.dao.IseCatalogDao;
 import liten.catalog.dao.exception.DuplicateExternalIdException;
 import liten.catalog.model.Ise;
+import liten.catalog.util.IseNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
@@ -135,7 +136,7 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
       }
 
       final Ise.ItemQueryResult.Builder resultBuilder = Ise.ItemQueryResult.newBuilder();
-      final int limit = Math.min(query.getLimit(), MAX_LIMIT);
+      final int limit = Math.min(query.getLimit(), IseCatalogDao.MAX_LIMIT);
 
       // TODO: optimize - now brute-force iteration is used
       while (cursor.getNext()) {
@@ -188,7 +189,7 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
         .build());
 
     final Ise.ItemRelationQueryResult.Builder resultBuilder = Ise.ItemRelationQueryResult.newBuilder();
-    final int limit = Math.min(query.getLimit(), MAX_LIMIT);
+    final int limit = Math.min(query.getLimit(), IseCatalogDao.MAX_LIMIT);
 
     try (Cursor cursor = stores.forwardRelations.openCursor(tx)) {
       boolean hasNext;
@@ -256,8 +257,8 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
     final ByteIterable itemIdEntry = stringToEntry(id);
     for (final Ise.ExternalId externalId : item.getExternalIdsList()) {
       if (!stores.externalId.add(tx, protoToEntry(externalId), itemIdEntry)) {
-        throw new DuplicateExternalIdException(externalId, id,
-            entryToString(requireNonNull(stores.externalId.get(tx, protoToEntry(externalId)))));
+        final ByteIterable otherKey = stores.externalId.get(tx, protoToEntry(externalId));
+        throw new DuplicateExternalIdException(externalId, id, entryToString(requireNonNull(otherKey)));
       }
     }
 
@@ -269,12 +270,12 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
         final Ise.BookItemExtras bookExtras = itemExtras.getBook();
 
         // authors->book
-        setRelations(tx, AUTHOR, bookExtras.getAuthorIdsList(), id);
+        setRelations(tx, IseNames.AUTHOR, bookExtras.getAuthorIdsList(), id);
         // genres->book
-        setRelations(tx, GENRE, bookExtras.getGenreIdsList(), id);
+        setRelations(tx, IseNames.GENRE, bookExtras.getGenreIdsList(), id);
         // series->book
         if (StringUtils.hasLength(bookExtras.getSeriesId())) {
-          setRelations(tx, SERIES, Collections.singletonList(bookExtras.getSeriesId()), id);
+          setRelations(tx, IseNames.SERIES, Collections.singletonList(bookExtras.getSeriesId()), id);
         }
       }
     }
@@ -290,11 +291,11 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
     if (item.getExtras().hasBook()) {
       try (final Cursor forwardRelationsCursor = stores.forwardRelations.openCursor(tx)) {
         final Ise.BookItemExtras bookExtras = item.getExtras().getBook();
-        dropRelations(forwardRelationsCursor, AUTHOR, bookExtras.getAuthorIdsList(), item.getId());
-        dropRelations(forwardRelationsCursor, GENRE, bookExtras.getGenreIdsList(), item.getId());
+        dropRelations(forwardRelationsCursor, IseNames.AUTHOR, bookExtras.getAuthorIdsList(), item.getId());
+        dropRelations(forwardRelationsCursor, IseNames.GENRE, bookExtras.getGenreIdsList(), item.getId());
 
         if (StringUtils.hasLength(bookExtras.getSeriesId())) {
-          dropRelations(forwardRelationsCursor, SERIES,
+          dropRelations(forwardRelationsCursor, IseNames.SERIES,
               Collections.singletonList(bookExtras.getSeriesId()), item.getId());
         }
       }

@@ -12,9 +12,9 @@ import org.junit.Test;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static liten.catalog.dao.IseCatalogDao.AUTHOR;
-import static liten.catalog.dao.IseCatalogDao.BOOK;
-import static liten.catalog.dao.IseCatalogDao.GENRE;
+import static liten.catalog.util.IseNames.AUTHOR;
+import static liten.catalog.util.IseNames.BOOK;
+import static liten.catalog.util.IseNames.GENRE;
 import static org.junit.Assert.*;
 
 /**

@@ -13,11 +13,6 @@ import java.util.List;
  */
 @ParametersAreNonnullByDefault
 public interface IseCatalogDao {
-  // Type or relation name:
-  String AUTHOR = "author";
-  String GENRE = "genre";
-  String SERIES = "series";
-  String BOOK = "book";
 
   int DEFAULT_LIMIT = 10;
   int MAX_LIMIT = 30;

@@ -10,6 +10,7 @@ import java.util.List;
 /**
  * @author Alexander Shabanov
  */
+@Deprecated
 @ParametersAreNonnullByDefault
 public interface CatalogService {
 

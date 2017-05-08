@@ -5,6 +5,7 @@ import liten.catalog.dao.IseCatalogDao;
 import liten.catalog.dao.support.DefaultIseCatalogDao;
 import liten.catalog.dao.support.IseCatalogIngestionHelper;
 import liten.catalog.model.Ise;
+import liten.catalog.util.IseNames;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -19,7 +20,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
-import static liten.catalog.dao.IseCatalogDao.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
@@ -101,24 +101,24 @@ public final class IseCatalogIngestionTest extends XodusTestBase {
         // Genres
         //
 
-        Ise.Item.newBuilder().setId("S1.G010").setType(GENRE)
+        Ise.Item.newBuilder().setId("S1.G010").setType(IseNames.GENRE)
             .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("Novel"))
             .addSkus(Ise.Sku.newBuilder().setId("2").setLanguage("ru").setTitle("Новелла"))
             .build(),
 
-        Ise.Item.newBuilder().setId("S1.G030").setType(GENRE)
+        Ise.Item.newBuilder().setId("S1.G030").setType(IseNames.GENRE)
             .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("Fantasy"))
             .build(),
 
-        Ise.Item.newBuilder().setId("S1.G040").setType(GENRE)
+        Ise.Item.newBuilder().setId("S1.G040").setType(IseNames.GENRE)
             .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("Detective"))
             .build(),
 
-        Ise.Item.newBuilder().setId("S1.G050").setType(GENRE)
+        Ise.Item.newBuilder().setId("S1.G050").setType(IseNames.GENRE)
             .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("Sci-Fi"))
             .build(),
 
-        Ise.Item.newBuilder().setId("S1.G070").setType(GENRE)
+        Ise.Item.newBuilder().setId("S1.G070").setType(IseNames.GENRE)
             .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("Religion"))
             .addSkus(Ise.Sku.newBuilder().setId("2").setLanguage("ru").setTitle("Религия"))
             .build(),
@@ -127,17 +127,17 @@ public final class IseCatalogIngestionTest extends XodusTestBase {
         // Authors
         //
 
-        Ise.Item.newBuilder().setId("S1.A010").setType(AUTHOR)
+        Ise.Item.newBuilder().setId("S1.A010").setType(IseNames.AUTHOR)
             .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("Leo Tolstoy"))
             .addSkus(Ise.Sku.newBuilder().setId("2").setLanguage("ru").setTitle("Лев Николаевич Толстой"))
             .build(),
 
-        Ise.Item.newBuilder().setId("S1.A040").setType(AUTHOR)
+        Ise.Item.newBuilder().setId("S1.A040").setType(IseNames.AUTHOR)
             .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("Arkady Strugatsky"))
             .addSkus(Ise.Sku.newBuilder().setId("2").setLanguage("ru").setTitle("Аркадий Стругацкий"))
             .build(),
 
-        Ise.Item.newBuilder().setId("S1.A050").setType(AUTHOR)
+        Ise.Item.newBuilder().setId("S1.A050").setType(IseNames.AUTHOR)
             .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("Boris Strugatsky"))
             .addSkus(Ise.Sku.newBuilder().setId("2").setLanguage("ru").setTitle("Борис Стругацкий"))
             .build(),
@@ -146,7 +146,7 @@ public final class IseCatalogIngestionTest extends XodusTestBase {
         // Books
         //
 
-        Ise.Item.newBuilder().setId("S1.B010").setType(BOOK)
+        Ise.Item.newBuilder().setId("S1.B010").setType(IseNames.BOOK)
             .setExtras(Ise.ItemExtras.newBuilder().setBook(Ise.BookItemExtras.newBuilder()
                 .addGenreIds("S1.G070")
                 .build()))
@@ -154,7 +154,7 @@ public final class IseCatalogIngestionTest extends XodusTestBase {
             .addSkus(Ise.Sku.newBuilder().setId("2").setLanguage("ru").setTitle("Библия"))
             .build(),
 
-        Ise.Item.newBuilder().setId("S1.B210").setType(BOOK)
+        Ise.Item.newBuilder().setId("S1.B210").setType(IseNames.BOOK)
             .setExtras(Ise.ItemExtras.newBuilder().setBook(Ise.BookItemExtras.newBuilder()
                 .addGenreIds("S1.G010")
                 .addAuthorIds("S1.A010")
@@ -181,7 +181,7 @@ public final class IseCatalogIngestionTest extends XodusTestBase {
                     .build()))
             .build(),
 
-        Ise.Item.newBuilder().setId("S1.B250").setType(BOOK)
+        Ise.Item.newBuilder().setId("S1.B250").setType(IseNames.BOOK)
             .setExtras(Ise.ItemExtras.newBuilder().setBook(Ise.BookItemExtras.newBuilder()
                 .addGenreIds("S1.G010").addGenreIds("S1.G050")
                 .addAuthorIds("S1.A040").addAuthorIds("S1.A050")
@@ -244,7 +244,7 @@ public final class IseCatalogIngestionTest extends XodusTestBase {
         // Unused (sample)
         //
 
-        Ise.Item.newBuilder().setId("S1.G990").setType(GENRE)
+        Ise.Item.newBuilder().setId("S1.G990").setType(IseNames.GENRE)
             .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("philosophy"))
             .build()
 
@@ -252,7 +252,7 @@ public final class IseCatalogIngestionTest extends XodusTestBase {
   }
 
   private static Ise.Item strugatskySciFiNovel(String ruTitle, String enTitle) {
-    return Ise.Item.newBuilder().setType(BOOK)
+    return Ise.Item.newBuilder().setType(IseNames.BOOK)
         .setExtras(Ise.ItemExtras.newBuilder().setBook(Ise.BookItemExtras.newBuilder()
             .addGenreIds("S1.G010").addGenreIds("S1.G050")
             .addAuthorIds("S1.A040").addAuthorIds("S1.A050")
@@ -263,7 +263,7 @@ public final class IseCatalogIngestionTest extends XodusTestBase {
   }
 
   private static Ise.Item sampleBook(String enTitle) {
-    return Ise.Item.newBuilder().setType(BOOK)
+    return Ise.Item.newBuilder().setType(IseNames.BOOK)
         .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle(enTitle))
         .build();
   }

@@ -1,8 +1,8 @@
 package liten.website.model.deprecated;
 
 import com.truward.time.UtcTime;
-import liten.catalog.dao.IseCatalogDao;
 import liten.catalog.model.Ise;
+import liten.catalog.util.IseNames;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Nullable;
@@ -44,7 +44,7 @@ public final class IseItemAdapter {
   }
 
   public boolean isDetailPageCoverUrlPresent() {
-    return item.getType().equals(IseCatalogDao.BOOK);
+    return item.getType().equals(IseNames.BOOK);
   }
 
   public final String getDetailPageCoverUrl() {

@@ -3,6 +3,7 @@ package liten.website.service;
 import com.truward.time.UtcTime;
 import liten.catalog.dao.IseCatalogDao;
 import liten.catalog.model.Ise;
+import liten.catalog.util.IseNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,9 +14,9 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.List;
 
-import static liten.catalog.dao.IseCatalogDao.AUTHOR;
-import static liten.catalog.dao.IseCatalogDao.BOOK;
-import static liten.catalog.dao.IseCatalogDao.GENRE;
+import static liten.catalog.util.IseNames.AUTHOR;
+import static liten.catalog.util.IseNames.BOOK;
+import static liten.catalog.util.IseNames.GENRE;
 
 /**
  * @author Alexander Shabanov
@@ -42,16 +43,21 @@ public class DemoInitializer {
 
   private static List<Ise.Item> createTestItemList() {
     return Arrays.asList(
+
+        //
+        // Languages
+        //
+
         Ise.Item.newBuilder().setId("S1.X010").setType("language")
             .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("English"))
             .addSkus(Ise.Sku.newBuilder().setId("2").setLanguage("ru").setTitle("Английский"))
-            .addExternalIds(Ise.ExternalId.newBuilder().setIdType("alias").setIdValue("en"))
+            .addExternalIds(IseNames.newAlias("en")) // alias:en
             .build(),
 
         Ise.Item.newBuilder().setId("S1.X020").setType("language")
             .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("Russian"))
             .addSkus(Ise.Sku.newBuilder().setId("2").setLanguage("ru").setTitle("Русский"))
-            .addExternalIds(Ise.ExternalId.newBuilder().setIdType("alias").setIdValue("ru"))
+            .addExternalIds(IseNames.newAlias("ru")) // alias:ru
             .build(),
 
         //
@@ -225,7 +231,7 @@ public class DemoInitializer {
         .build();
   }
 
-  public static UtcTime date(String strDate) {
+  private static UtcTime date(String strDate) {
     final SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
     fmt.setTimeZone(UtcTime.newUtcTimeZone());
     try {

@@ -1,7 +1,7 @@
 package liten.website.model.catalog.support;
 
-import liten.catalog.dao.IseCatalogDao;
 import liten.catalog.model.Ise;
+import liten.catalog.util.IseNames;
 import liten.website.model.catalog.CatalogItem;
 import liten.website.model.catalog.CatalogSku;
 
@@ -27,7 +27,7 @@ public class GenericCatalogItem implements CatalogItem {
   @Nullable
   @Override
   public String getDetailPageCoverUrl() {
-    if (IseCatalogDao.BOOK.equals(item.getType())) {
+    if (IseNames.BOOK.equals(item.getType())) {
       return null;
     }
 

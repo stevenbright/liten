@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 /**
  * Exposes access to the catalog.
  */
+@Deprecated
 @ParametersAreNonnullByDefault
 public final class DefaultCatalogService implements CatalogService {
   private final IseCatalogDao catalogDao;
