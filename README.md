@@ -21,10 +21,10 @@ You'll need:
 * Health check (standard): ``curl -X POST http://127.0.0.1:8080/api/health``
 * Admin (standard): ``http://127.0.0.1:8080/g/admin/config``
 
-Sample request with originating request ID ``oid``:
+Sample request with originating request vector ``RV``:
 
 ```
-OID=`cat /dev/random | head -c 12 | base64` && echo "X-Oid = $OID" && curl -"X-Oid: $OID" -X POST -v http://127.0.0.1:8080/rest/health && echo
+RV=`cat /dev/random | head -c 12 | base64` && echo "RV = $OID" && curl -"RV: $RV" -X POST -v http://127.0.0.1:8080/rest/health && echo
 ```
 
 ## Perf Test
