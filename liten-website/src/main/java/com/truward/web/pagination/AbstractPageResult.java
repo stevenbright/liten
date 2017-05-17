@@ -19,7 +19,7 @@ import java.util.Map;
  * @author Alexander Shabanov
  */
 @ParametersAreNonnullByDefault
-public abstract class AbstractPaginationHelper<TItem, TQueryResult> implements PaginationHelper {
+public abstract class AbstractPageResult<TItem, TQueryResult> implements PageResult {
 
   @Override
   public final Map<String, Object> newModelWithItems(String cursor, int limit, PaginationUrlCreator urlCreator) {

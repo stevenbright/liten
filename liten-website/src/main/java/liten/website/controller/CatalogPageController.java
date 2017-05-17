@@ -1,10 +1,10 @@
 package liten.website.controller;
 
-import liten.website.exception.ResourceNotFoundException;
-import liten.website.model.deprecated.IseItemAdapter;
-import com.truward.web.pagination.PaginationHelper;
+import com.truward.web.pagination.PageResult;
 import com.truward.web.pagination.PaginationUrlCreator;
-import liten.website.service.CatalogService;
+import liten.website.exception.ResourceNotFoundException;
+import liten.website.model.catalog.CatalogItem;
+import liten.website.service.catalog.CatalogService2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -34,9 +34,9 @@ import java.util.Map;
 public final class CatalogPageController extends BaseHtmlController {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  private final CatalogService catalogService;
+  private final CatalogService2 catalogService;
 
-  public CatalogPageController(CatalogService catalogService) {
+  public CatalogPageController(CatalogService2 catalogService) {
     this.catalogService = catalogService;
   }
 
@@ -45,9 +45,9 @@ public final class CatalogPageController extends BaseHtmlController {
       @RequestParam(value = "cursor", required = false) @Nullable String cursor,
       @RequestParam(value = "limit", required = false) @Nullable Integer limit,
       @RequestParam(value = "type", required = false) @Nullable String type,
-      @RequestParam(value = "namePrefix", required = false) @Nullable String namePrefix) {
+      @RequestParam(value = "namePrefix", defaultValue = "") String namePrefix) {
     // normalize string parameters
-    final Map<String, Object> params = catalogService.getPaginationHelper(getUserLanguage(), type, namePrefix)
+    final Map<String, Object> params = catalogService.getItems(getUserLanguage(), type, namePrefix)
         .newModelWithItemsOpt(cursor, limit, getCatalogEntriesUrlCreator(type, namePrefix));
 
     return new ModelAndView("part/catalog/entries", params);
@@ -102,7 +102,7 @@ public final class CatalogPageController extends BaseHtmlController {
     final Map<String, Object> params = catalogService.getRightRelationEntries(itemId,
         getUserLanguage()).newModelWithItemsOpt(
           "",
-          PaginationHelper.DEFAULT_LIMIT,
+          PageResult.DEFAULT_LIMIT,
           getRightRelationsUrlCreator(itemId));
 
     return new ModelAndView("part/catalog/rightEntriesContainer", params);
@@ -112,15 +112,15 @@ public final class CatalogPageController extends BaseHtmlController {
   public ModelAndView index(
       @RequestParam(value = "limit", required = false) @Nullable Integer limit,
       @RequestParam(value = "type", required = false) @Nullable String type,
-      @RequestParam(value = "namePrefix", required = false) @Nullable String namePrefix
+      @RequestParam(value = "namePrefix", defaultValue = "") String namePrefix
   ) throws IOException {
     // normalize string parameters
     final String displayTitleForItemType = getDisplayTitleForItemType(type);
 
-    final Map<String, Object> params = catalogService.getPaginationHelper(getUserLanguage(), type, namePrefix)
+    final Map<String, Object> params = catalogService.getItems(getUserLanguage(), type, namePrefix)
         .newModelWithItems(
             "",
-            limit != null ? limit : PaginationHelper.DEFAULT_LIMIT,
+            limit != null ? limit : PageResult.DEFAULT_LIMIT,
             getCatalogEntriesUrlCreator(type, namePrefix));
     params.put("displayItemTypeTitle", displayTitleForItemType);
 
@@ -130,10 +130,10 @@ public final class CatalogPageController extends BaseHtmlController {
   @RequestMapping("/hints")
   public String hints(
       @RequestParam(value = "type", required = false) @Nullable String type,
-      @RequestParam(value = "namePrefix", required = false) @Nullable String namePrefix,
+      @RequestParam(value = "namePrefix", defaultValue = "") String namePrefix,
       Model model) throws IOException {
     // normalize string parameters
-    if (namePrefix != null && namePrefix.length() >= 3) {
+    if (namePrefix.length() >= 3) {
       return getIndexRedirectDirective(namePrefix, type);
     }
 
@@ -149,13 +149,13 @@ public final class CatalogPageController extends BaseHtmlController {
 
   @RequestMapping("/item/{id:.+}")
   public ModelAndView detailPage(@PathVariable("id") String id) {
-    final IseItemAdapter entry = catalogService.getDetailedEntry(id, getUserLanguage());
-    log.trace("entry={}", entry);
+    final CatalogItem catalogItem = catalogService.getDetailedEntry(id, getUserLanguage());
+    log.trace("catalogItem={}", catalogItem);
 
     final Map<String, Object> params = new HashMap<>();
     params.put("currentTime", System.currentTimeMillis());
-    params.put("entry", entry);
-    params.put("nextRightRelationEntriesUrl", "/g/cat/part/" + entry.getId() + "/right/container");
+    params.put("catalogItem", catalogItem);
+    params.put("nextRightRelationEntriesUrl", "/g/cat/part/" + catalogItem.getId() + "/right/container");
 
     return new ModelAndView("page/catalog/item", params);
   }

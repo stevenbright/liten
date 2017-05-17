@@ -8,7 +8,7 @@ import java.util.List;
  * @author Alexander Shabanov
  */
 @ParametersAreNonnullByDefault
-public interface CatalogItemBook extends CatalogItem {
+public interface CatalogItemBook {
 
   List<CatalogItemRef> getLanguages();
 

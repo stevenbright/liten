@@ -10,7 +10,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
 @ParametersAreNonnullByDefault
-public class GenericCatalogItem implements CatalogItem {
+public class GenericCatalogItem extends CatalogItem {
   private final Ise.Item item;
   private final List<CatalogSku> skus;
 

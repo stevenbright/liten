@@ -9,27 +9,27 @@ import java.util.function.Supplier;
  * @author Alexander Shabanov
  */
 @ParametersAreNonnullByDefault
-public interface CatalogItem extends CatalogItemRef {
+public abstract class CatalogItem implements CatalogItemRef {
 
-  default boolean hasFavoriteFlag() {
+  public boolean hasFavoriteFlag() {
     return false;
   }
 
-  default boolean isFavorite() {
+  public boolean isFavorite() {
     return false;
   }
 
   @Nullable
-  String getDetailPageCoverUrl();
+  public abstract String getDetailPageCoverUrl();
 
-  List<CatalogSku> getSkus();
+  public abstract List<CatalogSku> getSkus();
 
-  default boolean isDefaultSkuPresent() {
+  public boolean isDefaultSkuPresent() {
     return getDefaultSku() != null;
   }
 
   @Nullable
-  default CatalogSku getDefaultSku() {
+  public CatalogSku getDefaultSku() {
     for (final CatalogSku sku : getSkus()) {
       if (sku.isDefault()) {
         return sku;
@@ -39,12 +39,12 @@ public interface CatalogItem extends CatalogItemRef {
     return null;
   }
 
-  default String getDefaultTitle() {
+  public String getDefaultTitle() {
     return getTitle(() -> "UnknownItem#" + getId());
   }
 
   @Nullable
-  default String getTitle(Supplier<String> defaultTitleSupplier) {
+  public String getTitle(Supplier<String> defaultTitleSupplier) {
     final CatalogSku sku = getDefaultSku();
     return sku != null ? sku.getTitle() : defaultTitleSupplier.get();
   }

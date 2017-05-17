@@ -22,7 +22,13 @@ public interface IseCatalogDao {
   Ise.Item getById(Transaction tx, String itemId);
 
   @Nullable
-  Ise.Item getByExternalId(Transaction tx, Ise.ExternalId externalId);
+  String getMappedIdByExternalId(Transaction tx, Ise.ExternalId externalId);
+
+  @Nullable
+  default Ise.Item getByExternalId(Transaction tx, Ise.ExternalId externalId) {
+    final String id = getMappedIdByExternalId(tx, externalId);
+    return id != null ? getById(tx, id) : null;
+  }
 
   List<String> getNameHints(Transaction tx, @Nullable String type, String prefix);
 

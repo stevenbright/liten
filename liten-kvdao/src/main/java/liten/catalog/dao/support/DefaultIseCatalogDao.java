@@ -83,13 +83,13 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
 
   @Nullable
   @Override
-  public Ise.Item getByExternalId(Transaction tx, Ise.ExternalId externalId) {
+  public String getMappedIdByExternalId(Transaction tx, Ise.ExternalId externalId) {
     final ByteIterable idKey = stores.externalId.get(tx, protoToEntry(externalId));
     if (idKey == null) {
       return null;
     }
 
-    return getById(tx, entryToString(idKey));
+    return entryToString(idKey);
   }
 
   @Override

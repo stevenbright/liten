@@ -44,63 +44,63 @@
 </#list>
 </#macro>
 
-<#macro itemDetails entryModel>
-<table class="item-info">
-  <tbody>
-    <tr>
-      <td>ID:</td>
-      <td>${entryModel.id}</td>
-    </tr>
-<#if entryModel.item.type == "book">
-    <tr>
-      <td>Authors:</td>
-      <td><@inlineItems listModel=entryModel.authors /></td>
-    </tr>
-    <tr>
-      <td>Genres:</td>
-      <td><@inlineItems listModel=entryModel.genres /></td>
-    </tr>
-<#if entry.defaultInstancePresent>
-    <tr>
-      <td>File Size:</td>
-      <td>${entryModel.fileSize?c} byte(s)</td>
-    </tr>
-    <tr>
-      <td>Add Date:</td>
-      <td>${entryModel.createdDate}</td>
-    </tr>
-</#if> <#-- /if entry.defaultInstancePresent -->
-    <tr>
-      <td>Language:</td>
-      <td><@inlineItems listModel=entryModel.languages /></td>
-    </tr>
-    <tr>
-      <td>Origin:</td>
-      <td><@inlineItems listModel=entryModel.origins /></td>
-    </tr>
-</#if> <#-- /if entry.item.type == "book" -->
-  </tbody>
-</table>
+<#macro itemDetails item>
+  <table class="item-info">
+    <tbody>
+      <tr>
+        <td>ID:</td>
+        <td>${item.id}</td>
+      </tr>
+  <#if item.type == "book">
+      <tr>
+        <td>Authors:</td>
+        <td><@inlineItems listModel=item.authors /></td>
+      </tr>
+      <tr>
+        <td>Genres:</td>
+        <td><@inlineItems listModel=item.genres /></td>
+      </tr>
+  <#if entry.defaultInstancePresent>
+      <tr>
+        <td>File Size:</td>
+        <td>${item.fileSize?c} byte(s)</td>
+      </tr>
+      <tr>
+        <td>Add Date:</td>
+        <td>${item.createdDate}</td>
+      </tr>
+  </#if> <#-- /if entry.defaultInstancePresent -->
+      <tr>
+        <td>Language:</td>
+        <td><@inlineItems listModel=item.languages /></td>
+      </tr>
+      <tr>
+        <td>Origin:</td>
+        <td><@inlineItems listModel=item.origins /></td>
+      </tr>
+  </#if> <#-- /if entry.item.type == "book" -->
+    </tbody>
+  </table>
 
-<hr/>
+  <hr/>
 
-<#if entry.downloadUrlPresent>
-<h3><a href="${entryModel.downloadUrl}">Download&nbsp;<span class="glyphicon glyphicon-download" aria-hidden="true"></span></a></h3>
-</#if>
+  <#if entry.downloadUrlPresent>
+  <h3><a href="${item.downloadUrl}">Download&nbsp;<span class="glyphicon glyphicon-download" aria-hidden="true"></span></a></h3>
+  </#if>
 </#macro><#-- macro itemDetails -->
 
 <#macro filterButtonGroup>
-<div class="btn-group">
-  <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-    Filter by Type <span class="caret"></span>
-  </button>
-  <ul class="dropdown-menu">
-    <li><a href="/g/cat/index?type=author">Authors</a></li>
-    <li><a href="/g/cat/index?type=genre">Genres</a></li>
-    <li><a href="/g/cat/index?type=book">Book</a></li>
-    <li><a href="/g/cat/index?type=origin">Origins</a></li>
-    <li role="separator" class="divider"></li>
-    <li><a href="/g/cat/index">No Type Filter</a></li>
-  </ul>
-</div>
+  <div class="btn-group">
+    <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+      Filter by Type <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu">
+      <li><a href="/g/cat/index?type=author">Authors</a></li>
+      <li><a href="/g/cat/index?type=genre">Genres</a></li>
+      <li><a href="/g/cat/index?type=book">Book</a></li>
+      <li><a href="/g/cat/index?type=origin">Origins</a></li>
+      <li role="separator" class="divider"></li>
+      <li><a href="/g/cat/index">No Type Filter</a></li>
+    </ul>
+  </div>
 </#macro><#-- macro itemListControls -->

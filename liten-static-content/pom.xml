@@ -67,46 +67,5 @@
       </plugin>
     </plugins>
   </build>
-
-  <profiles>
-    <profile>
-      <id>platform-windows</id>
-      <activation>
-        <os>
-          <family>windows</family>
-        </os>
-      </activation>
-      <properties>
-        <browserify.extension>.cmd</browserify.extension>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>watch</id>
-
-      <build>
-        <plugins>
-          <plugin>
-            <artifactId>maven-antrun-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>watch</id>
-                <phase>test</phase>
-                <configuration>
-                  <tasks>
-                    <!-- TODO: split -->
-                    <exec executable="${b.nbin}/watchify js/main.js -o ${b.assets}/js/bundle.js -v -d -t babelify"/>
-                  </tasks>
-                </configuration>
-                <goals>
-                  <goal>run</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 </project>
 

@@ -10,7 +10,7 @@ import java.util.Map;
  * Interface, that represents pagination helper.
  */
 @ParametersAreNonnullByDefault
-public interface PaginationHelper {
+public interface PageResult {
 
   /**
    * Name, which is used to identify item list in the returned pagination map.

@@ -4,8 +4,8 @@ import jetbrains.exodus.env.Transaction;
 import liten.catalog.dao.IseCatalogDao;
 import liten.catalog.model.Ise;
 import liten.website.model.deprecated.IseItemAdapter;
-import com.truward.web.pagination.AbstractPaginationHelper;
-import com.truward.web.pagination.PaginationHelper;
+import com.truward.web.pagination.AbstractPageResult;
+import com.truward.web.pagination.PageResult;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Nullable;
@@ -29,9 +29,9 @@ public final class DefaultCatalogService implements CatalogService {
   }
 
   @Override
-  public PaginationHelper getPaginationHelper(String userLanguage,
-                                              @Nullable String type,
-                                              @Nullable String namePrefix) {
+  public PageResult getPaginationHelper(String userLanguage,
+                                        @Nullable String type,
+                                        @Nullable String namePrefix) {
     return new ItemPagination(catalogDao, userLanguage, type, namePrefix);
   }
 
@@ -44,7 +44,7 @@ public final class DefaultCatalogService implements CatalogService {
   }
 
   @Override
-  public PaginationHelper getRightRelationEntries(String id, String userLanguage) {
+  public PageResult getRightRelationEntries(String id, String userLanguage) {
     return new ForwardRelationsPagination(catalogDao, userLanguage, id);
   }
 
@@ -118,7 +118,7 @@ public final class DefaultCatalogService implements CatalogService {
   }
 
   private static final class ForwardRelationsPagination
-      extends AbstractPaginationHelper<IseItemAdapter, Ise.ItemRelationQueryResult> {
+      extends AbstractPageResult<IseItemAdapter, Ise.ItemRelationQueryResult> {
     private final IseCatalogDao catalogDao;
     private final String userLanguage;
     private final String itemId;
@@ -162,7 +162,7 @@ public final class DefaultCatalogService implements CatalogService {
     }
   }
 
-  private static final class ItemPagination extends AbstractPaginationHelper<IseItemAdapter, Ise.ItemQueryResult> {
+  private static final class ItemPagination extends AbstractPageResult<IseItemAdapter, Ise.ItemQueryResult> {
     private final IseCatalogDao catalogDao;
     private final String userLanguage;
     private final String type;

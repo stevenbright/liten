@@ -1,6 +1,6 @@
 package liten.website.service.catalog;
 
-import com.truward.web.pagination.PaginationHelper;
+import com.truward.web.pagination.PageResult;
 import liten.website.model.catalog.CatalogItem;
 
 import javax.annotation.Nullable;
@@ -13,15 +13,15 @@ import java.util.List;
 @ParametersAreNonnullByDefault
 public interface CatalogService2 {
 
-  List<String> getSkuNameHints(@Nullable String type, @Nullable String namePrefix);
+  List<String> getSkuNameHints(@Nullable String type, String namePrefix);
 
   CatalogItem getDetailedEntry(String id, String userLanguage);
 
-  PaginationHelper getPaginationHelper(
+  PageResult getItems(
       String userLanguage,
       @Nullable String type,
-      @Nullable String namePrefix);
+      String namePrefix);
 
   // e.g. author's books
-  PaginationHelper getRightRelationEntries(String id, String userLanguage);
+  PageResult getRightRelationEntries(String id, String userLanguage);
 }
