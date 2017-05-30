@@ -54,13 +54,13 @@ public final class DefaultCatalogService2 implements CatalogService2 {
   }
 
   @Override
-  public PageResult getItems(String userLanguage, @Nullable String type, String namePrefix) {
+  public PageResult<CatalogItem> getItems(String userLanguage, @Nullable String type, String namePrefix) {
     return new ItemPageResult(userLanguage, type, namePrefix);
   }
 
   @Override
-  public PageResult getRightRelationEntries(String id, String userLanguage) {
-    return EmptyPageResult.INSTANCE;
+  public PageResult<CatalogItem> getRightRelationEntries(String id, String userLanguage) {
+    return EmptyPageResult.instance();
   }
 
   //

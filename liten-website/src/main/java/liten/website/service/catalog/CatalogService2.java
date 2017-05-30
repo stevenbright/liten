@@ -17,11 +17,11 @@ public interface CatalogService2 {
 
   CatalogItem getDetailedEntry(String id, String userLanguage);
 
-  PageResult getItems(
+  PageResult<CatalogItem> getItems(
       String userLanguage,
       @Nullable String type,
       String namePrefix);
 
   // e.g. author's books
-  PageResult getRightRelationEntries(String id, String userLanguage);
+  PageResult<CatalogItem> getRightRelationEntries(String id, String userLanguage);
 }

@@ -48,7 +48,7 @@ public final class CatalogPageController extends BaseHtmlController {
       @RequestParam(value = "namePrefix", defaultValue = "") String namePrefix) {
     // normalize string parameters
     final Map<String, Object> params = catalogService.getItems(getUserLanguage(), type, namePrefix)
-        .newModelWithItemsOpt(cursor, limit, getCatalogEntriesUrlCreator(type, namePrefix));
+        .getPageWithDefaults(cursor, limit, getCatalogEntriesUrlCreator(type, namePrefix)).toModelMap();
 
     return new ModelAndView("part/catalog/entries", params);
   }
@@ -61,9 +61,11 @@ public final class CatalogPageController extends BaseHtmlController {
         builder.append("/g/cat/part/entries?cursor=").append(URLEncoder.encode(cursor, charset));
         builder.append("&limit=").append(limit);
         if (StringUtils.hasLength(type)) {
+          assert type != null;
           builder.append("&type=").append(URLEncoder.encode(type, charset));
         }
         if (StringUtils.hasLength(namePrefix)) {
+          assert namePrefix != null;
           builder.append("&namePrefix=").append(URLEncoder.encode(namePrefix, charset));
         }
 
@@ -81,7 +83,7 @@ public final class CatalogPageController extends BaseHtmlController {
       @RequestParam(value = "limit", required = false) @Nullable Integer limit
   ) {
     final Map<String, Object> params = catalogService.getRightRelationEntries(itemId,
-        getUserLanguage()).newModelWithItemsOpt(cursor, limit, getRightRelationsUrlCreator(itemId));
+        getUserLanguage()).getPageWithDefaults(cursor, limit, getRightRelationsUrlCreator(itemId)).toModelMap();
 
     return new ModelAndView("part/catalog/entries", params);
   }
@@ -100,10 +102,10 @@ public final class CatalogPageController extends BaseHtmlController {
   @RequestMapping("/part/{itemId}/right/container")
   public ModelAndView rightRelationsPartContainer(@PathVariable("itemId") String itemId) {
     final Map<String, Object> params = catalogService.getRightRelationEntries(itemId,
-        getUserLanguage()).newModelWithItemsOpt(
+        getUserLanguage()).getPageWithDefaults(
           "",
           PageResult.DEFAULT_LIMIT,
-          getRightRelationsUrlCreator(itemId));
+          getRightRelationsUrlCreator(itemId)).toModelMap();
 
     return new ModelAndView("part/catalog/rightEntriesContainer", params);
   }
@@ -118,10 +120,10 @@ public final class CatalogPageController extends BaseHtmlController {
     final String displayTitleForItemType = getDisplayTitleForItemType(type);
 
     final Map<String, Object> params = catalogService.getItems(getUserLanguage(), type, namePrefix)
-        .newModelWithItems(
+        .getPage(
             "",
             limit != null ? limit : PageResult.DEFAULT_LIMIT,
-            getCatalogEntriesUrlCreator(type, namePrefix));
+            getCatalogEntriesUrlCreator(type, namePrefix)).toModelMap();
     params.put("displayItemTypeTitle", displayTitleForItemType);
 
     return new ModelAndView("page/catalog/index", params);

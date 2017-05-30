@@ -3,10 +3,7 @@ package com.truward.web.pagination;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Helper class for building models for paginated UI.
@@ -19,16 +16,13 @@ import java.util.Map;
  * @author Alexander Shabanov
  */
 @ParametersAreNonnullByDefault
-public abstract class AbstractPageResult<TItem, TQueryResult> implements PageResult {
+public abstract class AbstractPageResult<TItem, TQueryResult> implements PageResult<TItem> {
 
   @Override
-  public final Map<String, Object> newModelWithItems(String cursor, int limit, PaginationUrlCreator urlCreator) {
+  public final Page<TItem> getPage(String cursor, int limit, PaginationUrlCreator urlCreator) {
     if (limit == 0) {
       // edge case - specified limit is empty, so page should be empty and next one unavailable
-      final Map<String, Object> params = new HashMap<>();
-      params.put(ITEMS, Collections.emptyList());
-      params.put(NEXT_URL, ""); // no next URL as it can't be retrieved
-      return params;
+      return Page.empty();
     }
 
     if (limit < 0) {
@@ -43,15 +37,8 @@ public abstract class AbstractPageResult<TItem, TQueryResult> implements PageRes
     final TQueryResult queryResult = query(cursor, limit);
     final List<TItem> items = getItemList(queryResult);
     final String nextCursor = getCursor(queryResult);
-
-    final Map<String, Object> params = new HashMap<>(4);
-
-    params.put(ITEMS, items);
-
     final String nextUrl = StringUtils.hasLength(nextCursor) ? urlCreator.createUrl(nextCursor, limit) : "";
-    params.put(NEXT_URL, nextUrl);
-
-    return params;
+    return new Page<>(nextUrl, items);
   }
 
   protected abstract String getCursor(TQueryResult queryResult);
