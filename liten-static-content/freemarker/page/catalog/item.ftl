@@ -1,8 +1,6 @@
 <#import "../../template/page.ftl" as page/>
 <#import "../../template/catalog.ftl" as cat/>
 
-<!-- ${catalogItem.detailPageCoverUrl} -->
-
 <@page.common title="${catalogItem.defaultTitle}">
 
 <h2>${catalogItem.defaultTitle}</h2>
