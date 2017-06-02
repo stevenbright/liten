@@ -2,8 +2,6 @@ package liten.website;
 
 import com.truward.brikar.server.launcher.StandardLauncher;
 import com.truward.demo.media.DemoMediaServlet;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.session.HashSessionIdManager;
 import org.eclipse.jetty.server.session.HashSessionManager;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -11,7 +9,6 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
-import java.util.Random;
 
 /**
  * @author Alexander Shabanov
