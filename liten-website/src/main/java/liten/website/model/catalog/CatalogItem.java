@@ -2,6 +2,7 @@ package liten.website.model.catalog;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -39,7 +40,31 @@ public abstract class CatalogItem implements CatalogItemRef {
     return null;
   }
 
+  public abstract String getType();
+
+  public List<CatalogItemRef> getAuthors() {
+    return Collections.emptyList();
+  }
+
+  public List<CatalogItemRef> getGenres() {
+    return Collections.emptyList();
+  }
+
+  public List<CatalogItemRef> getOrigins() {
+    return Collections.emptyList();
+  }
+
+  @Nullable
+  public CatalogItemRef getSeries() {
+    return null;
+  }
+
+  public int getSeriesPos() {
+    return 0;
+  }
+
   public String getDefaultTitle() {
+    // TODO: localize default title
     return getTitle(() -> "UnknownItem#" + getId());
   }
 

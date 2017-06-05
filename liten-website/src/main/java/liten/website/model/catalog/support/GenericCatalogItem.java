@@ -24,6 +24,11 @@ public class GenericCatalogItem extends CatalogItem {
     return item.getId();
   }
 
+  @Override
+  public String getType() {
+    return item.getType();
+  }
+
   @Nullable
   @Override
   public String getDetailPageCoverUrl() {
