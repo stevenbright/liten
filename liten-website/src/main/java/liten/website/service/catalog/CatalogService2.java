@@ -3,7 +3,6 @@ package liten.website.service.catalog;
 import com.truward.web.pagination.PageResult;
 import liten.website.model.catalog.CatalogItem;
 
-import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
@@ -13,13 +12,13 @@ import java.util.List;
 @ParametersAreNonnullByDefault
 public interface CatalogService2 {
 
-  List<String> getSkuNameHints(@Nullable String type, String namePrefix);
+  List<String> getSkuNameHints(String type, String namePrefix);
 
   CatalogItem getDetailedEntry(String id, String userLanguage);
 
   PageResult<CatalogItem> getItems(
       String userLanguage,
-      @Nullable String type,
+      String type,
       String namePrefix);
 
   // e.g. author's books

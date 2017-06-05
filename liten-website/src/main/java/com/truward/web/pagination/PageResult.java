@@ -22,7 +22,16 @@ public interface PageResult<T> {
    */
   String NEXT_URL = "nextUrl";
 
+  /**
+   * Default cursor, with meaning that this value is missing.
+   */
+  String DEFAULT_CURSOR = "";
+
+  /**
+   * Default limit values, as integer and as string (the latter is to use in Spring MVC defaultValue annotation param).
+   */
   int DEFAULT_LIMIT = 5;
+  String DEFAULT_LIMIT_STR = "5";
 
   int MAX_LIMIT = 100;
 
@@ -36,10 +45,17 @@ public interface PageResult<T> {
         limit == null ? DEFAULT_LIMIT : limit, urlCreator);
   }
 
+  static <T> PageResult<T> empty() {
+    return EmptyPageResult.instance();
+  }
+
+  /** Represents a paginated result */
   final class Page<T> {
+    static final Page<?> EMPTY = new Page<>("", ImmutableList.of());
+
+    @SuppressWarnings("unchecked")
     public static <T> Page<T> empty() {
-      // TODO: singleton
-      return new Page<>("", ImmutableList.of());
+      return (Page<T>) EMPTY;
     }
 
     private final String nextUrl;

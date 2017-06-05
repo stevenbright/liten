@@ -42,18 +42,19 @@ public final class CatalogPageController extends BaseHtmlController {
 
   @RequestMapping("/part/entries")
   public ModelAndView entriesPart(
-      @RequestParam(value = "cursor", required = false) @Nullable String cursor,
-      @RequestParam(value = "limit", required = false) @Nullable Integer limit,
-      @RequestParam(value = "type", required = false) @Nullable String type,
+      @RequestParam(value = "cursor", defaultValue = PageResult.DEFAULT_CURSOR) String cursor,
+      @RequestParam(value = "limit", defaultValue = PageResult.DEFAULT_LIMIT_STR) int limit,
+      @RequestParam(value = "type", defaultValue = "") String type,
       @RequestParam(value = "namePrefix", defaultValue = "") String namePrefix) {
     // normalize string parameters
     final Map<String, Object> params = catalogService.getItems(getUserLanguage(), type, namePrefix)
-        .getPageWithDefaults(cursor, limit, getCatalogEntriesUrlCreator(type, namePrefix)).toModelMap();
+        .getPage(cursor, limit, getCatalogEntriesUrlCreator(type, namePrefix))
+        .toModelMap();
 
     return new ModelAndView("part/catalog/entries", params);
   }
 
-  private PaginationUrlCreator getCatalogEntriesUrlCreator(@Nullable String type, @Nullable String namePrefix) {
+  private PaginationUrlCreator getCatalogEntriesUrlCreator(String type, String namePrefix) {
     return (cursor, limit) -> {
       final String charset = StandardCharsets.UTF_8.name();
       try {
@@ -61,11 +62,9 @@ public final class CatalogPageController extends BaseHtmlController {
         builder.append("/g/cat/part/entries?cursor=").append(URLEncoder.encode(cursor, charset));
         builder.append("&limit=").append(limit);
         if (StringUtils.hasLength(type)) {
-          assert type != null;
           builder.append("&type=").append(URLEncoder.encode(type, charset));
         }
         if (StringUtils.hasLength(namePrefix)) {
-          assert namePrefix != null;
           builder.append("&namePrefix=").append(URLEncoder.encode(namePrefix, charset));
         }
 
@@ -79,11 +78,11 @@ public final class CatalogPageController extends BaseHtmlController {
   @RequestMapping("/part/{itemId}/right")
   public ModelAndView rightRelationsPart(
       @PathVariable("itemId") String itemId,
-      @RequestParam(value = "cursor", required = false) @Nullable String cursor,
-      @RequestParam(value = "limit", required = false) @Nullable Integer limit
+      @RequestParam(value = "cursor", defaultValue = PageResult.DEFAULT_CURSOR) String cursor,
+      @RequestParam(value = "limit", defaultValue = PageResult.DEFAULT_LIMIT_STR) int limit
   ) {
     final Map<String, Object> params = catalogService.getRightRelationEntries(itemId,
-        getUserLanguage()).getPageWithDefaults(cursor, limit, getRightRelationsUrlCreator(itemId)).toModelMap();
+        getUserLanguage()).getPage(cursor, limit, getRightRelationsUrlCreator(itemId)).toModelMap();
 
     return new ModelAndView("part/catalog/entries", params);
   }
@@ -101,19 +100,17 @@ public final class CatalogPageController extends BaseHtmlController {
 
   @RequestMapping("/part/{itemId}/right/container")
   public ModelAndView rightRelationsPartContainer(@PathVariable("itemId") String itemId) {
-    final Map<String, Object> params = catalogService.getRightRelationEntries(itemId,
-        getUserLanguage()).getPageWithDefaults(
-          "",
-          PageResult.DEFAULT_LIMIT,
-          getRightRelationsUrlCreator(itemId)).toModelMap();
+    final Map<String, Object> params = catalogService.getRightRelationEntries(itemId, getUserLanguage())
+        .getPage(PageResult.DEFAULT_CURSOR, PageResult.DEFAULT_LIMIT, getRightRelationsUrlCreator(itemId))
+        .toModelMap();
 
     return new ModelAndView("part/catalog/rightEntriesContainer", params);
   }
 
   @RequestMapping("/index")
   public ModelAndView index(
-      @RequestParam(value = "limit", required = false) @Nullable Integer limit,
-      @RequestParam(value = "type", required = false) @Nullable String type,
+      @RequestParam(value = "limit", defaultValue = PageResult.DEFAULT_LIMIT_STR) int limit,
+      @RequestParam(value = "type", defaultValue = "") String type,
       @RequestParam(value = "namePrefix", defaultValue = "") String namePrefix
   ) throws IOException {
     // normalize string parameters
@@ -121,8 +118,8 @@ public final class CatalogPageController extends BaseHtmlController {
 
     final Map<String, Object> params = catalogService.getItems(getUserLanguage(), type, namePrefix)
         .getPage(
-            "",
-            limit != null ? limit : PageResult.DEFAULT_LIMIT,
+            PageResult.DEFAULT_CURSOR,
+            limit,
             getCatalogEntriesUrlCreator(type, namePrefix)).toModelMap();
     params.put("displayItemTypeTitle", displayTitleForItemType);
 
@@ -131,7 +128,7 @@ public final class CatalogPageController extends BaseHtmlController {
 
   @RequestMapping("/hints")
   public String hints(
-      @RequestParam(value = "type", required = false) @Nullable String type,
+      @RequestParam(value = "type", defaultValue = "") String type,
       @RequestParam(value = "namePrefix", defaultValue = "") String namePrefix,
       Model model) throws IOException {
     // normalize string parameters
@@ -142,7 +139,7 @@ public final class CatalogPageController extends BaseHtmlController {
     final String displayTitleForItemType = getDisplayTitleForItemType(type);
 
     final List<String> namePrefixList = catalogService.getSkuNameHints(type, namePrefix);
-    model.addAttribute("type", type != null ? type : "");
+    model.addAttribute("type", type);
     model.addAttribute("displayItemTypeTitle", displayTitleForItemType);
     model.addAttribute("namePrefixList", namePrefixList);
 
@@ -177,10 +174,9 @@ public final class CatalogPageController extends BaseHtmlController {
     return redirectBuilder.toString();
   }
 
-  private String getDisplayTitleForItemType(@Nullable String type) {
+  private String getDisplayTitleForItemType(String type) {
     // TODO: return localized string!
-
-    if (type == null) {
+    if (!StringUtils.hasLength(type)) {
       return "All";
     }
 

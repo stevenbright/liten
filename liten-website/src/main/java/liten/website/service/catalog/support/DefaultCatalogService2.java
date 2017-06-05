@@ -1,7 +1,6 @@
 package liten.website.service.catalog.support;
 
 import com.truward.web.pagination.AbstractPageResult;
-import com.truward.web.pagination.EmptyPageResult;
 import com.truward.web.pagination.PageResult;
 import jetbrains.exodus.env.Transaction;
 import liten.catalog.dao.IseCatalogDao;
@@ -39,7 +38,7 @@ public final class DefaultCatalogService2 implements CatalogService2 {
   }
 
   @Override
-  public List<String> getSkuNameHints(@Nullable String type, String namePrefix) {
+  public List<String> getSkuNameHints(String type, String namePrefix) {
     return catalogDao.getEnvironment().computeInTransaction(tx -> catalogDao.getNameHints(tx, type, namePrefix));
   }
 
@@ -52,13 +51,13 @@ public final class DefaultCatalogService2 implements CatalogService2 {
   }
 
   @Override
-  public PageResult<CatalogItem> getItems(String userLanguage, @Nullable String type, String namePrefix) {
+  public PageResult<CatalogItem> getItems(String userLanguage, String type, String namePrefix) {
     return new ItemPageResult(userLanguage, type, namePrefix);
   }
 
   @Override
   public PageResult<CatalogItem> getRightRelationEntries(String id, String userLanguage) {
-    return EmptyPageResult.instance();
+    return PageResult.empty();
   }
 
   //
@@ -71,7 +70,7 @@ public final class DefaultCatalogService2 implements CatalogService2 {
     private final String namePrefix;
 
     ItemPageResult(String userLanguage,
-                   @Nullable String type,
+                   String type,
                    String namePrefix) {
       this.userLanguage = userLanguage;
       this.type = type;
@@ -96,7 +95,7 @@ public final class DefaultCatalogService2 implements CatalogService2 {
       return catalogDao.getEnvironment().computeInTransaction(tx -> catalogDao.getItems(tx, Ise.ItemQuery.newBuilder()
           .setCursor(cursor)
           .setNamePrefix(StringUtils.hasLength(namePrefix) ? namePrefix : "")
-          .setType(StringUtils.hasLength(type) ? type : "")
+          .setType(type)
           .setLimit(limit)
           .build()));
     }
