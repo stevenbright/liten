@@ -5,7 +5,6 @@ import liten.catalog.util.IseNames;
 import liten.website.model.catalog.CatalogItem;
 import liten.website.model.catalog.CatalogSku;
 
-import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
 
@@ -29,11 +28,10 @@ public class GenericCatalogItem extends CatalogItem {
     return item.getType();
   }
 
-  @Nullable
   @Override
   public String getDetailPageCoverUrl() {
-    if (IseNames.BOOK.equals(item.getType())) {
-      return null;
+    if (!IseNames.BOOK.equals(item.getType())) {
+      return "";
     }
 
     return "/demo/media/image?type=cover";

@@ -20,7 +20,6 @@ public abstract class CatalogItem implements CatalogItemRef {
     return false;
   }
 
-  @Nullable
   public abstract String getDetailPageCoverUrl();
 
   public abstract List<CatalogSku> getSkus();
@@ -50,6 +49,10 @@ public abstract class CatalogItem implements CatalogItemRef {
     return Collections.emptyList();
   }
 
+  public List<CatalogItemRef> getLanguages() {
+    return Collections.emptyList();
+  }
+
   public List<CatalogItemRef> getOrigins() {
     return Collections.emptyList();
   }
@@ -66,6 +69,18 @@ public abstract class CatalogItem implements CatalogItemRef {
   public String getDefaultTitle() {
     // TODO: localize default title
     return getTitle(() -> "UnknownItem#" + getId());
+  }
+
+  public int getFileSize() {
+    return 0;
+  }
+
+  public String getCreatedDate() {
+    return "";
+  }
+
+  public String getDownloadUrl() {
+    return "";
   }
 
   @Nullable

@@ -60,31 +60,33 @@
         <td>Genres:</td>
         <td><@inlineItems listModel=item.genres /></td>
       </tr>
-  <#if entry.defaultInstancePresent>
+  <#if item.fileSize gt 0>
       <tr>
         <td>File Size:</td>
         <td>${item.fileSize?c} byte(s)</td>
       </tr>
+  </#if>
+  <#if item.createdDate?has_content>
       <tr>
         <td>Add Date:</td>
         <td>${item.createdDate}</td>
       </tr>
-  </#if> <#-- /if entry.defaultInstancePresent -->
+  </#if>
       <tr>
-        <td>Language:</td>
+        <td>Languages:</td>
         <td><@inlineItems listModel=item.languages /></td>
       </tr>
       <tr>
-        <td>Origin:</td>
+        <td>Origins:</td>
         <td><@inlineItems listModel=item.origins /></td>
       </tr>
-  </#if> <#-- /if entry.item.type == "book" -->
+  </#if> <#-- /if item.type == "book" -->
     </tbody>
   </table>
 
   <hr/>
 
-  <#if entry.downloadUrlPresent>
+  <#if item.downloadUrl?has_content>
   <h3><a href="${item.downloadUrl}">Download&nbsp;<span class="glyphicon glyphicon-download" aria-hidden="true"></span></a></h3>
   </#if>
 </#macro><#-- macro itemDetails -->
