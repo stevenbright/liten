@@ -103,9 +103,9 @@ public final class DefaultCatalogService2 implements CatalogService2 {
 
   //private final class RightRelationsPageResult implements
 
-  private CatalogItem getCatalogItem(Transaction tx, Ise.Item item, String userLanguage) {
+  private CatalogItem getCatalogItem(Transaction tx, Ise.Item item, String userLanguageCode) {
     final List<CatalogSku> catalogSkus = new ArrayList<>(item.getSkusCount());
-    final int defaultSkuIndex = getDefaultSkuIndex(item, userLanguage);
+    final int defaultSkuIndex = getDefaultSkuIndex(item, userLanguageCode);
 
     for (int i = 0; i < item.getSkusCount(); ++i) {
       final boolean isDefault = (i == defaultSkuIndex);
@@ -115,11 +115,11 @@ public final class DefaultCatalogService2 implements CatalogService2 {
       catalogSkus.add(new GenericCatalogSku(
           sku,
           isDefault,
-          getLanguageName(tx, sku.getLanguage(), userLanguage),
+          getLanguageName(tx, sku.getLanguage(), userLanguageCode),
           entries));
     }
 
-    return new GenericCatalogItem(item, catalogSkus);
+    return new GenericCatalogItem(userLanguageCode, item, catalogSkus);
   }
 
   private static int getDefaultSkuIndex(Ise.Item item, String userLanguage) {

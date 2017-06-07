@@ -13,8 +13,8 @@ import java.util.List;
  * @author Alexander Shabanov
  */
 public final class BookCatalogItem extends GenericCatalogItem implements CatalogItemBook {
-  public BookCatalogItem(Ise.Item item, List<CatalogSku> skus) {
-    super(item, skus);
+  public BookCatalogItem(String userLanguageCode, Ise.Item item, List<CatalogSku> skus) {
+    super(userLanguageCode, item, skus);
   }
 
   @Override
@@ -24,6 +24,7 @@ public final class BookCatalogItem extends GenericCatalogItem implements Catalog
 
   @Override
   public List<CatalogItemRef> getAuthors() {
+
     return Collections.emptyList();
   }
 
