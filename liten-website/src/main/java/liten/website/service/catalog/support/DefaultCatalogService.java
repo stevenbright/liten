@@ -9,9 +9,7 @@ import liten.catalog.util.IseNames;
 import liten.website.model.catalog.CatalogEntry;
 import liten.website.model.catalog.CatalogItem;
 import liten.website.model.catalog.CatalogSku;
-import liten.website.model.catalog.support.GenericCatalogItem;
-import liten.website.model.catalog.support.GenericCatalogSku;
-import liten.website.service.catalog.CatalogService2;
+import liten.website.service.catalog.CatalogService;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Nullable;
@@ -21,10 +19,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
- * Default implementation of {@link CatalogService2}.
+ * Default implementation of {@link CatalogService}.
  */
 @ParametersAreNonnullByDefault
-public final class DefaultCatalogService2 implements CatalogService2 {
+public final class DefaultCatalogService implements CatalogService {
   private final IseCatalogDao catalogDao;
 
   // TODO: cache
@@ -33,7 +31,7 @@ public final class DefaultCatalogService2 implements CatalogService2 {
   // TODO: cache
   private final Map<String, Optional<Ise.Item>> languageAliasItems = new ConcurrentHashMap<>(100);
 
-  public DefaultCatalogService2(IseCatalogDao catalogDao) {
+  public DefaultCatalogService(IseCatalogDao catalogDao) {
     this.catalogDao = Objects.requireNonNull(catalogDao, "catalogDao");
   }
 
@@ -112,14 +110,19 @@ public final class DefaultCatalogService2 implements CatalogService2 {
       final Ise.Sku sku = item.getSkus(i);
       final List<CatalogEntry> entries = Collections.emptyList();
 
-      catalogSkus.add(new GenericCatalogSku(
+      catalogSkus.add(new CatalogSku(
           sku,
           isDefault,
           getLanguageName(tx, sku.getLanguage(), userLanguageCode),
           entries));
     }
 
-    return new GenericCatalogItem(userLanguageCode, item, catalogSkus);
+    return CatalogItem.newBuilder()
+        .setUserLanguageCode(userLanguageCode)
+        .setId(item.getId())
+        .setType(item.getType())
+        .setSkus(catalogSkus)
+        .build();
   }
 
   private static int getDefaultSkuIndex(Ise.Item item, String userLanguage) {

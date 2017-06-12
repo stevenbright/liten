@@ -1,31 +1,47 @@
 package liten.website.model.catalog;
 
+import liten.catalog.model.Ise;
+
 import javax.annotation.Nullable;
 import java.util.List;
 
 /**
  * @author Alexander Shabanov
  */
-public interface CatalogSku {
+public class CatalogSku {
+  private final Ise.Sku sku;
+  private final boolean isDefault;
+  private final String languageName;
+  private final List<CatalogEntry> entries;
 
-  String getId();
+  public CatalogSku(
+      Ise.Sku sku,
+      boolean isDefault,
+      @Nullable String languageName,
+      List<CatalogEntry> entries) {
+    this.sku = sku;
+    this.isDefault = isDefault;
+    this.languageName = languageName;
+    this.entries = entries;
+  }
 
-  String getLanguageName();
+  public String getId() {
+    return sku.getId();
+  }
 
-  String getTitle();
+  public String getLanguageName() {
+    return languageName != null ? languageName : sku.getLanguage();
+  }
 
-  boolean isDefault();
+  public String getTitle() {
+    return sku.getTitle();
+  }
 
-  List<CatalogEntry> getEntries();
+  public boolean isDefault() {
+    return isDefault;
+  }
 
-  @Nullable
-  default CatalogEntry getDefaultEntry() {
-    for (final CatalogEntry entry : getEntries()) {
-      if (entry.isDefault()) {
-        return entry;
-      }
-    }
-
-    return null;
+  public List<CatalogEntry> getEntries() {
+    return entries;
   }
 }

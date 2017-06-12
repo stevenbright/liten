@@ -10,7 +10,7 @@ import java.util.List;
  * @author Alexander Shabanov
  */
 @ParametersAreNonnullByDefault
-public interface CatalogService2 {
+public interface CatalogService {
 
   List<String> getSkuNameHints(String type, String namePrefix);
 

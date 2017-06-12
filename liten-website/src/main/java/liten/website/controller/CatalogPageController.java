@@ -4,7 +4,7 @@ import com.truward.web.pagination.PageResult;
 import com.truward.web.pagination.PaginationUrlCreator;
 import liten.website.exception.ResourceNotFoundException;
 import liten.website.model.catalog.CatalogItem;
-import liten.website.service.catalog.CatalogService2;
+import liten.website.service.catalog.CatalogService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -34,9 +34,9 @@ import java.util.Map;
 public final class CatalogPageController extends BaseHtmlController {
   private final Logger log = LoggerFactory.getLogger(getClass());
 
-  private final CatalogService2 catalogService;
+  private final CatalogService catalogService;
 
-  public CatalogPageController(CatalogService2 catalogService) {
+  public CatalogPageController(CatalogService catalogService) {
     this.catalogService = catalogService;
   }
 

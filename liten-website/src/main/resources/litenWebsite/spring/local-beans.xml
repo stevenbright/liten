@@ -5,5 +5,5 @@
 
   <import resource="dao/dao-context.xml"/>
 
-  <bean class="liten.website.service.catalog.support.DefaultCatalogService2" autowire="constructor"/>
+  <bean class="liten.website.service.catalog.support.DefaultCatalogService" autowire="constructor"/>
 </beans>
