@@ -8,6 +8,7 @@ import liten.catalog.model.Ise;
 import liten.catalog.util.IseNames;
 import liten.website.model.catalog.CatalogEntry;
 import liten.website.model.catalog.CatalogItem;
+import liten.website.model.catalog.CatalogItemRef;
 import liten.website.model.catalog.CatalogSku;
 import liten.website.service.catalog.CatalogService;
 import org.springframework.util.StringUtils;
@@ -99,9 +100,30 @@ public final class DefaultCatalogService implements CatalogService {
     }
   }
 
-  //private final class RightRelationsPageResult implements
+  private CatalogItemRef getUserLanguage(Transaction tx, String userLanguageCode) {
+    // TODO: cache
+    final Ise.Item languageItem = catalogDao.getByExternalId(tx, IseNames.newAlias(userLanguageCode));
+    final CatalogItemRef languageItemRef;
+    if (languageItem == null) {
+      languageItemRef = new CatalogItemRef("", userLanguageCode, userLanguageCode);
+    } else {
+      String title = userLanguageCode;
+      for (final Ise.Sku sku : languageItem.getSkusList()) {
+        if (sku.getLanguage().equals(userLanguageCode)) {
+          title = sku.getTitle();
+          break;
+        }
+      }
+
+      languageItemRef = new CatalogItemRef(languageItem.getId(), title, userLanguageCode);
+    }
+
+    return languageItemRef;
+  }
 
   private CatalogItem getCatalogItem(Transaction tx, Ise.Item item, String userLanguageCode) {
+    userLanguageCode = userLanguageCode.toLowerCase();
+
     final List<CatalogSku> catalogSkus = new ArrayList<>(item.getSkusCount());
     final int defaultSkuIndex = getDefaultSkuIndex(item, userLanguageCode);
 
@@ -117,8 +139,12 @@ public final class DefaultCatalogService implements CatalogService {
           entries));
     }
 
+    if (item.hasExtras()) {
+      item.getExtras().getBook().getAuthorIdsList();
+    }
+
     return CatalogItem.newBuilder()
-        .setUserLanguageCode(userLanguageCode)
+        .setUserLanguage(getUserLanguage(tx, userLanguageCode))
         .setId(item.getId())
         .setType(item.getType())
         .setSkus(catalogSkus)

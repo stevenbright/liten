@@ -10,21 +10,43 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * @author Alexander Shabanov
  */
 @ParametersAreNonnullByDefault
 public class CatalogItem {
-  private final String userLanguageCode;
+  private final CatalogItemRef userLanguage;
   private final String id;
   private final String type;
   private final List<CatalogSku> skus;
+  private final List<CatalogItemRef> authors;
+  private final List<CatalogItemRef> genres;
+  private final List<CatalogItemRef> origins;
+  private final CatalogItemRef series;
 
-  private CatalogItem(String userLanguageCode, String id, String type, List<CatalogSku> skus) {
-    this.userLanguageCode = Objects.requireNonNull(userLanguageCode, "userLanguageCode");
-    this.id = Objects.requireNonNull(id, "id");
-    this.type = Objects.requireNonNull(type, "type");
-    this.skus = Objects.requireNonNull(skus, "skus");
+  private CatalogItem(
+      CatalogItemRef userLanguage,
+      String id,
+      String type,
+      List<CatalogSku> skus,
+      List<CatalogItemRef> authors,
+      List<CatalogItemRef> genres,
+      List<CatalogItemRef> origins,
+      @Nullable CatalogItemRef series) {
+    this.userLanguage = requireNonNull(userLanguage, "userLanguage");
+    this.id = requireNonNull(id, "id");
+    this.type = requireNonNull(type, "type");
+    this.skus = requireNonNull(skus, "skus");
+    this.authors = requireNonNull(authors, "authors");
+    this.genres = requireNonNull(genres, "genres");
+    this.origins = requireNonNull(origins, "origins");
+    this.series = requireNonNull(series, "series");
+  }
+
+  public CatalogItemRef getUserLanguage() {
+    return userLanguage;
   }
 
   public String getId() {
@@ -133,17 +155,17 @@ public class CatalogItem {
   }
 
   public static final class Builder {
-    private String userLanguageCode;
+    private CatalogItemRef userLanguage;
     private String id = "";
     private String type;
     private List<CatalogSku> skus = ImmutableList.of();
 
     public CatalogItem build() {
-      return new CatalogItem(userLanguageCode, id, type, skus);
+      return new CatalogItem(userLanguage, id, type, skus);
     }
 
-    public Builder setUserLanguageCode(String userLanguageCode) {
-      this.userLanguageCode = userLanguageCode;
+    public Builder setUserLanguage(CatalogItemRef userLanguage) {
+      this.userLanguage = userLanguage;
       return this;
     }
 
