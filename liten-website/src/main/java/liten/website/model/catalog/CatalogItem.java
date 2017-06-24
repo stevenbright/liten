@@ -5,9 +5,7 @@ import liten.catalog.util.IseNames;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
@@ -25,6 +23,7 @@ public class CatalogItem {
   private final List<CatalogItemRef> genres;
   private final List<CatalogItemRef> origins;
   private final CatalogItemRef series;
+  private final int seriesPos;
 
   private CatalogItem(
       CatalogItemRef userLanguage,
@@ -34,7 +33,8 @@ public class CatalogItem {
       List<CatalogItemRef> authors,
       List<CatalogItemRef> genres,
       List<CatalogItemRef> origins,
-      @Nullable CatalogItemRef series) {
+      @Nullable CatalogItemRef series,
+      int seriesPos) {
     this.userLanguage = requireNonNull(userLanguage, "userLanguage");
     this.id = requireNonNull(id, "id");
     this.type = requireNonNull(type, "type");
@@ -43,6 +43,7 @@ public class CatalogItem {
     this.genres = requireNonNull(genres, "genres");
     this.origins = requireNonNull(origins, "origins");
     this.series = requireNonNull(series, "series");
+    this.seriesPos = seriesPos;
   }
 
   public CatalogItemRef getUserLanguage() {
@@ -70,13 +71,7 @@ public class CatalogItem {
   }
 
   public List<CatalogItemRef> getLanguages() {
-    return ImmutableList.of();
-//    final CatalogSku sku = getDefaultSku();
-//    if (sku == null) {
-//      return ImmutableList.of();
-//    }
-//
-//    return ;
+    return ImmutableList.of(userLanguage);
   }
 
   public boolean hasFavoriteFlag() {
@@ -103,24 +98,24 @@ public class CatalogItem {
   }
 
   public List<CatalogItemRef> getAuthors() {
-    return Collections.emptyList();
+    return authors;
   }
 
   public List<CatalogItemRef> getGenres() {
-    return Collections.emptyList();
+    return genres;
   }
 
   public List<CatalogItemRef> getOrigins() {
-    return Collections.emptyList();
+    return origins;
   }
 
   @Nullable
   public CatalogItemRef getSeries() {
-    return null;
+    return series;
   }
 
   public int getSeriesPos() {
-    return 0;
+    return seriesPos;
   }
 
   public String getDefaultTitle() {
@@ -159,9 +154,14 @@ public class CatalogItem {
     private String id = "";
     private String type;
     private List<CatalogSku> skus = ImmutableList.of();
+    private List<CatalogItemRef> authors = ImmutableList.of();
+    private List<CatalogItemRef> genres = ImmutableList.of();
+    private List<CatalogItemRef> origins = ImmutableList.of();
+    private CatalogItemRef series;
+    private int seriesPos = -1;
 
     public CatalogItem build() {
-      return new CatalogItem(userLanguage, id, type, skus);
+      return new CatalogItem(userLanguage, id, type, skus, authors, genres, origins, series, seriesPos);
     }
 
     public Builder setUserLanguage(CatalogItemRef userLanguage) {
@@ -181,6 +181,31 @@ public class CatalogItem {
 
     public Builder setSkus(List<CatalogSku> skus) {
       this.skus = ImmutableList.copyOf(skus);
+      return this;
+    }
+
+    public Builder setAuthors(List<CatalogItemRef> authors) {
+      this.authors = ImmutableList.copyOf(authors);
+      return this;
+    }
+
+    public Builder setGenres(List<CatalogItemRef> genres) {
+      this.genres = ImmutableList.copyOf(genres);
+      return this;
+    }
+
+    public Builder setOrigins(List<CatalogItemRef> origins) {
+      this.origins = ImmutableList.copyOf(origins);
+      return this;
+    }
+
+    public Builder setSeries(CatalogItemRef series) {
+      this.series = series;
+      return this;
+    }
+
+    public Builder setSeriesPos(int seriesPos) {
+      this.seriesPos = seriesPos;
       return this;
     }
   }
