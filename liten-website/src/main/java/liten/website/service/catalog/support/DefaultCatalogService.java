@@ -100,6 +100,26 @@ public final class DefaultCatalogService implements CatalogService {
     }
   }
 
+  private List<CatalogItemRef> getItemRefs(Transaction tx, List<String> ids, String userLanguageCode) {
+    final List<CatalogItemRef> result = new ArrayList<>();
+    for (final String id : ids) {
+      result.add(getCatalogItemRef(catalogDao.getById(tx, id), userLanguageCode));
+    }
+    return result;
+  }
+
+  private CatalogItemRef getCatalogItemRef(Ise.Item item, String userLanguageCode) {
+    String title = userLanguageCode;
+    for (final Ise.Sku sku : item.getSkusList()) {
+      if (sku.getLanguage().equals(userLanguageCode)) {
+        title = sku.getTitle();
+        break;
+      }
+    }
+
+    return new CatalogItemRef(item.getId(), title, userLanguageCode);
+  }
+
   private CatalogItemRef getUserLanguage(Transaction tx, String userLanguageCode) {
     // TODO: cache
     final Ise.Item languageItem = catalogDao.getByExternalId(tx, IseNames.newAlias(userLanguageCode));
@@ -107,15 +127,7 @@ public final class DefaultCatalogService implements CatalogService {
     if (languageItem == null) {
       languageItemRef = new CatalogItemRef("", userLanguageCode, userLanguageCode);
     } else {
-      String title = userLanguageCode;
-      for (final Ise.Sku sku : languageItem.getSkusList()) {
-        if (sku.getLanguage().equals(userLanguageCode)) {
-          title = sku.getTitle();
-          break;
-        }
-      }
-
-      languageItemRef = new CatalogItemRef(languageItem.getId(), title, userLanguageCode);
+      languageItemRef = getCatalogItemRef(languageItem, userLanguageCode);
     }
 
     return languageItemRef;
@@ -139,16 +151,24 @@ public final class DefaultCatalogService implements CatalogService {
           entries));
     }
 
-    if (item.hasExtras()) {
-      item.getExtras().getBook().getAuthorIdsList();
-    }
 
-    return CatalogItem.newBuilder()
+
+    final CatalogItem.Builder builder = CatalogItem.newBuilder()
         .setUserLanguage(getUserLanguage(tx, userLanguageCode))
         .setId(item.getId())
         .setType(item.getType())
-        .setSkus(catalogSkus)
-        .build();
+        .setSkus(catalogSkus);
+
+    if (item.hasExtras()) {
+      if (item.getExtras().hasBook()) {
+        final Ise.BookItemExtras bookExtras = item.getExtras().getBook();
+        builder.setAuthors(getItemRefs(tx, bookExtras.getAuthorIdsList(), userLanguageCode));
+        builder.setGenres(getItemRefs(tx, bookExtras.getGenreIdsList(), userLanguageCode));
+        //builder.setOrigins(getItemRefs(tx, catalogSkus.get(0).getO, userLanguageCode));
+      }
+    }
+
+    return builder.build();
   }
 
   private static int getDefaultSkuIndex(Ise.Item item, String userLanguage) {

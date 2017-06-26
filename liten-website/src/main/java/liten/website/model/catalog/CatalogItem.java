@@ -42,7 +42,7 @@ public class CatalogItem {
     this.authors = requireNonNull(authors, "authors");
     this.genres = requireNonNull(genres, "genres");
     this.origins = requireNonNull(origins, "origins");
-    this.series = requireNonNull(series, "series");
+    this.series = series;
     this.seriesPos = seriesPos;
   }
 
