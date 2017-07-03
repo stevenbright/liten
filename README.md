@@ -33,10 +33,10 @@ RV=`cat /dev/random | head -c 12 | base64` && echo "RV = $OID" && curl -"RV: $RV
 
 Dev-only detail page:
 
-* "English", the language: ``http://127.0.0.1:8080/g/cat/item/S1.X010``
-* "Novel", the genre: ``http://127.0.0.1:8080/g/cat/item/S1.G010``
-* "Leo Tolstoy", the author: ``http://127.0.0.1:8080/g/cat/item/S1.A010``
-* "War and Peace", the book: ``http://127.0.0.1:8080/g/cat/item/S1.B210``
+* "English", the language: ``http://127.0.0.1:8080/g/cat/item/ci1-x010``
+* "Novel", the genre: ``http://127.0.0.1:8080/g/cat/item/ci1-g010``
+* "Leo Tolstoy", the author: ``http://127.0.0.1:8080/g/cat/item/ci1-a010``
+* "War and Peace", the book: ``http://127.0.0.1:8080/g/cat/item/ci1-b210``
 
 ## Perf Test
 

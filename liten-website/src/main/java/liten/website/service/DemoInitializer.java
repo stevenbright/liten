@@ -48,13 +48,13 @@ public class DemoInitializer {
         // Languages
         //
 
-        Ise.Item.newBuilder().setId("S1.X010").setType("language")
+        Ise.Item.newBuilder().setId("ci1-X010").setType("language")
             .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("English"))
             .addSkus(Ise.Sku.newBuilder().setId("2").setLanguage("ru").setTitle("Английский"))
             .addExternalIds(IseNames.newAlias("en")) // alias:en
             .build(),
 
-        Ise.Item.newBuilder().setId("S1.X020").setType("language")
+        Ise.Item.newBuilder().setId("ci1-X020").setType("language")
             .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("Russian"))
             .addSkus(Ise.Sku.newBuilder().setId("2").setLanguage("ru").setTitle("Русский"))
             .addExternalIds(IseNames.newAlias("ru")) // alias:ru
@@ -64,24 +64,24 @@ public class DemoInitializer {
         // Genres
         //
 
-        Ise.Item.newBuilder().setId("S1.G010").setType(GENRE)
+        Ise.Item.newBuilder().setId("ci1-G010").setType(GENRE)
             .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("Novel"))
             .addSkus(Ise.Sku.newBuilder().setId("2").setLanguage("ru").setTitle("Новелла"))
             .build(),
 
-        Ise.Item.newBuilder().setId("S1.G030").setType(GENRE)
+        Ise.Item.newBuilder().setId("ci1-G030").setType(GENRE)
             .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("Fantasy"))
             .build(),
 
-        Ise.Item.newBuilder().setId("S1.G040").setType(GENRE)
+        Ise.Item.newBuilder().setId("ci1-G040").setType(GENRE)
             .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("Detective"))
             .build(),
 
-        Ise.Item.newBuilder().setId("S1.G050").setType(GENRE)
+        Ise.Item.newBuilder().setId("ci1-G050").setType(GENRE)
             .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("Sci-Fi"))
             .build(),
 
-        Ise.Item.newBuilder().setId("S1.G070").setType(GENRE)
+        Ise.Item.newBuilder().setId("ci1-G070").setType(GENRE)
             .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("Religion"))
             .addSkus(Ise.Sku.newBuilder().setId("2").setLanguage("ru").setTitle("Религия"))
             .build(),
@@ -90,17 +90,17 @@ public class DemoInitializer {
         // Authors
         //
 
-        Ise.Item.newBuilder().setId("S1.A010").setType(AUTHOR)
+        Ise.Item.newBuilder().setId("ci1-A010").setType(AUTHOR)
             .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("Leo Tolstoy"))
             .addSkus(Ise.Sku.newBuilder().setId("2").setLanguage("ru").setTitle("Лев Николаевич Толстой"))
             .build(),
 
-        Ise.Item.newBuilder().setId("S1.A040").setType(AUTHOR)
+        Ise.Item.newBuilder().setId("ci1-A040").setType(AUTHOR)
             .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("Arkady Strugatsky"))
             .addSkus(Ise.Sku.newBuilder().setId("2").setLanguage("ru").setTitle("Аркадий Стругацкий"))
             .build(),
 
-        Ise.Item.newBuilder().setId("S1.A050").setType(AUTHOR)
+        Ise.Item.newBuilder().setId("ci1-A050").setType(AUTHOR)
             .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("Boris Strugatsky"))
             .addSkus(Ise.Sku.newBuilder().setId("2").setLanguage("ru").setTitle("Борис Стругацкий"))
             .build(),
@@ -109,18 +109,18 @@ public class DemoInitializer {
         // Books
         //
 
-        Ise.Item.newBuilder().setId("S1.B010").setType(BOOK)
+        Ise.Item.newBuilder().setId("ci1-B010").setType(BOOK)
             .setExtras(Ise.ItemExtras.newBuilder().setBook(Ise.BookItemExtras.newBuilder()
-                .addGenreIds("S1.G070")
+                .addGenreIds("ci1-G070")
                 .build()))
             .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("Holy Bible"))
             .addSkus(Ise.Sku.newBuilder().setId("2").setLanguage("ru").setTitle("Библия"))
             .build(),
 
-        Ise.Item.newBuilder().setId("S1.B210").setType(BOOK)
+        Ise.Item.newBuilder().setId("ci1-B210").setType(BOOK)
             .setExtras(Ise.ItemExtras.newBuilder().setBook(Ise.BookItemExtras.newBuilder()
-                .addGenreIds("S1.G010")
-                .addAuthorIds("S1.A010")
+                .addGenreIds("ci1-G010")
+                .addAuthorIds("ci1-A010")
                 .build()))
             .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("War and Peace")
                 .addEntries(Ise.Entry.newBuilder()
@@ -144,10 +144,10 @@ public class DemoInitializer {
                     .build()))
             .build(),
 
-        Ise.Item.newBuilder().setId("S1.B250").setType(BOOK)
+        Ise.Item.newBuilder().setId("ci1-B250").setType(BOOK)
             .setExtras(Ise.ItemExtras.newBuilder().setBook(Ise.BookItemExtras.newBuilder()
-                .addGenreIds("S1.G010").addGenreIds("S1.G050")
-                .addAuthorIds("S1.A040").addAuthorIds("S1.A050")
+                .addGenreIds("ci1-G010").addGenreIds("ci1-G050")
+                .addAuthorIds("ci1-A040").addAuthorIds("ci1-A050")
                 .build()))
             .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("The Land of Crimson Clouds")
                 .addEntries(Ise.Entry.newBuilder()
@@ -207,7 +207,7 @@ public class DemoInitializer {
         // Unused (sample)
         //
 
-        Ise.Item.newBuilder().setId("S1.G990").setType(GENRE)
+        Ise.Item.newBuilder().setId("ci1-G990").setType(GENRE)
             .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("philosophy"))
             .build()
 
@@ -217,8 +217,8 @@ public class DemoInitializer {
   private static Ise.Item strugatskySciFiNovel(String ruTitle, String enTitle) {
     return Ise.Item.newBuilder().setType(BOOK)
         .setExtras(Ise.ItemExtras.newBuilder().setBook(Ise.BookItemExtras.newBuilder()
-            .addGenreIds("S1.G010").addGenreIds("S1.G050")
-            .addAuthorIds("S1.A040").addAuthorIds("S1.A050")
+            .addGenreIds("ci1-G010").addGenreIds("ci1-G050")
+            .addAuthorIds("ci1-A040").addAuthorIds("ci1-A050")
             .build()))
         .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle(enTitle))
         .addSkus(Ise.Sku.newBuilder().setId("2").setLanguage("ru").setTitle(ruTitle))

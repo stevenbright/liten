@@ -11,6 +11,7 @@ import liten.website.model.catalog.CatalogItem;
 import liten.website.model.catalog.CatalogItemRef;
 import liten.website.model.catalog.CatalogSku;
 import liten.website.service.catalog.CatalogService;
+import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Nullable;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 /**
  * Default implementation of {@link CatalogService}.
  */
+@Service
 @ParametersAreNonnullByDefault
 public final class DefaultCatalogService implements CatalogService {
   private final IseCatalogDao catalogDao;

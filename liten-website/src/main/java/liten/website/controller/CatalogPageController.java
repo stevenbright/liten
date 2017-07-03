@@ -1,5 +1,6 @@
 package liten.website.controller;
 
+import com.truward.semantic.id.exception.IdParsingException;
 import com.truward.web.pagination.PageResult;
 import com.truward.web.pagination.PaginationUrlCreator;
 import liten.website.exception.ResourceNotFoundException;
@@ -146,9 +147,23 @@ public final class CatalogPageController extends BaseHtmlController {
     return "page/catalog/hints";
   }
 
-  @RequestMapping("/item/{id:.+}")
-  public ModelAndView detailPage(@PathVariable("id") String id) {
-    final CatalogItem catalogItem = catalogService.getDetailedEntry(id, getUserLanguage());
+  @RequestMapping("/item/{itemId}")
+  public ModelAndView detailPage(@PathVariable("itemId") String itemId) {
+    final CatalogItem catalogItem = catalogService.getDetailedEntry(itemId, getUserLanguage());
+    log.trace("catalogItem={}", catalogItem);
+
+    final Map<String, Object> params = new HashMap<>();
+    params.put("currentTime", System.currentTimeMillis());
+    params.put("catalogItem", catalogItem);
+    params.put("nextRightRelationEntriesUrl", "/g/cat/part/" + catalogItem.getId() + "/right/container");
+
+    return new ModelAndView("page/catalog/item", params);
+  }
+
+  @RequestMapping("/item/{itemId}/{skuId}")
+  public ModelAndView detailPage(@PathVariable("itemId") String itemId,
+                                 @PathVariable("skuId") String skuId) {
+    final CatalogItem catalogItem = catalogService.getDetailedEntry(itemId, getUserLanguage());
     log.trace("catalogItem={}", catalogItem);
 
     final Map<String, Object> params = new HashMap<>();

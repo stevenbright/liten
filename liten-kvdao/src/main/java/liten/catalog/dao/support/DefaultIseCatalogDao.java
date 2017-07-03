@@ -36,7 +36,10 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
   private static final String EXTERNAL_ID_STORE_NAME = "external-id";
   private static final String FORWARD_RELATIONS_STORE_NAME = "forward-relations";
 
-  private static final IdCodec ITEM_CODEC = SemanticIdCodec.forPrefixNames("S1");
+  /**
+   * Item encoder, "ci1" stands for Catalog Item ver. 1
+   */
+  private static final IdCodec ITEM_CODEC = SemanticIdCodec.forPrefixNames("ci1");
 
   private final Logger log = LoggerFactory.getLogger(getClass());
   private final Environment environment;

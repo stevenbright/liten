@@ -99,6 +99,13 @@
         <version>${brikar.version}</version>
       </dependency>
 
+      <!-- Semantic ID -->
+      <dependency>
+        <groupId>com.truward.semantic</groupId>
+        <artifactId>semantic-id</artifactId>
+        <version>3.0.3</version>
+      </dependency>
+
       <!-- Google Guava https://mvnrepository.com/artifact/com.google.guava/guava -->
       <dependency>
         <groupId>com.google.guava</groupId>
