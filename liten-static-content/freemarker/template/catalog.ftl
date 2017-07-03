@@ -48,8 +48,15 @@
   <table class="item-info">
     <tbody>
       <tr>
-        <td>ID:</td>
-        <td>${item.id}</td>
+        <#if item.defaultSkuPresent>
+          <td><small>${item.id}/${item.defaultSku.id}</small>&nbsp;Link:</td>
+          <td>
+            <a href="/g/cat/item/${item.id}/${item.defaultSku.id}" title="${item.defaultSku.title}">${item.defaultSku.title}</a>
+          </td>
+        <#else>
+          <td><small>${item.id}</small>&nbsp;Link:</td>
+          <td><a href="/g/cat/item/${item.id}" title="${item.defaultTitle}">${item.defaultTitle}</a></td>
+        </#if>
       </tr>
   <#if item.type == "book">
       <tr>
@@ -60,6 +67,8 @@
         <td>Genres:</td>
         <td><@inlineItems listModel=item.genres /></td>
       </tr>
+
+<#-- TODO: rework
   <#if item.fileSize gt 0>
       <tr>
         <td>File Size:</td>
@@ -72,6 +81,8 @@
         <td>${item.createdDate}</td>
       </tr>
   </#if>
+-->
+
       <tr>
         <td>Languages:</td>
         <td><@inlineItems listModel=item.languages /></td>
@@ -86,9 +97,22 @@
 
   <hr/>
 
+<#-- TODO: rework
   <#if item.downloadUrl?has_content>
   <h3><a href="${item.downloadUrl}">Download&nbsp;<span class="glyphicon glyphicon-download" aria-hidden="true"></span></a></h3>
   </#if>
+-->
+  <#if item.nonDefaultSkus?size gt 0>
+    <h3>Other Editions</h3>
+    <ul>
+    <#list item.nonDefaultSkus as sku>
+      <li>
+        <a href="/g/cat/item/${item.id}/${sku.id}" title="${sku.title}">${sku.title} (${sku.languageName}) &raquo;</a>
+      </li>
+    </#list>
+    </ul>
+  </#if>
+
 </#macro><#-- macro itemDetails -->
 
 <#macro filterButtonGroup>

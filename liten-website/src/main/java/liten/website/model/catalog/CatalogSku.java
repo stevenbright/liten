@@ -10,17 +10,14 @@ import java.util.List;
  */
 public class CatalogSku {
   private final Ise.Sku sku;
-  private final boolean isDefault;
   private final String languageName;
   private final List<CatalogEntry> entries;
 
   public CatalogSku(
       Ise.Sku sku,
-      boolean isDefault,
       @Nullable String languageName,
       List<CatalogEntry> entries) {
     this.sku = sku;
-    this.isDefault = isDefault;
     this.languageName = languageName;
     this.entries = entries;
   }
@@ -29,16 +26,16 @@ public class CatalogSku {
     return sku.getId();
   }
 
+  public String getLanguageCode() {
+    return sku.getLanguage();
+  }
+
   public String getLanguageName() {
     return languageName != null ? languageName : sku.getLanguage();
   }
 
   public String getTitle() {
     return sku.getTitle();
-  }
-
-  public boolean isDefault() {
-    return isDefault;
   }
 
   public List<CatalogEntry> getEntries() {

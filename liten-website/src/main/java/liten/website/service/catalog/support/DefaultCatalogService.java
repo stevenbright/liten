@@ -1,11 +1,13 @@
 package liten.website.service.catalog.support;
 
+import com.google.common.collect.ImmutableList;
 import com.truward.web.pagination.AbstractPageResult;
 import com.truward.web.pagination.PageResult;
 import jetbrains.exodus.env.Transaction;
 import liten.catalog.dao.IseCatalogDao;
 import liten.catalog.model.Ise;
 import liten.catalog.util.IseNames;
+import liten.website.exception.ResourceNotFoundException;
 import liten.website.model.catalog.CatalogEntry;
 import liten.website.model.catalog.CatalogItem;
 import liten.website.model.catalog.CatalogItemRef;
@@ -44,10 +46,10 @@ public final class DefaultCatalogService implements CatalogService {
   }
 
   @Override
-  public CatalogItem getDetailedEntry(String id, String userLanguage) {
+  public CatalogItem getDetailedEntry(String itemId, @Nullable String skuId, String userLanguage) {
     return catalogDao.getEnvironment().computeInTransaction(tx -> {
-      final Ise.Item item = catalogDao.getById(tx, id);
-      return getCatalogItem(tx, item, userLanguage);
+      final Ise.Item item = catalogDao.getById(tx, itemId);
+      return getCatalogItem(tx, item, userLanguage, skuId);
     });
   }
 
@@ -57,7 +59,7 @@ public final class DefaultCatalogService implements CatalogService {
   }
 
   @Override
-  public PageResult<CatalogItem> getRightRelationEntries(String id, String userLanguage) {
+  public PageResult<CatalogItem> getRightRelationEntries(String itemId, String userLanguage) {
     return PageResult.empty();
   }
 
@@ -87,7 +89,7 @@ public final class DefaultCatalogService implements CatalogService {
     protected List<CatalogItem> getItemList(Ise.ItemQueryResult itemQueryResult) {
       return catalogDao.getEnvironment().computeInTransaction(tx -> itemQueryResult.getItemsList()
           .stream()
-          .map(item -> getCatalogItem(tx, item, userLanguage))
+          .map(item -> getCatalogItem(tx, item, userLanguage, null))
           .collect(Collectors.toList()));
     }
 
@@ -122,6 +124,71 @@ public final class DefaultCatalogService implements CatalogService {
     return new CatalogItemRef(item.getId(), title, userLanguageCode);
   }
 
+  private CatalogSku getCatalogSku(Transaction tx, Ise.Sku sku, String userLanguageCode) {
+    final List<CatalogEntry> entries = Collections.emptyList();
+
+    return new CatalogSku(
+        sku,
+        getLanguageName(tx, sku.getLanguage(), userLanguageCode),
+        entries);
+  }
+
+  private List<CatalogSku> getOrderedCatalogSkus(
+      Transaction tx,
+      String userLanguageCode,
+      Ise.Item item,
+      @Nullable String skuId) {
+    if (item.getSkusCount() == 0) {
+      return ImmutableList.of();
+    }
+
+    final int defaultSkuIndex = getDefaultSkuIndex(item, skuId, userLanguageCode);
+    final List<CatalogSku> skus = new ArrayList<>(item.getSkusCount());
+
+    if (defaultSkuIndex >= 0) {
+      // add default indexed item first
+      skus.add(getCatalogSku(tx, item.getSkus(defaultSkuIndex), userLanguageCode));
+    }
+
+    // add remaining items
+    for (int i = 0; i < item.getSkusCount(); ++i) {
+      if (i == defaultSkuIndex) {
+        continue;
+      }
+      skus.add(getCatalogSku(tx, item.getSkus(i), userLanguageCode));
+    }
+
+    return skus;
+  }
+
+  private static int getDefaultSkuIndex(Ise.Item item, @Nullable String skuId, String userLanguage) {
+    final int skuCount = item.getSkusCount();
+
+    if (skuId != null) {
+      skuId = skuId.toLowerCase();
+      for (int i = 0; i < skuCount; ++i) {
+        final Ise.Sku sku = item.getSkus(i);
+        if (sku.getId().equals(skuId)) {
+          return i;
+        }
+      }
+
+      // sku is specified, but not found, throw an error
+      throw new ResourceNotFoundException("Missing SKU=" + skuId + " for item ID=" + item.getId());
+    }
+
+    int result = -1;
+    for (int i = 0; i < skuCount; ++i) {
+      final Ise.Sku sku = item.getSkus(i);
+
+      if (i == 0 || sku.getLanguage().equals(userLanguage)) {
+        result = i;
+      }
+    }
+
+    return result;
+  }
+
   private CatalogItemRef getUserLanguage(Transaction tx, String userLanguageCode) {
     // TODO: cache
     final Ise.Item languageItem = catalogDao.getByExternalId(tx, IseNames.newAlias(userLanguageCode));
@@ -135,30 +202,15 @@ public final class DefaultCatalogService implements CatalogService {
     return languageItemRef;
   }
 
-  private CatalogItem getCatalogItem(Transaction tx, Ise.Item item, String userLanguageCode) {
+  private CatalogItem getCatalogItem(Transaction tx, Ise.Item item, String userLanguageCode, @Nullable String skuId) {
     userLanguageCode = userLanguageCode.toLowerCase();
 
-    final List<CatalogSku> catalogSkus = new ArrayList<>(item.getSkusCount());
-    final int defaultSkuIndex = getDefaultSkuIndex(item, userLanguageCode);
-
-    for (int i = 0; i < item.getSkusCount(); ++i) {
-      final boolean isDefault = (i == defaultSkuIndex);
-      final Ise.Sku sku = item.getSkus(i);
-      final List<CatalogEntry> entries = Collections.emptyList();
-
-      catalogSkus.add(new CatalogSku(
-          sku,
-          isDefault,
-          getLanguageName(tx, sku.getLanguage(), userLanguageCode),
-          entries));
-    }
-
-
+    final List<CatalogSku> catalogSkus = getOrderedCatalogSkus(tx, userLanguageCode, item, skuId);
 
     final CatalogItem.Builder builder = CatalogItem.newBuilder()
-        .setUserLanguage(getUserLanguage(tx, userLanguageCode))
         .setId(item.getId())
         .setType(item.getType())
+        .setUserLanguage(getUserLanguage(tx, userLanguageCode))
         .setSkus(catalogSkus);
 
     if (item.hasExtras()) {
@@ -171,20 +223,6 @@ public final class DefaultCatalogService implements CatalogService {
     }
 
     return builder.build();
-  }
-
-  private static int getDefaultSkuIndex(Ise.Item item, String userLanguage) {
-    int result = -1;
-
-    for (int i = 0; i < item.getSkusCount(); ++i) {
-      final Ise.Sku sku = item.getSkus(i);
-
-      if (i == 0 || sku.getLanguage().equals(userLanguage)) {
-        result = i;
-      }
-    }
-
-    return result;
   }
 
   @Nullable

@@ -1,6 +1,5 @@
 package liten.website.controller;
 
-import com.truward.semantic.id.exception.IdParsingException;
 import com.truward.web.pagination.PageResult;
 import com.truward.web.pagination.PaginationUrlCreator;
 import liten.website.exception.ResourceNotFoundException;
@@ -48,32 +47,11 @@ public final class CatalogPageController extends BaseHtmlController {
       @RequestParam(value = "type", defaultValue = "") String type,
       @RequestParam(value = "namePrefix", defaultValue = "") String namePrefix) {
     // normalize string parameters
-    final Map<String, Object> params = catalogService.getItems(getUserLanguage(), type, namePrefix)
+    final Map<String, Object> params = catalogService.getItems(getUserLanguageCode(), type, namePrefix)
         .getPage(cursor, limit, getCatalogEntriesUrlCreator(type, namePrefix))
         .toModelMap();
 
     return new ModelAndView("part/catalog/entries", params);
-  }
-
-  private PaginationUrlCreator getCatalogEntriesUrlCreator(String type, String namePrefix) {
-    return (cursor, limit) -> {
-      final String charset = StandardCharsets.UTF_8.name();
-      try {
-        final StringBuilder builder = new StringBuilder(100);
-        builder.append("/g/cat/part/entries?cursor=").append(URLEncoder.encode(cursor, charset));
-        builder.append("&limit=").append(limit);
-        if (StringUtils.hasLength(type)) {
-          builder.append("&type=").append(URLEncoder.encode(type, charset));
-        }
-        if (StringUtils.hasLength(namePrefix)) {
-          builder.append("&namePrefix=").append(URLEncoder.encode(namePrefix, charset));
-        }
-
-        return builder.toString();
-      } catch (UnsupportedEncodingException e) {
-        throw new IllegalStateException(e); // should not happen
-      }
-    };
   }
 
   @RequestMapping("/part/{itemId}/right")
@@ -83,25 +61,14 @@ public final class CatalogPageController extends BaseHtmlController {
       @RequestParam(value = "limit", defaultValue = PageResult.DEFAULT_LIMIT_STR) int limit
   ) {
     final Map<String, Object> params = catalogService.getRightRelationEntries(itemId,
-        getUserLanguage()).getPage(cursor, limit, getRightRelationsUrlCreator(itemId)).toModelMap();
+        getUserLanguageCode()).getPage(cursor, limit, getRightRelationsUrlCreator(itemId)).toModelMap();
 
     return new ModelAndView("part/catalog/entries", params);
   }
 
-  private PaginationUrlCreator getRightRelationsUrlCreator(String itemId) {
-    return ((cursor, limit) -> {
-      //noinspection StringBufferReplaceableByString
-      final StringBuilder builder = new StringBuilder(100);
-      builder.append("/g/cat/part/").append(itemId);
-      builder.append("/right?cursor=").append(cursor);
-      builder.append("&limit=").append(limit);
-      return builder.toString();
-    });
-  }
-
   @RequestMapping("/part/{itemId}/right/container")
   public ModelAndView rightRelationsPartContainer(@PathVariable("itemId") String itemId) {
-    final Map<String, Object> params = catalogService.getRightRelationEntries(itemId, getUserLanguage())
+    final Map<String, Object> params = catalogService.getRightRelationEntries(itemId, getUserLanguageCode())
         .getPage(PageResult.DEFAULT_CURSOR, PageResult.DEFAULT_LIMIT, getRightRelationsUrlCreator(itemId))
         .toModelMap();
 
@@ -117,7 +84,7 @@ public final class CatalogPageController extends BaseHtmlController {
     // normalize string parameters
     final String displayTitleForItemType = getDisplayTitleForItemType(type);
 
-    final Map<String, Object> params = catalogService.getItems(getUserLanguage(), type, namePrefix)
+    final Map<String, Object> params = catalogService.getItems(getUserLanguageCode(), type, namePrefix)
         .getPage(
             PageResult.DEFAULT_CURSOR,
             limit,
@@ -149,34 +116,65 @@ public final class CatalogPageController extends BaseHtmlController {
 
   @RequestMapping("/item/{itemId}")
   public ModelAndView detailPage(@PathVariable("itemId") String itemId) {
-    final CatalogItem catalogItem = catalogService.getDetailedEntry(itemId, getUserLanguage());
-    log.trace("catalogItem={}", catalogItem);
-
-    final Map<String, Object> params = new HashMap<>();
-    params.put("currentTime", System.currentTimeMillis());
-    params.put("catalogItem", catalogItem);
-    params.put("nextRightRelationEntriesUrl", "/g/cat/part/" + catalogItem.getId() + "/right/container");
-
-    return new ModelAndView("page/catalog/item", params);
+    return getDetailPage(itemId, null);
   }
 
   @RequestMapping("/item/{itemId}/{skuId}")
-  public ModelAndView detailPage(@PathVariable("itemId") String itemId,
-                                 @PathVariable("skuId") String skuId) {
-    final CatalogItem catalogItem = catalogService.getDetailedEntry(itemId, getUserLanguage());
-    log.trace("catalogItem={}", catalogItem);
-
-    final Map<String, Object> params = new HashMap<>();
-    params.put("currentTime", System.currentTimeMillis());
-    params.put("catalogItem", catalogItem);
-    params.put("nextRightRelationEntriesUrl", "/g/cat/part/" + catalogItem.getId() + "/right/container");
-
-    return new ModelAndView("page/catalog/item", params);
+  public ModelAndView detailPage(
+      @PathVariable("itemId") String itemId,
+      @PathVariable("skuId") String skuId) {
+    return getDetailPage(itemId, skuId);
   }
 
   //
   // Private
   //
+
+  private PaginationUrlCreator getCatalogEntriesUrlCreator(String type, String namePrefix) {
+    return (cursor, limit) -> {
+      final String charset = StandardCharsets.UTF_8.name();
+      try {
+        final StringBuilder builder = new StringBuilder(100);
+        builder.append("/g/cat/part/entries?cursor=").append(URLEncoder.encode(cursor, charset));
+        builder.append("&limit=").append(limit);
+        if (StringUtils.hasLength(type)) {
+          builder.append("&type=").append(URLEncoder.encode(type, charset));
+        }
+        if (StringUtils.hasLength(namePrefix)) {
+          builder.append("&namePrefix=").append(URLEncoder.encode(namePrefix, charset));
+        }
+
+        return builder.toString();
+      } catch (UnsupportedEncodingException e) {
+        throw new IllegalStateException(e); // should not happen
+      }
+    };
+  }
+
+  private PaginationUrlCreator getRightRelationsUrlCreator(String itemId) {
+    return ((cursor, limit) -> {
+      //noinspection StringBufferReplaceableByString
+      final StringBuilder builder = new StringBuilder(100);
+      builder.append("/g/cat/part/").append(itemId);
+      builder.append("/right?cursor=").append(cursor);
+      builder.append("&limit=").append(limit);
+      return builder.toString();
+    });
+  }
+
+  private ModelAndView getDetailPage(String itemId, @Nullable String skuId) {
+    final String userLanguageCode = getUserLanguageCode();
+
+    final CatalogItem catalogItem = catalogService.getDetailedEntry(itemId, skuId, userLanguageCode);
+    log.trace("catalogItem={}", catalogItem);
+
+    final Map<String, Object> params = new HashMap<>();
+    params.put("currentTime", System.currentTimeMillis());
+    params.put("catalogItem", catalogItem);
+    params.put("nextRightRelationEntriesUrl", "/g/cat/part/" + catalogItem.getId() + "/right/container");
+
+    return new ModelAndView("page/catalog/item", params);
+  }
 
   private static String getIndexRedirectDirective(String namePrefix, @Nullable String type) throws IOException {
     final StringBuilder redirectBuilder = new StringBuilder(100);

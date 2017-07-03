@@ -29,7 +29,7 @@ public abstract class BaseHtmlController implements SecurityControllerMixin {
     return locale;
   }
 
-  public String getUserLanguage() {
+  public String getUserLanguageCode() {
     return getUserLocale().getLanguage();
   }
 }

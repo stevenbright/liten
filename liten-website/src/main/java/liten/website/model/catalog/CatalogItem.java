@@ -6,7 +6,6 @@ import liten.catalog.util.IseNames;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.List;
-import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
 
@@ -74,27 +73,16 @@ public class CatalogItem {
     return ImmutableList.of(userLanguage);
   }
 
+  // TODO: remove
+  @Deprecated
   public boolean hasFavoriteFlag() {
     return false;
   }
 
+  // TODO: remove
+  @Deprecated
   public boolean isFavorite() {
     return false;
-  }
-
-  public boolean isDefaultSkuPresent() {
-    return getDefaultSku() != null;
-  }
-
-  @Nullable
-  public CatalogSku getDefaultSku() {
-    for (final CatalogSku sku : getSkus()) {
-      if (sku.isDefault()) {
-        return sku;
-      }
-    }
-
-    return null;
   }
 
   public List<CatalogItemRef> getAuthors() {
@@ -119,26 +107,33 @@ public class CatalogItem {
   }
 
   public String getDefaultTitle() {
-    // TODO: localize default title
-    return getTitle(() -> "UnknownItem#" + getId());
+    if (isDefaultSkuPresent()) {
+      return getDefaultSku().getTitle();
+    }
+
+    // TODO: use localization
+    return "UnnamedItem#" + getId();
   }
 
-  public int getFileSize() {
-    return 0;
+  public boolean isDefaultSkuPresent() {
+    return !getSkus().isEmpty();
   }
 
-  public String getCreatedDate() {
-    return "";
+  public CatalogSku getDefaultSku() {
+    if (!isDefaultSkuPresent()) {
+      throw new UnsupportedOperationException("Default SKU is not present on the item " + getId());
+    }
+
+    return getSkus().get(0);
   }
 
-  public String getDownloadUrl() {
-    return "";
-  }
+  public List<CatalogSku> getNonDefaultSkus() {
+    final int skuCount = getSkus().size();
+    if (skuCount > 0) {
+      return getSkus().subList(1, skuCount);
+    }
 
-  @Nullable
-  public String getTitle(Supplier<String> defaultTitleSupplier) {
-    final CatalogSku sku = getDefaultSku();
-    return sku != null ? sku.getTitle() : defaultTitleSupplier.get();
+    return ImmutableList.of();
   }
 
   //
