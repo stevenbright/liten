@@ -129,7 +129,7 @@ public final class DefaultCatalogService implements CatalogService {
 
     return new CatalogSku(
         sku,
-        getLanguageName(tx, sku.getLanguage(), userLanguageCode),
+        getUserLanguage(tx, sku.getLanguage(), userLanguageCode),
         entries);
   }
 
@@ -189,12 +189,12 @@ public final class DefaultCatalogService implements CatalogService {
     return result;
   }
 
-  private CatalogItemRef getUserLanguage(Transaction tx, String userLanguageCode) {
+  private CatalogItemRef getUserLanguage(Transaction tx, String languageCode, String userLanguageCode) {
     // TODO: cache
-    final Ise.Item languageItem = catalogDao.getByExternalId(tx, IseNames.newAlias(userLanguageCode));
+    final Ise.Item languageItem = catalogDao.getByExternalId(tx, IseNames.newAlias(languageCode));
     final CatalogItemRef languageItemRef;
     if (languageItem == null) {
-      languageItemRef = new CatalogItemRef("", userLanguageCode, userLanguageCode);
+      languageItemRef = new CatalogItemRef("", languageCode, languageCode);
     } else {
       languageItemRef = getCatalogItemRef(languageItem, userLanguageCode);
     }
@@ -210,15 +210,14 @@ public final class DefaultCatalogService implements CatalogService {
     final CatalogItem.Builder builder = CatalogItem.newBuilder()
         .setId(item.getId())
         .setType(item.getType())
-        .setUserLanguage(getUserLanguage(tx, userLanguageCode))
         .setSkus(catalogSkus);
 
     if (item.hasExtras()) {
       if (item.getExtras().hasBook()) {
         final Ise.BookItemExtras bookExtras = item.getExtras().getBook();
-        builder.setAuthors(getItemRefs(tx, bookExtras.getAuthorIdsList(), userLanguageCode));
-        builder.setGenres(getItemRefs(tx, bookExtras.getGenreIdsList(), userLanguageCode));
-        //builder.setOrigins(getItemRefs(tx, catalogSkus.get(0).getO, userLanguageCode));
+        builder
+            .setAuthors(getItemRefs(tx, bookExtras.getAuthorIdsList(), userLanguageCode))
+            .setGenres(getItemRefs(tx, bookExtras.getGenreIdsList(), userLanguageCode));
       }
     }
 

@@ -12,9 +12,9 @@ import static java.util.Objects.requireNonNull;
 /**
  * @author Alexander Shabanov
  */
+@SuppressWarnings({"WeakerAccess", "unused"})
 @ParametersAreNonnullByDefault
 public class CatalogItem {
-  private final CatalogItemRef userLanguage;
   private final String id;
   private final String type;
   private final List<CatalogSku> skus;
@@ -25,7 +25,6 @@ public class CatalogItem {
   private final int seriesPos;
 
   private CatalogItem(
-      CatalogItemRef userLanguage,
       String id,
       String type,
       List<CatalogSku> skus,
@@ -34,7 +33,6 @@ public class CatalogItem {
       List<CatalogItemRef> origins,
       @Nullable CatalogItemRef series,
       int seriesPos) {
-    this.userLanguage = requireNonNull(userLanguage, "userLanguage");
     this.id = requireNonNull(id, "id");
     this.type = requireNonNull(type, "type");
     this.skus = requireNonNull(skus, "skus");
@@ -43,10 +41,6 @@ public class CatalogItem {
     this.origins = requireNonNull(origins, "origins");
     this.series = series;
     this.seriesPos = seriesPos;
-  }
-
-  public CatalogItemRef getUserLanguage() {
-    return userLanguage;
   }
 
   public String getId() {
@@ -67,10 +61,6 @@ public class CatalogItem {
 
   public List<CatalogSku> getSkus() {
     return skus;
-  }
-
-  public List<CatalogItemRef> getLanguages() {
-    return ImmutableList.of(userLanguage);
   }
 
   // TODO: remove
@@ -145,7 +135,6 @@ public class CatalogItem {
   }
 
   public static final class Builder {
-    private CatalogItemRef userLanguage;
     private String id = "";
     private String type;
     private List<CatalogSku> skus = ImmutableList.of();
@@ -156,12 +145,7 @@ public class CatalogItem {
     private int seriesPos = -1;
 
     public CatalogItem build() {
-      return new CatalogItem(userLanguage, id, type, skus, authors, genres, origins, series, seriesPos);
-    }
-
-    public Builder setUserLanguage(CatalogItemRef userLanguage) {
-      this.userLanguage = userLanguage;
-      return this;
+      return new CatalogItem(id, type, skus, authors, genres, origins, series, seriesPos);
     }
 
     public Builder setId(String id) {

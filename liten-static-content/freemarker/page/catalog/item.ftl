@@ -3,7 +3,13 @@
 
 <@page.common title="${catalogItem.defaultTitle}">
 
-<h2>${catalogItem.defaultTitle}</h2>
+<h2>
+<#if catalogItem.defaultSkuPresent>
+  <a href="/g/cat/item/${catalogItem.id}/${catalogItem.defaultSku.id}" title="${catalogItem.defaultSku.title}">${catalogItem.defaultSku.title}</a>
+<#else>
+  <a href="/g/cat/item/${catalogItem.id}" title="${catalogItem.defaultTitle}">${catalogItem.defaultTitle}</a>
+</#if>
+</h2>
 
 <hr/>
 

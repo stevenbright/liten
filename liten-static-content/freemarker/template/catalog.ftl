@@ -4,9 +4,13 @@
 
 <#import "./favorites.ftl" as fav />
 
-<#macro inlineItems listModel>
-<#list listModel as itemModel>
-  <a href="/g/cat/item/${itemModel.id}" title="${itemModel.defaultTitle}">${itemModel.defaultTitle}</a><#if itemModel_has_next>,&nbsp</#if>
+<#macro inlineItem item>
+  <a href="/g/cat/item/${item.id}" title="${item.defaultTitle}">${item.defaultTitle}</a>
+</#macro>
+
+<#macro inlineItems itemList>
+<#list itemList as i>
+  <@inlineItem item=i/><#if i_has_next>,&nbsp</#if>
 </#list>
 </#macro>
 
@@ -25,10 +29,10 @@
     </div>
     <#if itemModel.type == "book">
     <div class="col-md-5">
-      <@inlineItems listModel=itemModel.authors />
+      <@inlineItems itemList=itemModel.authors />
     </div>
     <div class="col-md-5">
-      <@inlineItems listModel=itemModel.genres />
+      <@inlineItems itemList=itemModel.genres />
     </div>
     <#else>
     <div class="col-md-10">
@@ -47,25 +51,14 @@
 <#macro itemDetails item>
   <table class="item-info">
     <tbody>
-      <tr>
-        <#if item.defaultSkuPresent>
-          <td><small>${item.id}/${item.defaultSku.id}</small>&nbsp;Link:</td>
-          <td>
-            <a href="/g/cat/item/${item.id}/${item.defaultSku.id}" title="${item.defaultSku.title}">${item.defaultSku.title}</a>
-          </td>
-        <#else>
-          <td><small>${item.id}</small>&nbsp;Link:</td>
-          <td><a href="/g/cat/item/${item.id}" title="${item.defaultTitle}">${item.defaultTitle}</a></td>
-        </#if>
-      </tr>
   <#if item.type == "book">
       <tr>
         <td>Authors:</td>
-        <td><@inlineItems listModel=item.authors /></td>
+        <td><@inlineItems itemList=item.authors /></td>
       </tr>
       <tr>
         <td>Genres:</td>
-        <td><@inlineItems listModel=item.genres /></td>
+        <td><@inlineItems itemList=item.genres /></td>
       </tr>
 
 <#-- TODO: rework
@@ -83,13 +76,16 @@
   </#if>
 -->
 
+      <#if item.defaultSkuPresent>
       <tr>
-        <td>Languages:</td>
-        <td><@inlineItems listModel=item.languages /></td>
+        <td>Language:</td>
+        <td><@inlineItem item=item.defaultSku.language /></td>
       </tr>
+      </#if>
+
       <tr>
         <td>Origins:</td>
-        <td><@inlineItems listModel=item.origins /></td>
+        <td><@inlineItems itemList=item.origins /></td>
       </tr>
   </#if> <#-- /if item.type == "book" -->
     </tbody>

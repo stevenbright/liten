@@ -10,15 +10,15 @@ import java.util.List;
  */
 public class CatalogSku {
   private final Ise.Sku sku;
-  private final String languageName;
+  private final CatalogItemRef language;
   private final List<CatalogEntry> entries;
 
   public CatalogSku(
       Ise.Sku sku,
-      @Nullable String languageName,
+      CatalogItemRef language,
       List<CatalogEntry> entries) {
     this.sku = sku;
-    this.languageName = languageName;
+    this.language = language;
     this.entries = entries;
   }
 
@@ -30,8 +30,12 @@ public class CatalogSku {
     return sku.getLanguage();
   }
 
+  public CatalogItemRef getLanguage() {
+    return language;
+  }
+
   public String getLanguageName() {
-    return languageName != null ? languageName : sku.getLanguage();
+    return getLanguage().getDefaultTitle();
   }
 
   public String getTitle() {
