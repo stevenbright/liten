@@ -125,7 +125,10 @@ public final class DefaultCatalogService implements CatalogService {
   }
 
   private CatalogSku getCatalogSku(Transaction tx, Ise.Sku sku, String userLanguageCode) {
-    final List<CatalogEntry> entries = Collections.emptyList();
+    final List<CatalogEntry> entries = new ArrayList<>(sku.getEntriesCount());
+    for (final Ise.Entry e : sku.getEntriesList()) {
+      entries.add(new CatalogEntry(e));
+    }
 
     return new CatalogSku(
         sku,

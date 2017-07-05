@@ -51,7 +51,7 @@
 <#macro itemDetails item>
   <table class="item-info">
     <tbody>
-  <#if item.type == "book">
+      <#if item.type == "book">
       <tr>
         <td>Authors:</td>
         <td><@inlineItems itemList=item.authors /></td>
@@ -61,20 +61,11 @@
         <td><@inlineItems itemList=item.genres /></td>
       </tr>
 
-<#-- TODO: rework
-  <#if item.fileSize gt 0>
       <tr>
-        <td>File Size:</td>
-        <td>${item.fileSize?c} byte(s)</td>
+        <td>Origins:</td>
+        <td><@inlineItems itemList=item.origins /></td>
       </tr>
-  </#if>
-  <#if item.createdDate?has_content>
-      <tr>
-        <td>Add Date:</td>
-        <td>${item.createdDate}</td>
-      </tr>
-  </#if>
--->
+      </#if> <#-- /if item.type == "book" -->
 
       <#if item.defaultSkuPresent>
       <tr>
@@ -82,12 +73,6 @@
         <td><@inlineItem item=item.defaultSku.language /></td>
       </tr>
       </#if>
-
-      <tr>
-        <td>Origins:</td>
-        <td><@inlineItems itemList=item.origins /></td>
-      </tr>
-  </#if> <#-- /if item.type == "book" -->
     </tbody>
   </table>
 
@@ -98,6 +83,21 @@
   <h3><a href="${item.downloadUrl}">Download&nbsp;<span class="glyphicon glyphicon-download" aria-hidden="true"></span></a></h3>
   </#if>
 -->
+
+  <#if item.defaultSkuPresent && (item.defaultSku.entries?size gt 0)>
+    <h3>Download Items</h3>
+    <#list item.defaultSku.entries as entry>
+      <p>${entry.id}&nbsp;Created at ${entry.createdTimestamp}&nbsp;
+      <#if entry.downloadInfoPresent>
+        <span><a href="${entry.downloadUrl}">Download (${entry.downloadType})&nbsp;<span class="glyphicon glyphicon-download" aria-hidden="true"></span></a></span>
+      <#else>
+        <span>No Download Link Yet</span>
+      </#if>
+      </p>
+    </#list>
+  </#if>
+
+
   <#if item.nonDefaultSkus?size gt 0>
     <h3>Other Editions</h3>
     <ul>
