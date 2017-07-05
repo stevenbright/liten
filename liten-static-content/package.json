@@ -1,65 +1,46 @@
 {
   "private": true,
-
   "main": "js/main.js",
-
   "dependencies": {
     "jquery": "^3.1.1",
     "bootstrap": "^3.0.0",
-
     "query-string": "^4.1.0"
   },
-
   "devDependencies": {
     "babelify": "^7.3.0",
     "babel-preset-es2015": "^6.18.0",
     "babel-preset-stage-0": "^6.16.0",
-
     "watchify": "^3.7.0",
     "browserify": "^13.1.1",
     "uglifyjs": "2.4.10",
-
     "babel-jest": "^17.0.2",
     "jest-cli": "^17.0.2",
-
     "node-sass": "^3.13.0",
-
     "http-server": "^0.9.0"
   },
-
   "config": {
-    "static_root":  "target/release/litenWebsite/web/static",
-
-    "assets":       "target/release/litenWebsite/web/static/assets",
-    "libs":         "target/release/litenWebsite/web/static/assets/libs",
-    "freemarker":   "target/release/litenWebsite/web/freemarker"
+    "static_root": "target/release/litenWebsite/web/static",
+    "assets": "target/release/litenWebsite/web/static/assets",
+    "libs": "target/release/litenWebsite/web/static/assets/libs",
+    "freemarker": "target/release/litenWebsite/web/freemarker"
   },
-
   "scripts": {
     "build-js-dev": "browserify js/main.js -t babelify -o $npm_package_config_assets/js/bundle.js",
     "watch-js": "watchify js/main.js -o $npm_package_config_assets/js/bundle.js -v -d -t babelify",
-
     "build-js": "browserify js/main.js -t babelify | uglifyjs -mc > $npm_package_config_assets/js/bundle.js",
-
     "build-css": "node-sass --include-path scss scss/main.scss $npm_package_config_assets/css/main.css",
     "watch-css": "node-sass -w --include-path scss scss/main.scss $npm_package_config_assets/css/main.css",
-
     "watch-all": "npm run watch-js & npm run watch-css",
-
     "clean": "rm -rf ./target",
     "prepare": "mkdir -p $npm_package_config_assets/js && mkdir -p $npm_package_config_assets/css && mkdir -p $npm_package_config_freemarker && mkdir -p $npm_package_config_libs",
-
     "copy-freemarker": "cp -r ./freemarker/* $npm_package_config_freemarker",
     "copy-assets": "cp -r ./assets $npm_package_config_assets",
     "copy-root": "cp -r ./root/* $npm_package_config_static_root/",
     "copy-bootstrap": "cp -r ./node_modules/bootstrap/dist/ $npm_package_config_libs/bootstrap",
     "copy-all": "npm run copy-freemarker && npm run copy-assets && npm run copy-root && npm run copy-bootstrap",
-
     "build": "npm run prepare && npm run build-js && npm run build-css && npm run copy-all",
-
     "test": "jest"
   },
-
   "jest": {
     "modulePathIgnorePatterns": [
       "/node_modules/"

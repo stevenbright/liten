@@ -65,14 +65,17 @@
         <td>Origins:</td>
         <td><@inlineItems itemList=item.origins /></td>
       </tr>
-      </#if> <#-- /if item.type == "book" -->
 
+      <#-- TODO: use language from book-extras -->
       <#if item.defaultSkuPresent>
       <tr>
         <td>Language:</td>
         <td><@inlineItem item=item.defaultSku.language /></td>
       </tr>
       </#if>
+      </#if> <#-- /if item.type == "book" -->
+
+
     </tbody>
   </table>
 
@@ -86,27 +89,34 @@
 
   <#if item.defaultSkuPresent && (item.defaultSku.entries?size gt 0)>
     <h3>Download Items</h3>
-    <#list item.defaultSku.entries as entry>
-      <p>${entry.id}&nbsp;Created at ${entry.createdTimestamp}&nbsp;
-      <#if entry.downloadInfoPresent>
-        <span><a href="${entry.downloadUrl}">Download (${entry.downloadType})&nbsp;<span class="glyphicon glyphicon-download" aria-hidden="true"></span></a></span>
-      <#else>
-        <span>No Download Link Yet</span>
-      </#if>
-      </p>
-    </#list>
+    <table class="table-download-links">
+      <tbody>
+      <#list item.defaultSku.entries as entry>
+        <tr>
+          <td>${entry.id}</td>
+          <td>${entry.createdTimestamp}</td>
+          <#if entry.downloadInfoPresent>
+            <td>${entry.fileSize} bytes</td>
+            <td><a href="${entry.downloadUrl}">Download (${entry.downloadType})&nbsp;<span class="glyphicon glyphicon-download" aria-hidden="true"></span></a></td>
+          <#else>
+            <td colspan="2">No Content Yet</td>
+          </#if>
+        </tr>
+      </#list>
+      </tbody>
+    </table>
   </#if>
 
 
   <#if item.nonDefaultSkus?size gt 0>
     <h3>Other Editions</h3>
-    <ul>
+    <ol>
     <#list item.nonDefaultSkus as sku>
       <li>
         <a href="/g/cat/item/${item.id}/${sku.id}" title="${sku.title}">${sku.title} (${sku.languageName}) &raquo;</a>
       </li>
     </#list>
-    </ul>
+    </ol>
   </#if>
 
 </#macro><#-- macro itemDetails -->
