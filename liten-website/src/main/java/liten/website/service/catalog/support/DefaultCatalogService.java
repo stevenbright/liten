@@ -18,8 +18,9 @@ import org.springframework.util.StringUtils;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -34,7 +35,7 @@ public final class DefaultCatalogService implements CatalogService {
   //private final Map<Ise.ExternalId, CatalogItem> cache = new ConcurrentHashMap<>(10000);
 
   // TODO: cache
-  private final Map<String, Optional<Ise.Item>> languageAliasItems = new ConcurrentHashMap<>(100);
+  //private final Map<String, Optional<Ise.Item>> languageAliasItems = new ConcurrentHashMap<>(100);
 
   public DefaultCatalogService(IseCatalogDao catalogDao) {
     this.catalogDao = Objects.requireNonNull(catalogDao, "catalogDao");
@@ -225,21 +226,5 @@ public final class DefaultCatalogService implements CatalogService {
     }
 
     return builder.build();
-  }
-
-  @Nullable
-  private String getLanguageName(Transaction tx, String alias, String userLanguage) {
-    final Optional<Ise.Item> langItem = languageAliasItems.computeIfAbsent(alias,
-        (k) -> Optional.ofNullable(catalogDao.getByExternalId(tx, IseNames.newAlias(alias))));
-
-    if (langItem.isPresent()) {
-      for (final Ise.Sku sku : langItem.get().getSkusList()) {
-        if (userLanguage.equals(sku.getLanguage())) {
-          return sku.getTitle();
-        }
-      }
-    }
-
-    return null;
   }
 }

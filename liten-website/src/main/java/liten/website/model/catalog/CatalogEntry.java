@@ -9,6 +9,10 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.TimeZone;
 
+/**
+ * Note on suppressions: this class is accessed from templating engine
+ */
+@SuppressWarnings({"WeakerAccess", "unused"})
 @ParametersAreNonnullByDefault
 public final class CatalogEntry {
   private final Ise.Entry entry;

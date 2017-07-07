@@ -2,12 +2,12 @@ package liten.website.model.catalog;
 
 import liten.catalog.model.Ise;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**
  * @author Alexander Shabanov
  */
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class CatalogSku {
   private final Ise.Sku sku;
   private final CatalogItemRef language;

@@ -63,18 +63,6 @@ public class CatalogItem {
     return skus;
   }
 
-  // TODO: remove
-  @Deprecated
-  public boolean hasFavoriteFlag() {
-    return false;
-  }
-
-  // TODO: remove
-  @Deprecated
-  public boolean isFavorite() {
-    return false;
-  }
-
   public List<CatalogItemRef> getAuthors() {
     return authors;
   }

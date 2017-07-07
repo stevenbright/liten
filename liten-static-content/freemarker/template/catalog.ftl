@@ -19,7 +19,7 @@
   <#-- Title -->
   <div class="row">
     <div class="col-md-12">
-      <h3><a href="/g/cat/item/${itemModel.id}" title="test"><small>${itemModel.id}</small>&nbsp;${itemModel.defaultTitle}</a></h3>
+      <h3><a href="/g/cat/item/${itemModel.id}" title="${itemModel.id} - ${itemModel.defaultTitle}">${itemModel.defaultTitle}</a></h3>
     </div>
   </div>
   <#-- Authors, Genres, Related Books, ... etc. -->

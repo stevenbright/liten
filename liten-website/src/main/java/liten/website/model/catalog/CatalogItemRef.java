@@ -3,7 +3,6 @@ package liten.website.model.catalog;
 import com.google.common.base.Strings;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -11,6 +10,7 @@ import java.util.Objects;
  *
  * @author Alexander Shabanov
  */
+@SuppressWarnings({"unused", "WeakerAccess"})
 @ParametersAreNonnullByDefault
 public final class CatalogItemRef {
   private final String id;
