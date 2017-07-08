@@ -1,5 +1,6 @@
 package com.truward.xodus.util;
 
+import com.google.protobuf.Message;
 import com.truward.semantic.id.IdCodec;
 import jetbrains.exodus.ArrayByteIterable;
 import jetbrains.exodus.ByteIterable;
@@ -11,7 +12,10 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Arrays;
 import java.util.Random;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
+
+import static com.truward.xodus.util.ProtoEntity.protoToEntry;
 
 /**
  * Utility class for operating on Xodus Keys.
@@ -19,11 +23,19 @@ import java.util.function.Supplier;
  * @author Alexander Shabanov
  */
 public final class KeyUtil {
-  private KeyUtil() {}
 
-  public static KeyGenerator createKeyGenerator(Store store, IdCodec codec, Random random) {
-    return new DefaultKeyGenerator(store, codec, random);
-  }
+  /**
+   * Key size, used to generate smaller IDs in an environment that allows global contention control.
+   */
+  public static final int START_KEY_SIZE = 5;
+
+  /**
+   * Default size of byte array backing the key.
+   * The value is picked up to exclude potential clashes.
+   */
+  public static final int DEFAULT_KEY_BYTES_SIZE = 16;
+
+  private KeyUtil() {}
 
   public static ByteIterable semanticIdAsKey(IdCodec codec, String id) {
     return new ArrayByteIterable(codec.decodeBytes(id));
@@ -51,54 +63,32 @@ public final class KeyUtil {
     }
   }
 
-  //
-  // Private
-  //
+  public static <T extends Message> T addUniqueEntry(
+      Transaction tx,
+      Store entryStore,
+      T entry,
+      BiFunction<T, String, T> idApplier,
+      IdCodec entryKeyCodec,
+      int startKeySize,
+      Random keyRandom) {
+    assert startKeySize > 0 && startKeySize < KeyUtil.DEFAULT_KEY_BYTES_SIZE;
 
-  /**
-   * Helper class that generates unique key trying to create smaller keys first then incrementing key length as more
-   * and more collisions occur.
-   *
-   * @author Alexander Shabanov
-   */
-  @ParametersAreNonnullByDefault
-  final static class DefaultKeyGenerator implements KeyGenerator {
-    private static final int DEFAULT_START_KEY_LENGTH = 3;
+    for (int keySize = startKeySize; keySize < KeyUtil.DEFAULT_KEY_BYTES_SIZE; ++keySize) {
+      final byte[] keyBytes = new byte[keySize];
+      keyRandom.nextBytes(keyBytes);
 
-    private final Store store;
-    private final Random random;
-    private final IdCodec codec;
-    private volatile int startKeyLength;
+      final String id = entryKeyCodec.encodeBytes(keyBytes);
+      entry = idApplier.apply(entry, id);
 
-    DefaultKeyGenerator(Store store, IdCodec codec, Random random) {
-      this.store = store;
-      this.codec = codec;
-      this.random = random;
-      this.startKeyLength = DEFAULT_START_KEY_LENGTH;
-    }
-
-    @Override
-    public String getUniqueKey(Transaction tx) {
-      byte[] keyBytes;
-
-      for (int keySize = startKeyLength; ;++keySize) {
-        keyBytes = new byte[keySize];
-        random.nextBytes(keyBytes);
-
-        if (store.get(tx, new ArrayByteIterable(keyBytes)) == null) {
-          break;
-        }
-
-        // once at least one collision detected increment start key length to operate on bigger ID space
-        if (keySize == this.startKeyLength) {
-          // NOTE: even though this code intended for multithreaded environment, we don't have any synchronization
-          //       as we don't need to be precise about values controlled by this logic.
-          ++this.startKeyLength;
-        }
+      // try adding as new item
+      // TODO: this needs to be much smarter in multi-threaded environment,
+      // TODO:    e.g. it requires cluster ID at the beginning of small IDs
+      final ByteIterable idKey = new ArrayByteIterable(keyBytes);
+      if (entryStore.add(tx, idKey, protoToEntry(entry))) {
+        break;
       }
-
-      return codec.encodeBytes(keyBytes);
     }
-  }
 
+    return entry;
+  }
 }

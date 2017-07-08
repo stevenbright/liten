@@ -31,7 +31,10 @@ public final class IseCatalogDaoTest extends XodusTestBase {
 
   @Before
   public void init() {
-    catalogDao = new DefaultIseCatalogDao(environment);
+    // use pre-defined random for deterministic test execution
+    final Random keyRandom = new Random(6549876354L);
+    // use key size == 1 to allow contention
+    catalogDao = new DefaultIseCatalogDao(environment, keyRandom, 1);
   }
 
   @Test

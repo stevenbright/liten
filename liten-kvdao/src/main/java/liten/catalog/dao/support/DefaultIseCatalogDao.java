@@ -3,7 +3,6 @@ package liten.catalog.dao.support;
 import com.truward.dao.exception.InvalidCursorException;
 import com.truward.semantic.id.IdCodec;
 import com.truward.semantic.id.SemanticIdCodec;
-import com.truward.xodus.util.KeyGenerator;
 import com.truward.xodus.util.KeyUtil;
 import jetbrains.exodus.ArrayByteIterable;
 import jetbrains.exodus.ByteIterable;
@@ -44,7 +43,8 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
   private final Logger log = LoggerFactory.getLogger(getClass());
   private final Environment environment;
   private final Stores stores;
-  private final KeyGenerator keyGenerator;
+  private final Random keyRandom;
+  private final int startKeySize;
 
   private static final class Stores {
     final Store item;
@@ -65,12 +65,19 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
     }
   }
 
-  public DefaultIseCatalogDao(Environment environment) {
-    this.environment = environment;
-    this.stores = environment.computeInTransaction(tx -> new Stores(environment, tx));
+  public DefaultIseCatalogDao(Environment environment, Random keyRandom, int startKeySize) {
+    if (startKeySize <= 0 || startKeySize > KeyUtil.DEFAULT_KEY_BYTES_SIZE) {
+      throw new IllegalArgumentException("startKeySize");
+    }
 
-    final Random random = new SecureRandom();
-    this.keyGenerator = KeyUtil.createKeyGenerator(stores.item, ITEM_CODEC, random);
+    this.environment = Objects.requireNonNull(environment, "environment");
+    this.keyRandom = Objects.requireNonNull(keyRandom, "keyRandom");
+    this.stores = environment.computeInTransaction(tx -> new Stores(environment, tx));
+    this.startKeySize = startKeySize;
+  }
+
+  public DefaultIseCatalogDao(Environment environment) {
+    this(environment, new SecureRandom(), KeyUtil.START_KEY_SIZE);
   }
 
   @Override
@@ -223,27 +230,29 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
     validateItem(item);
 
     // lookup for an ID and find out if this is an override
-    ByteIterable idKey;
-    boolean overrideExisting = false;
     if (StringUtils.hasLength(item.getId())) {
-      overrideExisting = true;
-    } else {
-      final String id = keyGenerator.getUniqueKey(tx);
-      item = Ise.Item.newBuilder(item).setId(id).build();
-    }
-    idKey = KeyUtil.semanticIdAsKey(ITEM_CODEC, item.getId());
-
-    // cleanup item relations if it is an override
-    if (overrideExisting) {
+      // drop existing item
+      final ByteIterable idKey = KeyUtil.semanticIdAsKey(ITEM_CODEC, item.getId());
       final ByteIterable existingItemBytes = stores.item.get(tx, idKey);
       if (existingItemBytes != null) {
         log.trace("Dropping old item with id={}", item.getId());
         cleanupItemRelations(tx, entryToProto(existingItemBytes, Ise.Item.getDefaultInstance()));
       }
+
+      // put updated version of item
+      stores.item.put(tx, idKey, protoToEntry(item));
+    } else {
+      item = KeyUtil.addUniqueEntry(
+          tx,
+          stores.item,
+          item,
+          (it, id) -> Ise.Item.newBuilder(it).setId(id).build(),
+          ITEM_CODEC,
+          this.startKeySize,
+          this.keyRandom
+      );
     }
 
-    // put item itself
-    stores.item.put(tx, idKey, protoToEntry(item));
     setupItemRelations(tx, item);
 
     return item.getId();
