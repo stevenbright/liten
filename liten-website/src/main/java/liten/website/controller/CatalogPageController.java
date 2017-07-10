@@ -1,7 +1,9 @@
 package liten.website.controller;
 
+import com.google.common.collect.ImmutableSet;
 import com.truward.web.pagination.PageResult;
 import com.truward.web.pagination.PaginationUrlCreator;
+import liten.catalog.util.IseNames;
 import liten.website.exception.ResourceNotFoundException;
 import liten.website.model.catalog.CatalogItem;
 import liten.website.service.catalog.CatalogService;
@@ -24,6 +26,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Alexander Shabanov
@@ -57,19 +60,22 @@ public final class CatalogPageController extends BaseHtmlController {
   @RequestMapping("/part/{itemId}/right")
   public ModelAndView rightRelationsPart(
       @PathVariable("itemId") String itemId,
+      @RequestParam("type") String itemType,
       @RequestParam(value = "cursor", defaultValue = PageResult.DEFAULT_CURSOR) String cursor,
       @RequestParam(value = "limit", defaultValue = PageResult.DEFAULT_LIMIT_STR) int limit
   ) {
-    final Map<String, Object> params = catalogService.getRightRelationEntries(itemId,
-        getUserLanguageCode()).getPage(cursor, limit, getRightRelationsUrlCreator(itemId)).toModelMap();
+    final Map<String, Object> params = catalogService.getRightRelationEntries(itemId, itemType,
+        getUserLanguageCode()).getPage(cursor, limit, getRightRelationsUrlCreator(itemId, itemType)).toModelMap();
 
     return new ModelAndView("part/catalog/entries", params);
   }
 
   @RequestMapping("/part/{itemId}/right/container")
-  public ModelAndView rightRelationsPartContainer(@PathVariable("itemId") String itemId) {
-    final Map<String, Object> params = catalogService.getRightRelationEntries(itemId, getUserLanguageCode())
-        .getPage(PageResult.DEFAULT_CURSOR, PageResult.DEFAULT_LIMIT, getRightRelationsUrlCreator(itemId))
+  public ModelAndView rightRelationsPartContainer(
+      @PathVariable("itemId") String itemId,
+      @RequestParam("type") String itemType) {
+    final Map<String, Object> params = catalogService.getRightRelationEntries(itemId, itemType, getUserLanguageCode())
+        .getPage(PageResult.DEFAULT_CURSOR, PageResult.DEFAULT_LIMIT, getRightRelationsUrlCreator(itemId, itemType))
         .toModelMap();
 
     return new ModelAndView("part/catalog/rightEntriesContainer", params);
@@ -151,13 +157,14 @@ public final class CatalogPageController extends BaseHtmlController {
     };
   }
 
-  private PaginationUrlCreator getRightRelationsUrlCreator(String itemId) {
+  private PaginationUrlCreator getRightRelationsUrlCreator(String itemId, String itemType) {
     return ((cursor, limit) -> {
       //noinspection StringBufferReplaceableByString
       final StringBuilder builder = new StringBuilder(100);
       builder.append("/g/cat/part/").append(itemId);
       builder.append("/right?cursor=").append(cursor);
       builder.append("&limit=").append(limit);
+      builder.append("&type=").append(itemType);
       return builder.toString();
     });
   }
@@ -171,9 +178,21 @@ public final class CatalogPageController extends BaseHtmlController {
     final Map<String, Object> params = new HashMap<>();
     params.put("currentTime", System.currentTimeMillis());
     params.put("catalogItem", catalogItem);
-    params.put("nextRightRelationEntriesUrl", "/g/cat/part/" + catalogItem.getId() + "/right/container");
+    params.put("nextRightRelationEntriesUrl",
+        "/g/cat/part/" + catalogItem.getId() + "/right/container?type=" + getRightRelationItemType(catalogItem));
 
     return new ModelAndView("page/catalog/item", params);
+  }
+
+  private static final Set<String> KNOWN_RIGHT_RELATION_TYPES = ImmutableSet.of(IseNames.AUTHOR, IseNames.GENRE,
+      IseNames.SERIES);
+
+  private static String getRightRelationItemType(CatalogItem item) {
+    if (KNOWN_RIGHT_RELATION_TYPES.contains(item.getType())) {
+      return item.getType();
+    }
+
+    return ""; // return empty string if no known right relation type is known
   }
 
   private static String getIndexRedirectDirective(String namePrefix, @Nullable String type) throws IOException {

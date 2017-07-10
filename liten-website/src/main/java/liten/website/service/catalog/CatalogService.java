@@ -23,5 +23,5 @@ public interface CatalogService {
       String namePrefix);
 
   // e.g. author's books
-  PageResult<CatalogItem> getRightRelationEntries(String itemId, String userLanguage);
+  PageResult<CatalogItem> getRightRelationEntries(String itemId, String itemType, String userLanguage);
 }

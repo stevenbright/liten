@@ -60,13 +60,50 @@ public final class DefaultCatalogService implements CatalogService {
   }
 
   @Override
-  public PageResult<CatalogItem> getRightRelationEntries(String itemId, String userLanguage) {
-    return PageResult.empty();
+  public PageResult<CatalogItem> getRightRelationEntries(String itemId, String itemType, String userLanguage) {
+    return new RightRelationItemPageResult(itemId, itemType, userLanguage);
   }
 
   //
   // Private
   //
+
+  private final class RightRelationItemPageResult extends AbstractPageResult<CatalogItem, Ise.ItemRelationQueryResult> {
+    private final String itemId;
+    private final String type;
+    private final String userLanguage;
+
+    RightRelationItemPageResult(String itemId, String type, String userLanguage) {
+      this.itemId = itemId;
+      this.type = type;
+      this.userLanguage = userLanguage;
+    }
+
+    @Override
+    protected String getCursor(Ise.ItemRelationQueryResult itemRelationQueryResult) {
+      return itemRelationQueryResult.getCursor();
+    }
+
+    @Override
+    protected List<CatalogItem> getItemList(Ise.ItemRelationQueryResult itemRelationQueryResult) {
+      return catalogDao.getEnvironment().computeInTransaction(tx ->
+          itemRelationQueryResult.getToItemIdsList()
+              .stream()
+              .map(id -> getCatalogItem(tx, catalogDao.getById(tx, id), userLanguage, null))
+              .collect(Collectors.toList()));
+    }
+
+    @Override
+    protected Ise.ItemRelationQueryResult query(String cursor, int limit) {
+      return catalogDao.getEnvironment().computeInTransaction(tx -> catalogDao.getRelations(tx,
+          Ise.ItemRelationQuery.newBuilder()
+              .setFromItemId(itemId)
+              .setType(type)
+              .setCursor(cursor)
+              .setLimit(limit)
+              .build()));
+    }
+  } // end of RightRelationItemPageResult
 
   private final class ItemPageResult extends AbstractPageResult<CatalogItem, Ise.ItemQueryResult> {
     private final String userLanguage;
@@ -103,7 +140,7 @@ public final class DefaultCatalogService implements CatalogService {
           .setLimit(limit)
           .build()));
     }
-  }
+  } // end of ItemPageResult
 
   private List<CatalogItemRef> getItemRefs(Transaction tx, List<String> ids, String userLanguageCode) {
     final List<CatalogItemRef> result = new ArrayList<>();
