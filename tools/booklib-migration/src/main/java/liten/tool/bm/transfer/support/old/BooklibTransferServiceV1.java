@@ -1,14 +1,10 @@
-package liten.tool.bm.transfer.support;
+package liten.tool.bm.transfer.support.old;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.truward.time.UtcTime;
 import com.truward.time.jdbc.UtcTimeSqlUtil;
-import jetbrains.exodus.env.Transaction;
 import liten.catalog.dao.CatalogQueryDao;
 import liten.catalog.dao.CatalogUpdaterDao;
-import liten.catalog.dao.IseCatalogDao;
-import liten.catalog.model.Ise;
+import liten.catalog.util.IseNames;
 import liten.tool.bm.transfer.TransferService;
 import liten.tool.bm.transfer.support.model.BookMeta;
 import liten.tool.bm.transfer.support.model.NamedValue;
@@ -32,31 +28,28 @@ import java.util.Objects;
  * Implementation of data transfer service
  */
 @Transactional(value = "tool.txManager", propagation = Propagation.REQUIRED)
-public final class BooklibTransferService implements TransferService {
+public final class BooklibTransferServiceV1 implements TransferService {
 
   private static final int BOOK_TRANSFER_LIMIT = 1000;
-
-  private static final String FLIBUSTA_ID_TYPE = "flib";
 
   private final Logger log = LoggerFactory.getLogger(getClass());
   private final JdbcOperations db;
 
-  private final IseCatalogDao catalogDao;
+  private final CatalogQueryDao queryDao;
+  private final CatalogUpdaterDao updaterDao;
 
-  private Map<Long, String> genreToItem;
-  private Map<Long, String> personToItem;
-  private Map<Long, String> originToItem;
-  private Map<Long, String> langToItem;
-  private Map<Long, String> seriesToItem;
+  private Map<Long, Long> genreToItem;
+  private Map<Long, Long> personToItem;
+  private Map<Long, Long> originToItem;
+  private Map<Long, Long> langToItem;
+  private Map<Long, Long> seriesToItem;
 
-  private static final Map<String, String> FLIBUSTA_LANG_NAME_TO_LANG_ALIAS = ImmutableMap.of(
-      "en", "en"
-  );
-
-  public BooklibTransferService(JdbcOperations db,
-                                IseCatalogDao catalogDao) {
+  public BooklibTransferServiceV1(JdbcOperations db,
+                                  CatalogQueryDao queryDao,
+                                  CatalogUpdaterDao updaterDao) {
     this.db = db;
-    this.catalogDao = Objects.requireNonNull(catalogDao, "catalogDao");
+    this.queryDao = Objects.requireNonNull(queryDao, "queryDao");
+    this.updaterDao = Objects.requireNonNull(updaterDao, "updaterDao");
   }
 
   @Override
@@ -72,14 +65,11 @@ public final class BooklibTransferService implements TransferService {
     }
 
     // Create ID mappings
-    catalogDao.getEnvironment().executeInTransaction(tx -> {
-      this.genreToItem = insertNamedValues(tx, "genre", db.query("SELECT id, code FROM genre", new NamedValueRowMapper("code")));
-      this.personToItem = insertNamedValues(tx, "person", db.query("SELECT id, f_name FROM author", new NamedValueRowMapper("f_name")));
-      this.originToItem = insertNamedValues(tx, "book_origins", db.query("SELECT id, code FROM book_origin", new NamedValueRowMapper("code")));
-      //this.langToItem = insertNamedValues(tx, "language", db.query("SELECT id, code FROM lang_code", new NamedValueRowMapper("code")));
-      this.seriesToItem = insertNamedValues(tx, "book_series", db.query("SELECT id, name FROM series", new NamedValueRowMapper("name")));
-    });
-
+    this.genreToItem = insertNamedValues(IseNames.GENRE, db.query("SELECT id, code FROM genre", new NamedValueRowMapper("code")));
+    this.personToItem = insertNamedValues("person", db.query("SELECT id, f_name FROM author", new NamedValueRowMapper("f_name")));
+    this.originToItem = insertNamedValues("flib", db.query("SELECT id, code FROM book_origin", new NamedValueRowMapper("code")));
+    this.langToItem = insertNamedValues("language", db.query("SELECT id, code FROM lang_code", new NamedValueRowMapper("code")));
+    this.seriesToItem = insertNamedValues("book_series", db.query("SELECT id, name FROM series", new NamedValueRowMapper("name")));
 
     return true;
   }
@@ -164,39 +154,29 @@ public final class BooklibTransferService implements TransferService {
   // Private
   //
 
-  private static Ise.ExternalId getFlibustaId(long flibId) {
-    return Ise.ExternalId.newBuilder().setIdType(FLIBUSTA_ID_TYPE).setIdValue(Long.toString(flibId)).build();
-  }
-
-  private String getOrAddItem(Transaction tx, String itemName, String itemType, Long flibustaId) {
-    final Ise.ExternalId flibustaExternalId = getFlibustaId(flibustaId);
-    final Ise.Item item = catalogDao.getByExternalId(tx, flibustaExternalId);
-    if (item != null) {
-      return item.getId();
+  private Long getOrAddItem(String itemName, Long itemTypeId) {
+    final List<Long> existingIds = db.queryForList("SELECT id FROM ice_item WHERE alias=? AND type_id=?",
+        Long.class, itemName, itemTypeId);
+    if (!existingIds.isEmpty()) {
+      assert existingIds.size() == 1;
+      return existingIds.get(0);
     }
 
-
-    return addItem(tx, itemName, itemType, ImmutableList.of(flibustaExternalId));
+    return addItem(itemName, itemTypeId);
   }
 
-  private String addItem(Transaction tx, String itemName, String itemType, List<Ise.ExternalId> externalIds) {
-    final String itemId = catalogDao.persist(tx, Ise.Item.newBuilder()
-        .setType(itemType)
-        .addAllExternalIds(externalIds)
-        .addSkus(Ise.Sku.newBuilder()
-            .setLanguage("en")
-            .setTitle(itemName))
-        .build());
-
-    log.trace("Added IseItem: id={}", itemId);
-    return itemId;
+  private Long addItem(String itemName, Long itemTypeId) {
+    final Long id = queryDao.getNextItemId();
+    db.update("INSERT INTO ice_item (id, alias, type_id) VALUES (?, ?, ?)", id, itemName, itemTypeId);
+    return id;
   }
 
-  private Map<Long, String> insertNamedValues(Transaction tx, String typeName, List<NamedValue> values) {
-    final Map<Long, String> result = new HashMap<>(values.size() * 2);
+  private Map<Long, Long> insertNamedValues(String typeName, List<NamedValue> values) {
+    final Long entityTypeId = getEntityTypeId(typeName);
+    final Map<Long, Long> result = new HashMap<>(values.size() * 2);
 
     for (final NamedValue value : values) {
-      final String itemId = getOrAddItem(tx, value.name, typeName, value.id);
+      final Long itemId = getOrAddItem(value.name, entityTypeId);
       result.put(value.id, itemId);
     }
 

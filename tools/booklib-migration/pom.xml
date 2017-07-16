@@ -37,6 +37,12 @@
       <version>1.0.0-SNAPSHOT</version>
     </dependency>
 
+    <dependency>
+      <groupId>liten</groupId>
+      <artifactId>liten-kvdao</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
+    </dependency>
+
     <!-- UTC time -->
     <dependency>
       <groupId>com.truward.time</groupId>

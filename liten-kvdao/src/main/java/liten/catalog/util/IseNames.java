@@ -9,6 +9,7 @@ public final class IseNames {
   private IseNames() {} // hidden
 
   // Type or relation name:
+  public static final String PERSON = "person";
   public static final String AUTHOR = "author";
   public static final String GENRE = "genre";
   public static final String SERIES = "series";
