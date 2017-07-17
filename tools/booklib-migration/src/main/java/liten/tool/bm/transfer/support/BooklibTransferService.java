@@ -1,5 +1,6 @@
 package liten.tool.bm.transfer.support;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.truward.time.UtcTime;
@@ -9,6 +10,7 @@ import liten.catalog.dao.CatalogQueryDao;
 import liten.catalog.dao.CatalogUpdaterDao;
 import liten.catalog.dao.IseCatalogDao;
 import liten.catalog.model.Ise;
+import liten.catalog.util.IseNames;
 import liten.tool.bm.transfer.TransferService;
 import liten.tool.bm.transfer.support.model.BookMeta;
 import liten.tool.bm.transfer.support.model.NamedValue;
@@ -20,6 +22,7 @@ import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -49,8 +52,24 @@ public final class BooklibTransferService implements TransferService {
   private Map<Long, String> langToItem;
   private Map<Long, String> seriesToItem;
 
-  private static final Map<String, String> FLIBUSTA_LANG_NAME_TO_LANG_ALIAS = ImmutableMap.of(
-      "en", "en"
+  private static final class LangAlias {
+    final String alias;
+    final List<Ise.Sku> skus;
+
+    public LangAlias(String alias, List<Ise.Sku> skus) {
+      this.alias = alias;
+      this.skus = skus;
+    }
+  }
+
+  private static final LangAlias EN_LANG_ALIAS = new LangAlias("en", ImmutableList.of(Ise.Sku.newBuilder()
+      .setId("1")
+      .setTitle("English")
+      .setLanguage("en")
+      .build()));
+
+  private static final Map<String, LangAlias> FLIBUSTA_LANG_NAME_TO_LANG_ALIAS = ImmutableMap.of(
+      "en", EN_LANG_ALIAS
   );
 
   public BooklibTransferService(JdbcOperations db,
@@ -71,15 +90,15 @@ public final class BooklibTransferService implements TransferService {
       return false;
     }
 
+    ensureLanguageAliasesExist();
+
     // Create ID mappings
     catalogDao.getEnvironment().executeInTransaction(tx -> {
       this.genreToItem = insertNamedValues(tx, "genre", db.query("SELECT id, code FROM genre", new NamedValueRowMapper("code")));
       this.personToItem = insertNamedValues(tx, "person", db.query("SELECT id, f_name FROM author", new NamedValueRowMapper("f_name")));
       this.originToItem = insertNamedValues(tx, "book_origins", db.query("SELECT id, code FROM book_origin", new NamedValueRowMapper("code")));
-      //this.langToItem = insertNamedValues(tx, "language", db.query("SELECT id, code FROM lang_code", new NamedValueRowMapper("code")));
       this.seriesToItem = insertNamedValues(tx, "book_series", db.query("SELECT id, name FROM series", new NamedValueRowMapper("name")));
     });
-
 
     return true;
   }
@@ -145,24 +164,29 @@ public final class BooklibTransferService implements TransferService {
   @Override
   public void complete() {
     final int origBookCount = db.queryForObject("SELECT COUNT(0) FROM book_meta", Integer.class);
-    log.info("origBookCount={}", origBookCount);
-
-    db.update("DROP TABLE book_genre");
-    db.update("DROP TABLE book_author");
-    db.update("DROP TABLE book_series");
-    db.update("DROP TABLE series");
-
-    db.update("DROP TABLE book_meta");
-
-    db.update("DROP TABLE book_origin");
-    db.update("DROP TABLE lang_code");
-    db.update("DROP TABLE genre");
-    db.update("DROP TABLE author");
+    log.info("Transfer completed: bookCount={}", origBookCount);
   }
 
   //
   // Private
   //
+
+  private void ensureLanguageAliasesExist() {
+    catalogDao.getEnvironment().executeInTransaction(tx -> {
+      for (final LangAlias alias : FLIBUSTA_LANG_NAME_TO_LANG_ALIAS.values()) {
+        if (catalogDao.getMappedIdByExternalId(tx, IseNames.newAlias(alias.alias)) != null) {
+          continue; // ok, item present
+        }
+
+        // make sure language exists
+        catalogDao.persist(tx, Ise.Item.newBuilder()
+            .setType(IseNames.LANGUAGE)
+            .addExternalIds(IseNames.newAlias(alias.alias))
+            .addAllSkus(alias.skus)
+            .build());
+      }
+    });
+  }
 
   private static Ise.ExternalId getFlibustaId(long flibId) {
     return Ise.ExternalId.newBuilder().setIdType(FLIBUSTA_ID_TYPE).setIdValue(Long.toString(flibId)).build();
@@ -170,11 +194,10 @@ public final class BooklibTransferService implements TransferService {
 
   private String getOrAddItem(Transaction tx, String itemName, String itemType, Long flibustaId) {
     final Ise.ExternalId flibustaExternalId = getFlibustaId(flibustaId);
-    final Ise.Item item = catalogDao.getByExternalId(tx, flibustaExternalId);
-    if (item != null) {
-      return item.getId();
+    final String existingItemId = catalogDao.getMappedIdByExternalId(tx, flibustaExternalId);
+    if (!Strings.isNullOrEmpty(existingItemId)) {
+      return existingItemId;
     }
-
 
     return addItem(tx, itemName, itemType, ImmutableList.of(flibustaExternalId));
   }

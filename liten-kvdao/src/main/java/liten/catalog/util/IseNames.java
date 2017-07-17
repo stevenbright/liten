@@ -14,6 +14,7 @@ public final class IseNames {
   public static final String GENRE = "genre";
   public static final String SERIES = "series";
   public static final String BOOK = "book";
+  public static final String LANGUAGE = "language";
 
   //
   // Standard naming for external ID prefixes
