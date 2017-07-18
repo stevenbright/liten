@@ -33,14 +33,15 @@
   <dependencies>
     <dependency>
       <groupId>liten</groupId>
-      <artifactId>liten-dao</artifactId>
+      <artifactId>liten-kvdao</artifactId>
       <version>1.0.0-SNAPSHOT</version>
     </dependency>
 
+    <!-- DB -->
     <dependency>
-      <groupId>liten</groupId>
-      <artifactId>liten-kvdao</artifactId>
-      <version>1.0.0-SNAPSHOT</version>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <version>1.4.190</version>
     </dependency>
 
     <!-- UTC time -->

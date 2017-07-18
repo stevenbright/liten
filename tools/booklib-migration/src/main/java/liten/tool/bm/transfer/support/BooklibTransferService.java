@@ -6,8 +6,6 @@ import com.google.common.collect.ImmutableMap;
 import com.truward.time.UtcTime;
 import com.truward.time.jdbc.UtcTimeSqlUtil;
 import jetbrains.exodus.env.Transaction;
-import liten.catalog.dao.CatalogQueryDao;
-import liten.catalog.dao.CatalogUpdaterDao;
 import liten.catalog.dao.IseCatalogDao;
 import liten.catalog.model.Ise;
 import liten.catalog.util.IseNames;
@@ -15,6 +13,8 @@ import liten.tool.bm.transfer.TransferService;
 import liten.tool.bm.transfer.support.model.BookMeta;
 import liten.tool.bm.transfer.support.model.NamedValue;
 import liten.tool.bm.transfer.support.model.SeriesPos;
+import liten.tool.bm.transfer.util.FlibustaLanguages;
+import liten.tool.bm.transfer.util.FlibustaMappers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
@@ -22,7 +22,6 @@ import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -52,26 +51,6 @@ public final class BooklibTransferService implements TransferService {
   private Map<Long, String> langToItem;
   private Map<Long, String> seriesToItem;
 
-  private static final class LangAlias {
-    final String alias;
-    final List<Ise.Sku> skus;
-
-    public LangAlias(String alias, List<Ise.Sku> skus) {
-      this.alias = alias;
-      this.skus = skus;
-    }
-  }
-
-  private static final LangAlias EN_LANG_ALIAS = new LangAlias("en", ImmutableList.of(Ise.Sku.newBuilder()
-      .setId("1")
-      .setTitle("English")
-      .setLanguage("en")
-      .build()));
-
-  private static final Map<String, LangAlias> FLIBUSTA_LANG_NAME_TO_LANG_ALIAS = ImmutableMap.of(
-      "en", EN_LANG_ALIAS
-  );
-
   public BooklibTransferService(JdbcOperations db,
                                 IseCatalogDao catalogDao) {
     this.db = db;
@@ -94,10 +73,14 @@ public final class BooklibTransferService implements TransferService {
 
     // Create ID mappings
     catalogDao.getEnvironment().executeInTransaction(tx -> {
-      this.genreToItem = insertNamedValues(tx, "genre", db.query("SELECT id, code FROM genre", new NamedValueRowMapper("code")));
-      this.personToItem = insertNamedValues(tx, "person", db.query("SELECT id, f_name FROM author", new NamedValueRowMapper("f_name")));
-      this.originToItem = insertNamedValues(tx, "book_origins", db.query("SELECT id, code FROM book_origin", new NamedValueRowMapper("code")));
-      this.seriesToItem = insertNamedValues(tx, "book_series", db.query("SELECT id, name FROM series", new NamedValueRowMapper("name")));
+      this.genreToItem = insertNamedValues(tx, "genre", db.query("SELECT id, code FROM genre",
+          new FlibustaMappers.NamedValueRowMapper("code")));
+      this.personToItem = insertNamedValues(tx, "person", db.query("SELECT id, f_name FROM author",
+          new FlibustaMappers.NamedValueRowMapper("f_name")));
+      this.originToItem = insertNamedValues(tx, "book_origins",
+          db.query("SELECT id, code FROM book_origin", new FlibustaMappers.NamedValueRowMapper("code")));
+      this.seriesToItem = insertNamedValues(tx, "book_series",
+          db.query("SELECT id, name FROM series", new FlibustaMappers.NamedValueRowMapper("name")));
     });
 
     return true;
@@ -107,7 +90,7 @@ public final class BooklibTransferService implements TransferService {
   public String transferNext(String startId) {
     final int limit = BOOK_TRANSFER_LIMIT;
     final List<BookMeta> bookMetas = db.query("SELECT id, title, f_size, add_date, lang_id, origin_id " +
-            "FROM book_meta WHERE ((? IS NULL) OR (id > ?)) ORDER BY id LIMIT ?", new BookMetaRowMapper(),
+            "FROM book_meta WHERE ((? IS NULL) OR (id > ?)) ORDER BY id LIMIT ?", new FlibustaMappers.BookMetaRowMapper(),
         startId, startId, limit);
     log.info("BookMetas={}", bookMetas);
 
@@ -173,7 +156,7 @@ public final class BooklibTransferService implements TransferService {
 
   private void ensureLanguageAliasesExist() {
     catalogDao.getEnvironment().executeInTransaction(tx -> {
-      for (final LangAlias alias : FLIBUSTA_LANG_NAME_TO_LANG_ALIAS.values()) {
+      for (final FlibustaLanguages.LangAlias alias : FlibustaLanguages.FLIBUSTA_LANG_NAME_TO_ALIAS.values()) {
         if (catalogDao.getMappedIdByExternalId(tx, IseNames.newAlias(alias.alias)) != null) {
           continue; // ok, item present
         }
@@ -253,37 +236,5 @@ public final class BooklibTransferService implements TransferService {
 
   private Long getNextEntityTypeId() {
     return db.queryForObject("SELECT seq_entity_type.nextval", Long.class);
-  }
-
-
-  private static final class NamedValueRowMapper implements RowMapper<NamedValue> {
-    private final String name;
-
-    public NamedValueRowMapper(String name) {
-      this.name = name;
-    }
-
-    @Override
-    public NamedValue mapRow(ResultSet rs, int rowNum) throws SQLException {
-      final NamedValue result = new NamedValue();
-      result.id = rs.getLong("id");
-      result.name = rs.getString(name);
-      return result;
-    }
-  }
-
-  private static final class BookMetaRowMapper implements RowMapper<BookMeta> {
-
-    @Override
-    public BookMeta mapRow(ResultSet rs, int rowNum) throws SQLException {
-      final BookMeta result = new BookMeta();
-      result.id = rs.getLong("id");
-      result.title = rs.getString("title");
-      result.fileSize = rs.getInt("f_size");
-      result.dateAdded = UtcTimeSqlUtil.getNullableUtcTime(rs, "add_date", UtcTime.now());
-      result.langId = rs.getLong("lang_id");
-      result.originId = rs.getLong("origin_id");
-      return result;
-    }
   }
 }
