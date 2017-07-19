@@ -73,13 +73,13 @@ public final class BooklibTransferService implements TransferService {
 
     // Create ID mappings
     catalogDao.getEnvironment().executeInTransaction(tx -> {
-      this.genreToItem = insertNamedValues(tx, "genre", db.query("SELECT id, code FROM genre",
+      this.genreToItem = insertNamedValues(tx, IseNames.GENRE, db.query("SELECT id, code FROM genre",
           new FlibustaMappers.NamedValueRowMapper("code")));
-      this.personToItem = insertNamedValues(tx, "person", db.query("SELECT id, f_name FROM author",
+      this.personToItem = insertNamedValues(tx, IseNames.PERSON, db.query("SELECT id, f_name FROM author",
           new FlibustaMappers.NamedValueRowMapper("f_name")));
-      this.originToItem = insertNamedValues(tx, "book_origins",
+      this.originToItem = insertNamedValues(tx, "origin",
           db.query("SELECT id, code FROM book_origin", new FlibustaMappers.NamedValueRowMapper("code")));
-      this.seriesToItem = insertNamedValues(tx, "book_series",
+      this.seriesToItem = insertNamedValues(tx, IseNames.SERIES,
           db.query("SELECT id, name FROM series", new FlibustaMappers.NamedValueRowMapper("name")));
     });
 
@@ -169,6 +169,9 @@ public final class BooklibTransferService implements TransferService {
             .build());
       }
     });
+
+    // now check that all the languages are covered
+    //db.query("SELECT id, f_name FROM author", new FlibustaMappers.NamedValueRowMapper("f_name"));
   }
 
   private static Ise.ExternalId getFlibustaId(long flibId) {
