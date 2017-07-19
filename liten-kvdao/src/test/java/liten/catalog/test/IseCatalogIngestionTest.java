@@ -127,17 +127,17 @@ public final class IseCatalogIngestionTest extends XodusTestBase {
         // Authors
         //
 
-        Ise.Item.newBuilder().setId("ci1-A010").setType(IseNames.AUTHOR)
+        Ise.Item.newBuilder().setId("ci1-A010").setType(IseNames.PERSON)
             .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("Leo Tolstoy"))
             .addSkus(Ise.Sku.newBuilder().setId("2").setLanguage("ru").setTitle("Лев Николаевич Толстой"))
             .build(),
 
-        Ise.Item.newBuilder().setId("ci1-A040").setType(IseNames.AUTHOR)
+        Ise.Item.newBuilder().setId("ci1-A040").setType(IseNames.PERSON)
             .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("Arkady Strugatsky"))
             .addSkus(Ise.Sku.newBuilder().setId("2").setLanguage("ru").setTitle("Аркадий Стругацкий"))
             .build(),
 
-        Ise.Item.newBuilder().setId("ci1-A050").setType(IseNames.AUTHOR)
+        Ise.Item.newBuilder().setId("ci1-A050").setType(IseNames.PERSON)
             .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("Boris Strugatsky"))
             .addSkus(Ise.Sku.newBuilder().setId("2").setLanguage("ru").setTitle("Борис Стругацкий"))
             .build(),
@@ -268,7 +268,7 @@ public final class IseCatalogIngestionTest extends XodusTestBase {
         .build();
   }
 
-  public static UtcTime date(String strDate) {
+  private static UtcTime date(String strDate) {
     final SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
     fmt.setTimeZone(UtcTime.newUtcTimeZone());
     try {

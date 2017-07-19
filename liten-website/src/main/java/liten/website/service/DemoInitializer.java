@@ -14,9 +14,7 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.List;
 
-import static liten.catalog.util.IseNames.AUTHOR;
-import static liten.catalog.util.IseNames.BOOK;
-import static liten.catalog.util.IseNames.GENRE;
+import static liten.catalog.util.IseNames.*;
 
 /**
  * @author Alexander Shabanov
@@ -90,17 +88,17 @@ public class DemoInitializer {
         // Authors
         //
 
-        Ise.Item.newBuilder().setId("ci1-a010").setType(AUTHOR)
+        Ise.Item.newBuilder().setId("ci1-a010").setType(PERSON)
             .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("Leo Tolstoy"))
             .addSkus(Ise.Sku.newBuilder().setId("2").setLanguage("ru").setTitle("Лев Николаевич Толстой"))
             .build(),
 
-        Ise.Item.newBuilder().setId("ci1-a040").setType(AUTHOR)
+        Ise.Item.newBuilder().setId("ci1-a040").setType(PERSON)
             .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("Arkady Strugatsky"))
             .addSkus(Ise.Sku.newBuilder().setId("2").setLanguage("ru").setTitle("Аркадий Стругацкий"))
             .build(),
 
-        Ise.Item.newBuilder().setId("ci1-a050").setType(AUTHOR)
+        Ise.Item.newBuilder().setId("ci1-a050").setType(PERSON)
             .addSkus(Ise.Sku.newBuilder().setId("1").setLanguage("en").setTitle("Boris Strugatsky"))
             .addSkus(Ise.Sku.newBuilder().setId("2").setLanguage("ru").setTitle("Борис Стругацкий"))
             .build(),
