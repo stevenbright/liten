@@ -20,6 +20,11 @@ INSERT INTO genre (id, code) VALUES (7, 'horror');
 
 INSERT INTO lang_code (id, code) VALUES (1, 'en');
 INSERT INTO lang_code (id, code) VALUES (2, 'ru');
+INSERT INTO lang_code (id, code) VALUES (3, 'EN-US');
+INSERT INTO lang_code (id, code) VALUES (4, 'eN-gb');
+INSERT INTO lang_code (id, code) VALUES (5, 'en-Au');
+INSERT INTO lang_code (id, code) VALUES (6, 'sh');
+INSERT INTO lang_code (id, code) VALUES (7, '');
 
 INSERT INTO book_origin (id, code) VALUES (1, 'EnglishClassicBooks');
 INSERT INTO book_origin (id, code) VALUES (2, 'EnglishModernBooks');

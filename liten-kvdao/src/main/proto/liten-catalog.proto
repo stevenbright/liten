@@ -66,6 +66,7 @@ message ForwardRelationId {
 
 message ItemExtras {
   BookItemExtras book = 1;
+  LangItemExtras lang = 2;
 }
 
 message BookItemExtras {
@@ -75,6 +76,11 @@ message BookItemExtras {
   int32 seriesPos = 4;
 }
 
+message LangItemExtras {
+  string iso3Code = 1;
+  string languageCode = 2;
+  string countryCode = 3;
+}
 
 message SkuExtras {
   string wikipediaUrl = 1;

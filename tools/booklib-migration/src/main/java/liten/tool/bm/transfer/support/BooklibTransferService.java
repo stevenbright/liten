@@ -2,9 +2,6 @@ package liten.tool.bm.transfer.support;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.truward.time.UtcTime;
-import com.truward.time.jdbc.UtcTimeSqlUtil;
 import jetbrains.exodus.env.Transaction;
 import liten.catalog.dao.IseCatalogDao;
 import liten.catalog.model.Ise;
@@ -19,16 +16,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcOperations;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Implementation of data transfer service
@@ -69,16 +60,19 @@ public final class BooklibTransferService implements TransferService {
       return false;
     }
 
-    ensureLanguageAliasesExist();
-
     // Create ID mappings
     catalogDao.getEnvironment().executeInTransaction(tx -> {
+      ensureLanguageAliasesExist(tx);
+
       this.genreToItem = insertNamedValues(tx, IseNames.GENRE, db.query("SELECT id, code FROM genre",
           new FlibustaMappers.NamedValueRowMapper("code")));
+
       this.personToItem = insertNamedValues(tx, IseNames.PERSON, db.query("SELECT id, f_name FROM author",
           new FlibustaMappers.NamedValueRowMapper("f_name")));
+
       this.originToItem = insertNamedValues(tx, "origin",
           db.query("SELECT id, code FROM book_origin", new FlibustaMappers.NamedValueRowMapper("code")));
+
       this.seriesToItem = insertNamedValues(tx, IseNames.SERIES,
           db.query("SELECT id, name FROM series", new FlibustaMappers.NamedValueRowMapper("name")));
     });
@@ -154,24 +148,69 @@ public final class BooklibTransferService implements TransferService {
   // Private
   //
 
-  private void ensureLanguageAliasesExist() {
-    catalogDao.getEnvironment().executeInTransaction(tx -> {
-      for (final FlibustaLanguages.LangAlias alias : FlibustaLanguages.FLIBUSTA_LANG_NAME_TO_ALIAS.values()) {
-        if (catalogDao.getMappedIdByExternalId(tx, IseNames.newAlias(alias.alias)) != null) {
-          continue; // ok, item present
-        }
-
-        // make sure language exists
-        catalogDao.persist(tx, Ise.Item.newBuilder()
-            .setType(IseNames.LANGUAGE)
-            .addExternalIds(IseNames.newAlias(alias.alias))
-            .addAllSkus(alias.skus)
-            .build());
+  private void ensureLanguageAliasesExist(Transaction tx) {
+    for (final FlibustaLanguages.LangAlias alias : FlibustaLanguages.FLIBUSTA_CODE_TO_ALIAS.values()) {
+      if (catalogDao.getMappedIdByExternalId(tx, IseNames.newAlias(alias.alias)) != null) {
+        continue; // ok, item present
       }
-    });
+
+      // make sure language exists
+      catalogDao.persist(tx, Ise.Item.newBuilder()
+          .setType(IseNames.LANGUAGE)
+          .addExternalIds(IseNames.newAlias(alias.alias))
+          .addAllSkus(alias.skus)
+          .build());
+    }
+
+    Locale enLoc = new Locale("en");
+    Locale ruLoc = new Locale("ru");
 
     // now check that all the languages are covered
-    //db.query("SELECT id, f_name FROM author", new FlibustaMappers.NamedValueRowMapper("f_name"));
+    final List<String> unsupportedLanguages = new ArrayList<>();
+    final List<NamedValue> languages =
+        db.query("SELECT id, code FROM lang_code", new FlibustaMappers.NamedValueRowMapper("code"));
+    //String languageCode = lang.name;
+    //String country = null;
+    for (final NamedValue lang : languages) {
+
+      final Locale curLocale;
+      final int dashIndex = lang.name.indexOf('-');
+      if (dashIndex > 0) {
+        final String languageCode = lang.name.substring(0, dashIndex);
+        final String country = lang.name.substring(dashIndex + 1);
+        curLocale = new Locale(languageCode, country);
+      } else {
+        curLocale = new Locale(lang.name);
+      }
+
+      String iso3Language = null;
+      try {
+        iso3Language = curLocale.getISO3Language();
+      } catch (final MissingResourceException ignored) {
+        // ignore
+      }
+
+      //final Ise.Item existingLangItem = catalogDao.getByExternalId(IseNames.newAlias());
+
+      String enLangName = curLocale.getDisplayLanguage(enLoc);
+      String ruLangName = curLocale.getDisplayLanguage(ruLoc);
+      log.info("iso3={}, country={}, locale={}, enName={}, ruName={}",
+          iso3Language,
+          curLocale.getCountry(),
+          lang.name,
+          enLangName,
+          ruLangName);
+
+      if (!FlibustaLanguages.FLIBUSTA_CODE_TO_ALIAS.containsKey(lang.name)) {
+        unsupportedLanguages.add(lang.name);
+      }
+    }
+
+    if (!unsupportedLanguages.isEmpty()) {
+      throw new UnsupportedOperationException("Unsupported languages=" + unsupportedLanguages);
+    }
+
+    log.info("Language existence ensured");
   }
 
   private static Ise.ExternalId getFlibustaId(long flibId) {
