@@ -18,6 +18,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.*;
 
@@ -169,18 +170,19 @@ public final class BooklibTransferService implements TransferService {
     final List<String> unsupportedLanguages = new ArrayList<>();
     final List<NamedValue> languages =
         db.query("SELECT id, code FROM lang_code", new FlibustaMappers.NamedValueRowMapper("code"));
-    //String languageCode = lang.name;
-    //String country = null;
     for (final NamedValue lang : languages) {
-
+      // match locale and detect other values
       final Locale curLocale;
+      final String localeAlias;
       final int dashIndex = lang.name.indexOf('-');
       if (dashIndex > 0) {
-        final String languageCode = lang.name.substring(0, dashIndex);
-        final String country = lang.name.substring(dashIndex + 1);
+        final String languageCode = lang.name.substring(0, dashIndex).toLowerCase();
+        final String country = lang.name.substring(dashIndex + 1).toUpperCase();
         curLocale = new Locale(languageCode, country);
+        localeAlias = languageCode + '-' + country;
       } else {
         curLocale = new Locale(lang.name);
+        localeAlias = lang.name.toLowerCase();
       }
 
       String iso3Language = null;
@@ -190,10 +192,47 @@ public final class BooklibTransferService implements TransferService {
         // ignore
       }
 
-      //final Ise.Item existingLangItem = catalogDao.getByExternalId(IseNames.newAlias());
+      Ise.LangItemExtras langItemExtras = null;
+      if (iso3Language != null && !StringUtils.isEmpty(curLocale.getCountry())) {
+        // infer language extras for known language
+        langItemExtras = Ise.LangItemExtras.newBuilder()
+            .setIso3Code(iso3Language)
+            .setCountryCode(curLocale.getCountry())
+            .build();
+      }
 
+      final Ise.ExternalId langAliasId = IseNames.newAlias(localeAlias);
+      final Ise.Item existingLangItem = catalogDao.getByExternalId(tx, langAliasId);
+      if (existingLangItem != null) {
+        // item has been inserted already, check if we can assign language extras
+        if (langItemExtras != null && !existingLangItem.getExtras().hasLang()) {
+          catalogDao.persist(tx, Ise.Item.newBuilder(existingLangItem)
+              .setExtras(Ise.ItemExtras.newBuilder().setLang(langItemExtras))
+              .build());
+        }
+
+        // no further action needed - continue
+        continue;
+      }
+
+      final Ise.Item.Builder langItemBuilder = Ise.Item.newBuilder();
+      if (langItemExtras != null) {
+        langItemBuilder.setExtras(Ise.ItemExtras.newBuilder().setLang(langItemExtras));
+      }
+
+      // there is no matching language in ISE DB, insert a new one
       String enLangName = curLocale.getDisplayLanguage(enLoc);
+      if (!enLangName.equals(lang.name)) {
+
+      }
+
       String ruLangName = curLocale.getDisplayLanguage(ruLoc);
+      langItemBuilder.addSkus(Ise.Sku.newBuilder()
+          .setId("1").setTitle(enLangName).setLanguage(FlibustaLanguages.EN_LANG_ALIAS.alias)
+          .setId("2").setTitle(ruLangName).setLanguage(FlibustaLanguages.RU_LANG_ALIAS.alias));
+
+
+
       log.info("iso3={}, country={}, locale={}, enName={}, ruName={}",
           iso3Language,
           curLocale.getCountry(),

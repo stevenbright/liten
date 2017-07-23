@@ -37,7 +37,7 @@ public final class FlibustaLanguages {
       .setLanguage("es")
       .build()));
 
-  private static final LangAlias EN_LANG_ALIAS = new LangAlias("en", ImmutableList.of(Ise.Sku.newBuilder()
+  public static final LangAlias EN_LANG_ALIAS = new LangAlias("en", ImmutableList.of(Ise.Sku.newBuilder()
       .setId("1")
       .setTitle("English")
       .setLanguage("en")
@@ -51,7 +51,7 @@ public final class FlibustaLanguages {
       .setLanguage("es")
       .build()));
 
-  private static final LangAlias RU_LANG_ALIAS = new LangAlias("ru", ImmutableList.of(Ise.Sku.newBuilder()
+  public static final LangAlias RU_LANG_ALIAS = new LangAlias("ru", ImmutableList.of(Ise.Sku.newBuilder()
       .setId("1")
       .setTitle("Russian")
       .setLanguage("en")
