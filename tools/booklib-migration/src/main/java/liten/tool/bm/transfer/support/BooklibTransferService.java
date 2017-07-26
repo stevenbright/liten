@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import jetbrains.exodus.env.Transaction;
 import liten.catalog.dao.IseCatalogDao;
+import liten.catalog.dao.exception.DuplicateExternalIdException;
 import liten.catalog.model.Ise;
 import liten.catalog.util.IseNames;
 import liten.tool.bm.transfer.TransferService;
@@ -22,6 +23,8 @@ import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.util.Objects.requireNonNull;
 
 /**
  * Implementation of data transfer service
@@ -47,7 +50,7 @@ public final class BooklibTransferService implements TransferService {
   public BooklibTransferService(JdbcOperations db,
                                 IseCatalogDao catalogDao) {
     this.db = db;
-    this.catalogDao = Objects.requireNonNull(catalogDao, "catalogDao");
+    this.catalogDao = requireNonNull(catalogDao, "catalogDao");
   }
 
   @Override
@@ -95,10 +98,22 @@ public final class BooklibTransferService implements TransferService {
     log.info("BookMetas={}", bookMetas.stream().map(x -> x.id).collect(Collectors.toList()));
 
     catalogDao.getEnvironment().executeInTransaction(tx -> {
-      for (final BookMeta bookMeta : bookMetas) {
-        insertBook(tx, bookMeta);
+      try {
+        for (final BookMeta bookMeta : bookMetas) {
+          insertBook(tx, bookMeta);
+        }
+      } catch (DuplicateExternalIdException e) {
+        final Ise.Item mappedItem = catalogDao.getById(tx, e.getMappedItemId());
+        log.error("Offending MappedItem={}", mappedItem);
+        throw e;
       }
     });
+
+    // TODO: remove
+    if (System.currentTimeMillis() < 100034L) {
+      // DEBUG - faster interruption
+      return null;
+    }
 
     if (limit > bookMetas.size()) {
       return null;
@@ -118,7 +133,7 @@ public final class BooklibTransferService implements TransferService {
   //
 
   private String getLanguageAlias(Transaction tx, BookMeta book) {
-    final Ise.Item languageItem = catalogDao.getByExternalId(tx, getFlibustaId(book.langId));
+    final Ise.Item languageItem = catalogDao.getByExternalId(tx, getFlibustaId(IseNames.LANGUAGE, book.langId));
     final List<Ise.ExternalId> ids = languageItem != null ? languageItem.getExternalIdsList() : ImmutableList.of();
     return ids
         .stream()
@@ -129,62 +144,55 @@ public final class BooklibTransferService implements TransferService {
   }
 
   private void insertBook(Transaction tx, BookMeta book) {
-    final Ise.ExternalId bookFlibustaId = getFlibustaId(book.id);
+    final Ise.ExternalId bookFlibustaId = getFlibustaId(IseNames.BOOK, book.id);
     if (catalogDao.getMappedIdByExternalId(tx, bookFlibustaId) != null) {
       log.debug("Item with id={} has been inserted", book.id);
     }
 
     final Ise.BookItemExtras.Builder bookExtrasBuilder = Ise.BookItemExtras.newBuilder();
 
+    // save genres relations
+    final List<Long> genreIds = db.queryForList("SELECT genre_id FROM book_genre WHERE book_id=?",
+        Long.class, book.id);
+    for (final Long flibGenreId : genreIds) {
+      bookExtrasBuilder.addGenreIds(requireNonNull(genreToItem.get(flibGenreId), "genre"));
+    }
+
+    // save authors
+    final List<Long> authorIds = db.queryForList("SELECT author_id FROM book_author WHERE book_id=?",
+        Long.class, book.id);
+    for (final Long flibAuthorId : authorIds) {
+      bookExtrasBuilder.addAuthorIds(requireNonNull(personToItem.get(flibAuthorId), "author"));
+    }
+
+    // save series relations
+    final List<SeriesPos> seriesPosList = getSeriesPos(book.id);
+    if (seriesPosList.size() == 1) {
+      final SeriesPos sp = seriesPosList.get(0);
+      bookExtrasBuilder.setSeriesPos(sp.pos);
+      bookExtrasBuilder.setSeriesId(requireNonNull(seriesToItem.get(sp.seriesId)));
+    } else if (seriesPosList.size() > 1) {
+      throw new IllegalStateException("Book is a part of more than two series, flibBookId=" + book.id);
+    }
+
+    final String originId = requireNonNull(originToItem.get(book.originId), "origin");
+
     final Ise.Item.Builder builder = Ise.Item.newBuilder()
         .addExternalIds(bookFlibustaId)
         .setExtras(Ise.ItemExtras.newBuilder().setBook(bookExtrasBuilder))
         .addSkus(Ise.Sku.newBuilder()
             .setTitle(book.title)
+            .addEntries(Ise.Entry.newBuilder()
+                .setCreatedTimestamp(book.dateAdded.getTime())
+                .setDownloadInfo(Ise.DownloadInfo.newBuilder()
+                    .setDownloadType("fb2")
+                    .setOriginId(originId)
+                    .setDownloadId(Long.toString(book.id))
+                    .setFileSize(book.fileSize)
+                    .build()))
             .setLanguage(getLanguageAlias(tx, book)));
 
     catalogDao.persist(tx, builder.build());
-
-//      final Long itemId = addItem(bookMeta.getTitle(), bookTypeId);
-//      log.trace("Book {}->{}", bookMeta.getId(), itemId);
-//
-//      // save origin and language relations
-//      insertRelation(itemId, originToItem.get(bookMeta.getOriginId()), originTypeId);
-//      insertRelation(itemId, langToItem.get(bookMeta.getLangId()), languageTypeId);
-//
-//      // save genres relations
-//      final List<Long> genreIds = db.queryForList("SELECT genre_id FROM book_genre WHERE book_id=?",
-//          Long.class, bookMeta.getId());
-//      insertCodedRelations(itemId, genreIds, genreToItem, genreTypeId);
-//
-//      // save authors relations
-//      final List<Long> authorIds = db.queryForList("SELECT author_id FROM book_author WHERE book_id=?",
-//          Long.class, bookMeta.getId());
-//      insertCodedRelations(itemId, authorIds, personToItem, authorTypeId);
-//
-//      // save series relations
-//      final List<SeriesPos> seriesPosList = getSeriesPos(bookMeta.getId());
-//      Integer pos = null;
-//      for (SeriesPos seriesPos : seriesPosList) {
-//        // should be only one
-//        insertRelation(itemId, seriesToItem.get(seriesPos.getSeriesId()), seriesTypeId);
-//        pos = seriesPos.getPos() > 0 ? seriesPos.getPos() : null;
-//      }
-//
-//      // create metadata with series position and known file size
-//      final EolaireModel.Metadata.Builder metadataBuilder = EolaireModel.Metadata.newBuilder();
-//      if (pos != null) {
-//        metadataBuilder.addEntries(EolaireModel.MetadataEntry.newBuilder()
-//            .setKey("seriesPos").setValue(EolaireModel.VariantValue.newBuilder().setIntValue(pos))
-//            .setType(EolaireModel.VariantType.INT32)
-//            .build());
-//      }
-//
-//      metadataBuilder.addEntries(EolaireModel.MetadataEntry.newBuilder().setKey("fileSize")
-//          .setType(EolaireModel.VariantType.INT32)
-//          .setValue(EolaireModel.VariantValue.newBuilder().setIntValue(bookMeta.getFileSize())));
-//
-//      insertBookProfile(itemId, 1, metadataBuilder.build());
   }
 
   private void ensureLanguageAliasesExist(Transaction tx) {
@@ -206,7 +214,7 @@ public final class BooklibTransferService implements TransferService {
     final List<NamedValue> languages =
         db.query("SELECT id, code FROM lang_code", new FlibustaMappers.NamedValueRowMapper("code"));
     for (final NamedValue lang : languages) {
-      final Ise.ExternalId flibustaId = getFlibustaId(lang.id);
+      final Ise.ExternalId flibustaId = getFlibustaId(IseNames.LANGUAGE, lang.id);
 
       // match locale and detect other values
       final Locale curLocale;
@@ -249,6 +257,7 @@ public final class BooklibTransferService implements TransferService {
         iso3Language = curLocale.getISO3Language();
       } catch (final MissingResourceException ignored) {
         // ignore
+        log.trace("Unknown language code");
       }
 
       // there is no matching language in ISE DB, insert a new one
@@ -273,12 +282,16 @@ public final class BooklibTransferService implements TransferService {
     log.info("Language existence ensured");
   }
 
-  private static Ise.ExternalId getFlibustaId(long flibId) {
-    return Ise.ExternalId.newBuilder().setIdType(FLIBUSTA_ID_TYPE).setIdValue(Long.toString(flibId)).build();
+  private static Ise.ExternalId getFlibustaId(String type, long flibId) {
+    return Ise.ExternalId
+        .newBuilder()
+        .setIdType(FLIBUSTA_ID_TYPE)
+        .setIdValue(type + "-" + Long.toString(flibId))
+        .build();
   }
 
   private String getOrAddItem(Transaction tx, String itemName, String itemType, Long flibustaId) {
-    final Ise.ExternalId flibustaExternalId = getFlibustaId(flibustaId);
+    final Ise.ExternalId flibustaExternalId = getFlibustaId(itemType, flibustaId);
     final String existingItemId = catalogDao.getMappedIdByExternalId(tx, flibustaExternalId);
     if (!Strings.isNullOrEmpty(existingItemId)) {
       return existingItemId;
@@ -309,21 +322,6 @@ public final class BooklibTransferService implements TransferService {
     }
 
     return result;
-  }
-
-  private Long getEntityTypeId(String n) {
-    throw new UnsupportedOperationException("TODO: refactor - this needs to be replaced w/ something else");
-  }
-
-  private void insertCodedRelations(Long lhs, List<Long> codedRhsList, Map<Long, Long> map, Long typeId) {
-    for (final Long codedRhs : codedRhsList) {
-      insertRelation(lhs, map.get(codedRhs), typeId);
-    }
-  }
-
-  private void insertRelation(Long lhs, Long rhs, Long typeId) {
-    assert lhs != null && rhs != null && typeId != null;
-    db.update("INSERT INTO item_relation (lhs, rhs, type_id) VALUES (?, ?, ?)", lhs, rhs, typeId);
   }
 
   private List<SeriesPos> getSeriesPos(Long bookId) {
