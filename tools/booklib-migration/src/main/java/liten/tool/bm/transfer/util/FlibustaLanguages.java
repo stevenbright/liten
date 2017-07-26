@@ -3,8 +3,10 @@ package liten.tool.bm.transfer.util;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import liten.catalog.model.Ise;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -15,11 +17,16 @@ public final class FlibustaLanguages {
 
   public static final class LangAlias {
     public final String alias;
+    public final Locale locale;
     public final List<Ise.Sku> skus;
 
     LangAlias(String alias, List<Ise.Sku> skus) {
       this.alias = alias;
+      this.locale = new Locale(alias);
       this.skus = ImmutableList.copyOf(skus);
+      if (!"?".equals(alias) && StringUtils.isEmpty(this.locale.getISO3Language())) {
+        throw new UnsupportedOperationException("Unsupported ISO3 language code");
+      }
     }
   }
 
@@ -37,7 +44,7 @@ public final class FlibustaLanguages {
       .setLanguage("es")
       .build()));
 
-  public static final LangAlias EN_LANG_ALIAS = new LangAlias("en", ImmutableList.of(Ise.Sku.newBuilder()
+  private static final LangAlias EN_LANG_ALIAS = new LangAlias("en", ImmutableList.of(Ise.Sku.newBuilder()
       .setId("1")
       .setTitle("English")
       .setLanguage("en")
@@ -51,7 +58,7 @@ public final class FlibustaLanguages {
       .setLanguage("es")
       .build()));
 
-  public static final LangAlias RU_LANG_ALIAS = new LangAlias("ru", ImmutableList.of(Ise.Sku.newBuilder()
+  private static final LangAlias RU_LANG_ALIAS = new LangAlias("ru", ImmutableList.of(Ise.Sku.newBuilder()
       .setId("1")
       .setTitle("Russian")
       .setLanguage("en")
@@ -78,6 +85,8 @@ public final class FlibustaLanguages {
       .setTitle("español")
       .setLanguage("es")
       .build()));
+
+  public static final List<LangAlias> KNOWN_LANG_ALIASES = ImmutableList.of(EN_LANG_ALIAS, RU_LANG_ALIAS, ES_LANG_ALIAS);
 
 
   /**

@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of data transfer service
@@ -85,11 +86,65 @@ public final class BooklibTransferService implements TransferService {
   public String transferNext(String startId) {
     final int limit = BOOK_TRANSFER_LIMIT;
     final List<BookMeta> bookMetas = db.query("SELECT id, title, f_size, add_date, lang_id, origin_id " +
-            "FROM book_meta WHERE ((? IS NULL) OR (id > ?)) ORDER BY id LIMIT ?", new FlibustaMappers.BookMetaRowMapper(),
-        startId, startId, limit);
-    log.info("BookMetas={}", bookMetas);
+            "FROM book_meta WHERE ((? IS NULL) OR (id > ?)) ORDER BY id LIMIT ?",
+        new FlibustaMappers.BookMetaRowMapper(),
+        startId,
+        startId,
+        limit);
 
-//    for (final BookMeta bookMeta : bookMetas) {
+    log.info("BookMetas={}", bookMetas.stream().map(x -> x.id).collect(Collectors.toList()));
+
+    catalogDao.getEnvironment().executeInTransaction(tx -> {
+      for (final BookMeta bookMeta : bookMetas) {
+        insertBook(tx, bookMeta);
+      }
+    });
+
+    if (limit > bookMetas.size()) {
+      return null;
+    }
+
+    return Long.toString(bookMetas.get(bookMetas.size() - 1).id); // last ID
+  }
+
+  @Override
+  public void complete() {
+    final int origBookCount = db.queryForObject("SELECT COUNT(0) FROM book_meta", Integer.class);
+    log.info("Transfer completed: bookCount={}", origBookCount);
+  }
+
+  //
+  // Private
+  //
+
+  private String getLanguageAlias(Transaction tx, BookMeta book) {
+    final Ise.Item languageItem = catalogDao.getByExternalId(tx, getFlibustaId(book.langId));
+    final List<Ise.ExternalId> ids = languageItem != null ? languageItem.getExternalIdsList() : ImmutableList.of();
+    return ids
+        .stream()
+        .filter(x -> x.getIdType().equals(IseNames.ALIAS))
+        .map(Ise.ExternalId::getIdValue)
+        .findFirst()
+        .orElse(FlibustaLanguages.UNKNOWN_LANG_ALIAS.alias);
+  }
+
+  private void insertBook(Transaction tx, BookMeta book) {
+    final Ise.ExternalId bookFlibustaId = getFlibustaId(book.id);
+    if (catalogDao.getMappedIdByExternalId(tx, bookFlibustaId) != null) {
+      log.debug("Item with id={} has been inserted", book.id);
+    }
+
+    final Ise.BookItemExtras.Builder bookExtrasBuilder = Ise.BookItemExtras.newBuilder();
+
+    final Ise.Item.Builder builder = Ise.Item.newBuilder()
+        .addExternalIds(bookFlibustaId)
+        .setExtras(Ise.ItemExtras.newBuilder().setBook(bookExtrasBuilder))
+        .addSkus(Ise.Sku.newBuilder()
+            .setTitle(book.title)
+            .setLanguage(getLanguageAlias(tx, book)));
+
+    catalogDao.persist(tx, builder.build());
+
 //      final Long itemId = addItem(bookMeta.getTitle(), bookTypeId);
 //      log.trace("Book {}->{}", bookMeta.getId(), itemId);
 //
@@ -130,24 +185,7 @@ public final class BooklibTransferService implements TransferService {
 //          .setValue(EolaireModel.VariantValue.newBuilder().setIntValue(bookMeta.getFileSize())));
 //
 //      insertBookProfile(itemId, 1, metadataBuilder.build());
-//    }
-
-    if (limit > bookMetas.size()) {
-      return null;
-    }
-
-    return Long.toString(bookMetas.get(bookMetas.size() - 1).id); // last ID
   }
-
-  @Override
-  public void complete() {
-    final int origBookCount = db.queryForObject("SELECT COUNT(0) FROM book_meta", Integer.class);
-    log.info("Transfer completed: bookCount={}", origBookCount);
-  }
-
-  //
-  // Private
-  //
 
   private void ensureLanguageAliasesExist(Transaction tx) {
     for (final FlibustaLanguages.LangAlias alias : FlibustaLanguages.FLIBUSTA_CODE_TO_ALIAS.values()) {
@@ -163,14 +201,13 @@ public final class BooklibTransferService implements TransferService {
           .build());
     }
 
-    Locale enLoc = new Locale("en");
-    Locale ruLoc = new Locale("ru");
-
     // now check that all the languages are covered
     final List<String> unsupportedLanguages = new ArrayList<>();
     final List<NamedValue> languages =
         db.query("SELECT id, code FROM lang_code", new FlibustaMappers.NamedValueRowMapper("code"));
     for (final NamedValue lang : languages) {
+      final Ise.ExternalId flibustaId = getFlibustaId(lang.id);
+
       // match locale and detect other values
       final Locale curLocale;
       final String localeAlias;
@@ -185,6 +222,28 @@ public final class BooklibTransferService implements TransferService {
         localeAlias = lang.name.toLowerCase();
       }
 
+      Ise.LangItemExtras.Builder langItemExtraBuilder = Ise.LangItemExtras.newBuilder();
+      if (!StringUtils.isEmpty(curLocale.getLanguage())) {
+        langItemExtraBuilder.setLanguageCode(curLocale.getLanguage());
+      }
+      if (!StringUtils.isEmpty(curLocale.getCountry())) {
+        langItemExtraBuilder.setCountryCode(curLocale.getCountry());
+      }
+
+      final Ise.ExternalId langAliasId = IseNames.newAlias(localeAlias);
+      final Ise.Item existingLangItem = catalogDao.getByExternalId(tx, langAliasId);
+      if (existingLangItem != null) {
+        // item has been inserted already, check if we can assign language extras
+        Ise.Item.Builder newItemBuilder = Ise.Item.newBuilder(existingLangItem)
+            .setExtras(Ise.ItemExtras.newBuilder().setLang(langItemExtraBuilder.build()));
+        if (!existingLangItem.getExternalIdsList().contains(flibustaId)) {
+          newItemBuilder.addExternalIds(flibustaId);
+        }
+
+        catalogDao.persist(tx, newItemBuilder.build());
+        continue;
+      }
+
       String iso3Language = null;
       try {
         iso3Language = curLocale.getISO3Language();
@@ -192,61 +251,23 @@ public final class BooklibTransferService implements TransferService {
         // ignore
       }
 
-      Ise.LangItemExtras langItemExtras = null;
-      if (iso3Language != null && !StringUtils.isEmpty(curLocale.getCountry())) {
-        // infer language extras for known language
-        langItemExtras = Ise.LangItemExtras.newBuilder()
-            .setIso3Code(iso3Language)
-            .setCountryCode(curLocale.getCountry())
-            .build();
-      }
-
-      final Ise.ExternalId langAliasId = IseNames.newAlias(localeAlias);
-      final Ise.Item existingLangItem = catalogDao.getByExternalId(tx, langAliasId);
-      if (existingLangItem != null) {
-        // item has been inserted already, check if we can assign language extras
-        if (langItemExtras != null && !existingLangItem.getExtras().hasLang()) {
-          catalogDao.persist(tx, Ise.Item.newBuilder(existingLangItem)
-              .setExtras(Ise.ItemExtras.newBuilder().setLang(langItemExtras))
-              .build());
-        }
-
-        // no further action needed - continue
-        continue;
-      }
-
-      final Ise.Item.Builder langItemBuilder = Ise.Item.newBuilder();
-      if (langItemExtras != null) {
-        langItemBuilder.setExtras(Ise.ItemExtras.newBuilder().setLang(langItemExtras));
-      }
-
       // there is no matching language in ISE DB, insert a new one
-      String enLangName = curLocale.getDisplayLanguage(enLoc);
-      if (!enLangName.equals(lang.name)) {
-
+      final Ise.Item.Builder langItemBuilder = Ise.Item.newBuilder()
+          .setExtras(Ise.ItemExtras.newBuilder().setLang(langItemExtraBuilder.build()))
+          .addExternalIds(flibustaId);
+      if (!StringUtils.isEmpty(iso3Language)) {
+        for (int i = 0; i < FlibustaLanguages.KNOWN_LANG_ALIASES.size(); ++i) {
+          final FlibustaLanguages.LangAlias langAlias = FlibustaLanguages.KNOWN_LANG_ALIASES.get(i);
+          final String languageName = curLocale.getDisplayLanguage(langAlias.locale);
+          langItemBuilder.addSkus(Ise.Sku.newBuilder()
+              .setId(Integer.toString(i + 1)).setTitle(languageName).setLanguage(langAlias.alias));
+        }
+      } else {
+        // unknown language
+        langItemBuilder
+            .addExternalIds(langAliasId)
+            .addAllSkus(FlibustaLanguages.UNKNOWN_LANG_ALIAS.skus);
       }
-
-      String ruLangName = curLocale.getDisplayLanguage(ruLoc);
-      langItemBuilder.addSkus(Ise.Sku.newBuilder()
-          .setId("1").setTitle(enLangName).setLanguage(FlibustaLanguages.EN_LANG_ALIAS.alias)
-          .setId("2").setTitle(ruLangName).setLanguage(FlibustaLanguages.RU_LANG_ALIAS.alias));
-
-
-
-      log.info("iso3={}, country={}, locale={}, enName={}, ruName={}",
-          iso3Language,
-          curLocale.getCountry(),
-          lang.name,
-          enLangName,
-          ruLangName);
-
-      if (!FlibustaLanguages.FLIBUSTA_CODE_TO_ALIAS.containsKey(lang.name)) {
-        unsupportedLanguages.add(lang.name);
-      }
-    }
-
-    if (!unsupportedLanguages.isEmpty()) {
-      throw new UnsupportedOperationException("Unsupported languages=" + unsupportedLanguages);
     }
 
     log.info("Language existence ensured");
