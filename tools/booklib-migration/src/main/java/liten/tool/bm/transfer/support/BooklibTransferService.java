@@ -11,8 +11,8 @@ import liten.tool.bm.transfer.TransferService;
 import liten.tool.bm.transfer.support.model.BookMeta;
 import liten.tool.bm.transfer.support.model.NamedValue;
 import liten.tool.bm.transfer.support.model.SeriesPos;
-import liten.tool.bm.transfer.util.FlibustaLanguages;
-import liten.tool.bm.transfer.util.FlibustaMappers;
+import liten.tool.bm.transfer.util.flibusta.FlibustaLanguages;
+import liten.tool.bm.transfer.util.flibusta.FlibustaMappers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
@@ -109,12 +109,6 @@ public final class BooklibTransferService implements TransferService {
       }
     });
 
-    // TODO: remove
-    if (System.currentTimeMillis() < 100034L) {
-      // DEBUG - faster interruption
-      return null;
-    }
-
     if (limit > bookMetas.size()) {
       return null;
     }
@@ -210,7 +204,6 @@ public final class BooklibTransferService implements TransferService {
     }
 
     // now check that all the languages are covered
-    final List<String> unsupportedLanguages = new ArrayList<>();
     final List<NamedValue> languages =
         db.query("SELECT id, code FROM lang_code", new FlibustaMappers.NamedValueRowMapper("code"));
     for (final NamedValue lang : languages) {

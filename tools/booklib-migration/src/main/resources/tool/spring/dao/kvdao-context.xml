@@ -4,7 +4,10 @@
        xsi:schemaLocation="
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-  <bean id="tool.kvdao.xodusInitializer" class="liten.tool.bm.transfer.util.xodus.XodusInitializer"/>
+  <bean id="tool.kvdao.xodusInitializer" class="liten.tool.bm.transfer.util.xodus.XodusInitializer">
+    <property name="temp" value="${liten.tool.bm.kvdao.isTemp}"/>
+    <property name="dirName" value="${liten.tool.bm.kvdao.dirName}"/>
+  </bean>
 
   <bean id="tool.kvdao.xodusEnvironment" factory-bean="tool.kvdao.xodusInitializer" factory-method="getEnvironment"/>
 

@@ -1,4 +1,4 @@
-package liten.tool.bm.transfer.util;
+package liten.tool.bm.transfer.util.flibusta;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;

@@ -1,4 +1,4 @@
-package liten.tool.bm.transfer.util;
+package liten.tool.bm.transfer.util.flibusta;
 
 import com.truward.time.UtcTime;
 import com.truward.time.jdbc.UtcTimeSqlUtil;
