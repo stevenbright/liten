@@ -17,9 +17,9 @@ import java.util.List;
 import static liten.catalog.util.IseNames.*;
 
 /**
- * @author Alexander Shabanov
+ * Developer mode data initializer.
  */
-public class DemoInitializer {
+public final class DemoInitializer {
 
   private final Logger log = LoggerFactory.getLogger(getClass());
 

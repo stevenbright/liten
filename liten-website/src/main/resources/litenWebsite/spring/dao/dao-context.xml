@@ -5,9 +5,10 @@
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
   <!-- Xodus DAO -->
-
-  <bean id="litenWebsite.dao.catalogEnvironmentInitializer"
-        class="liten.website.service.XodusCatalogEnvironmentInitializer"/>
+  <bean id="litenWebsite.dao.catalogEnvironmentInitializer" class="com.truward.xodus.util.init.XodusInitializer">
+    <property name="temp" value="${litenWebsite.db.catalog.isTemp}"/>
+    <property name="dirName" value="${litenWebsite.db.catalog.dirName}"/>
+  </bean>
 
   <bean id="litenWebsite.dao.catalogEnvironment"
         factory-bean="litenWebsite.dao.catalogEnvironmentInitializer"

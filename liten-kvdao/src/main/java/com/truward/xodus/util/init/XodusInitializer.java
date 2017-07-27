@@ -1,12 +1,12 @@
-package liten.tool.bm.transfer.util.xodus;
+package com.truward.xodus.util.init;
 
 import jetbrains.exodus.env.Environment;
 import jetbrains.exodus.env.Environments;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.util.FileSystemUtils;
 
+import javax.annotation.PostConstruct;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,9 +14,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
- * Xodus env initializer.
+ * Initializer for Xodus DB.
  */
-public final class XodusInitializer implements InitializingBean, Closeable {
+public class XodusInitializer implements Closeable {
   private static final String TEMP_DIR_NAME = "xodus-dev-db";
 
   private Environment environment;
@@ -43,8 +43,8 @@ public final class XodusInitializer implements InitializingBean, Closeable {
     this.dirName = dirName;
   }
 
-  @Override
-  public void afterPropertiesSet() throws Exception {
+  @PostConstruct
+  public void initialize() throws IOException {
     final String dirPath;
     if (isTemp) {
       tempDir = Files.createTempDirectory(dirName);
