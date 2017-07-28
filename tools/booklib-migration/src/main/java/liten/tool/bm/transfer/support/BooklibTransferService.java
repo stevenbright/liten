@@ -44,7 +44,6 @@ public final class BooklibTransferService implements TransferService {
   private Map<Long, String> genreToItem;
   private Map<Long, String> personToItem;
   private Map<Long, String> originToItem;
-  private Map<Long, String> langToItem;
   private Map<Long, String> seriesToItem;
 
   public BooklibTransferService(JdbcOperations db,
@@ -75,7 +74,7 @@ public final class BooklibTransferService implements TransferService {
       this.personToItem = insertNamedValues(tx, IseNames.PERSON, db.query("SELECT id, f_name FROM author",
           new FlibustaMappers.NamedValueRowMapper("f_name")));
 
-      this.originToItem = insertNamedValues(tx, "origin",
+      this.originToItem = insertNamedValues(tx, IseNames.ORIGIN,
           db.query("SELECT id, code FROM book_origin", new FlibustaMappers.NamedValueRowMapper("code")));
 
       this.seriesToItem = insertNamedValues(tx, IseNames.SERIES,
@@ -120,6 +119,9 @@ public final class BooklibTransferService implements TransferService {
   public void complete() {
     final int origBookCount = db.queryForObject("SELECT COUNT(0) FROM book_meta", Integer.class);
     log.info("Transfer completed: bookCount={}", origBookCount);
+
+    // collect garbage
+    catalogDao.getEnvironment().gc();
   }
 
   //
@@ -174,6 +176,7 @@ public final class BooklibTransferService implements TransferService {
     final Ise.Item.Builder builder = Ise.Item.newBuilder()
         .addExternalIds(bookFlibustaId)
         .setExtras(Ise.ItemExtras.newBuilder().setBook(bookExtrasBuilder))
+        .setType(IseNames.BOOK)
         .addSkus(Ise.Sku.newBuilder()
             .setTitle(book.title)
             .addEntries(Ise.Entry.newBuilder()
@@ -325,9 +328,5 @@ public final class BooklibTransferService implements TransferService {
 
       return result;
     }, bookId);
-  }
-
-  private Long getNextEntityTypeId() {
-    return db.queryForObject("SELECT seq_entity_type.nextval", Long.class);
   }
 }

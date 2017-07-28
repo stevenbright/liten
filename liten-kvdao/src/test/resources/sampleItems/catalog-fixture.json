@@ -2,7 +2,7 @@
   "items": [
     {
       "id": "ci1-A010",
-      "type": "author",
+      "type": "person",
       "skus": [
         {
           "id": "1",
@@ -21,7 +21,7 @@
     },
     {
       "id": "ci1-A040",
-      "type": "author",
+      "type": "person",
       "skus": [
         {
           "id": "1",
@@ -40,7 +40,7 @@
     },
     {
       "id": "ci1-A050",
-      "type": "author",
+      "type": "person",
       "skus": [
         {
           "id": "1",

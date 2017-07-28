@@ -6,6 +6,7 @@ import liten.catalog.dao.IseCatalogDao;
 import liten.catalog.dao.exception.DuplicateExternalIdException;
 import liten.catalog.dao.support.DefaultIseCatalogDao;
 import liten.catalog.model.Ise;
+import liten.catalog.util.IseNames;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -73,6 +74,9 @@ public final class IseCatalogDaoTest extends XodusTestBase {
       final List<String> prefixes = catalogDao.getNameHints(tx, null, "");
       assertEquals(Collections.singletonList("F"), prefixes);
     });
+
+    // should update item and relation types
+    catalogDao.addItemType("new-item-type");
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -330,6 +334,9 @@ public final class IseCatalogDaoTest extends XodusTestBase {
   @Test
   public void shouldGetPrefixes() {
     doInTestTransaction(tx -> {
+      catalogDao.addItemType("numbers");
+      catalogDao.addItemType("newspaper");
+
       final Ise.Item item1 = Ise.Item.newBuilder().setType("numbers")
           .addExternalIds(extId1)
           .addSkus(Ise.Sku.newBuilder().setId("EN-1").setLanguage("en").setTitle("One"))
@@ -363,6 +370,29 @@ public final class IseCatalogDaoTest extends XodusTestBase {
       assertEquals(Collections.emptyList(), catalogDao.getNameHints(tx, BOOK, "T"));
       assertEquals(Collections.emptyList(), catalogDao.getNameHints(tx, "", "One"));
       assertEquals(Collections.singletonList("Cuat"), catalogDao.getNameHints(tx, "numbers", "Cua"));
+    });
+  }
+
+  @Test
+  public void shouldDisallowMalformedItems() {
+    doInTestTransaction(tx -> {
+      try {
+        catalogDao.persist(tx, Ise.Item.newBuilder().build());
+        fail("Empty item type creation should fail");
+      } catch (IllegalArgumentException e) {
+        assertTrue(
+            "Unexpected exception message: missing type expected",
+            e.getMessage().contains("Missing type"));
+      }
+
+      try {
+        catalogDao.persist(tx, Ise.Item.newBuilder().setType("unknown").build());
+        fail("Unknown item type creation should fail");
+      } catch (IllegalArgumentException e) {
+        assertTrue(
+            "Unexpected exception message: missing type expected",
+            e.getMessage().contains("Unsupported type=unknown"));
+      }
     });
   }
 

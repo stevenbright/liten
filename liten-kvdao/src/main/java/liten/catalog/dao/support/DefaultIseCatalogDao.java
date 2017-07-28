@@ -1,5 +1,7 @@
 package liten.catalog.dao.support;
 
+import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableSet;
 import com.truward.dao.exception.InvalidCursorException;
 import com.truward.semantic.id.IdCodec;
 import com.truward.semantic.id.SemanticIdCodec;
@@ -13,7 +15,6 @@ import liten.catalog.model.Ise;
 import liten.catalog.util.IseNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.StringUtils;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -45,6 +46,9 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
   private final Stores stores;
   private final Random keyRandom;
   private final int startKeySize;
+
+  private Set<String> allowedItemTypes = IseNames.ALLOWED_ITEM_TYPES;
+  private Set<String> allowedRelationTypes = IseNames.ALLOWED_RELATION_TYPES;
 
   private static final class Stores {
     final Store item;
@@ -81,6 +85,11 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
   }
 
   @Override
+  public void addItemType(String itemType) {
+    this.allowedItemTypes = ImmutableSet.<String>builder().addAll(this.allowedItemTypes).add(itemType).build();
+  }
+
+  @Override
   public Environment getEnvironment() {
     return environment;
   }
@@ -107,7 +116,7 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
     try (final Cursor cursor = stores.item.openCursor(tx)) {
       final Set<String> prefixes = new TreeSet<>(); // use for built-in sorting capabilities
       final int len = prefix.length() + 1;
-      final boolean hasType = StringUtils.hasLength(type);
+      final boolean hasType = !Strings.isNullOrEmpty(type);
 
       // Bruteforce traverse (really bad performance)
       // TODO: indexes
@@ -137,7 +146,7 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
     }
 
     try (final Cursor cursor = stores.item.openCursor(tx)) {
-      if (StringUtils.hasLength(query.getCursor())) {
+      if (!Strings.isNullOrEmpty(query.getCursor())) {
         final ByteIterable cursorKey = new ArrayByteIterable(ITEM_CODEC.decodeBytes(query.getCursor()));
         final ByteIterable nextCursorKey = cursor.getSearchKeyRange(cursorKey);
         if (nextCursorKey == null) {
@@ -152,7 +161,7 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
       while (cursor.getNext()) {
         final Ise.Item item = entryToProto(cursor.getValue(), Ise.Item.getDefaultInstance());
 
-        if (StringUtils.hasLength(query.getNamePrefix())) {
+        if (!Strings.isNullOrEmpty(query.getNamePrefix())) {
           boolean matches = false;
           for (final Ise.Sku sku : item.getSkusList()) {
             if (sku.getTitle().regionMatches(true, 0, query.getNamePrefix(),
@@ -167,7 +176,7 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
           }
         }
 
-        if (StringUtils.hasLength(query.getType()) && !query.getType().equals(item.getType())) {
+        if (!Strings.isNullOrEmpty(query.getType()) && !query.getType().equals(item.getType())) {
           continue;
         }
 
@@ -230,7 +239,7 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
     validateItem(item);
 
     // lookup for an ID and find out if this is an override
-    if (StringUtils.hasLength(item.getId())) {
+    if (!Strings.isNullOrEmpty(item.getId())) {
       // drop existing item
       final ByteIterable idKey = KeyUtil.semanticIdAsKey(ITEM_CODEC, item.getId());
       final ByteIterable existingItemBytes = stores.item.get(tx, idKey);
@@ -286,7 +295,7 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
         // genres->book
         setRelations(tx, IseNames.GENRE, bookExtras.getGenreIdsList(), id);
         // series->book
-        if (StringUtils.hasLength(bookExtras.getSeriesId())) {
+        if (!Strings.isNullOrEmpty(bookExtras.getSeriesId())) {
           setRelations(tx, IseNames.SERIES, Collections.singletonList(bookExtras.getSeriesId()), id);
         }
       }
@@ -306,7 +315,7 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
         dropRelations(forwardRelationsCursor, IseNames.AUTHOR, bookExtras.getAuthorIdsList(), item.getId());
         dropRelations(forwardRelationsCursor, IseNames.GENRE, bookExtras.getGenreIdsList(), item.getId());
 
-        if (StringUtils.hasLength(bookExtras.getSeriesId())) {
+        if (!Strings.isNullOrEmpty(bookExtras.getSeriesId())) {
           dropRelations(forwardRelationsCursor, IseNames.SERIES,
               Collections.singletonList(bookExtras.getSeriesId()), item.getId());
         }
@@ -316,6 +325,14 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
 
   private void setRelations(Transaction tx, String type, List<String> fromItemIds, String toItemId) {
     assert ITEM_CODEC.canDecode(toItemId) && !ITEM_CODEC.canDecode(type);
+
+    if (Strings.isNullOrEmpty(type)) {
+      throw new IllegalArgumentException("Missing relation type");
+    }
+
+    if (!allowedRelationTypes.contains(type)) {
+      throw new IllegalArgumentException("Unknown relation type=" + type);
+    }
 
     for (final String fromItemId : fromItemIds) {
       assert ITEM_CODEC.canDecode(fromItemId);
@@ -349,8 +366,17 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
     }
   }
 
-  private static void validateItem(Ise.Item item) {
+  private void validateItem(Ise.Item item) {
     KeyUtil.assertValidOptionalId(ITEM_CODEC, item.getId(), () -> "Invalid item id=" + item.getId());
+
+    // validate type
+    if (Strings.isNullOrEmpty(item.getType())) {
+      throw new IllegalArgumentException("Missing type, item id=" + item.getId());
+    }
+
+    if (!allowedItemTypes.contains(item.getType())) {
+      throw new IllegalArgumentException("Unsupported type=" + item.getType() + ", item id=" + item.getId());
+    }
 
     // validate extras
     if (item.hasExtras()) {

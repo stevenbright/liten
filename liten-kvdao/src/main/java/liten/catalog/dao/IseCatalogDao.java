@@ -17,6 +17,8 @@ public interface IseCatalogDao {
   int DEFAULT_LIMIT = 10;
   int MAX_LIMIT = 30;
 
+  void addItemType(String itemType);
+
   Environment getEnvironment();
 
   Ise.Item getById(Transaction tx, String itemId);
