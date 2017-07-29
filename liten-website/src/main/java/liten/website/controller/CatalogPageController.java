@@ -213,19 +213,19 @@ public final class CatalogPageController extends BaseHtmlController {
     }
 
     switch (type) {
-      case "book":
+      case IseNames.BOOK:
         return "Books";
-      case "genre":
+      case IseNames.GENRE:
         return "Genres";
-      case "origin":
+      case IseNames.ORIGIN:
         return "Origins";
-      case "author":
-        return "Authors";
-      case "persons":
+      case IseNames.PERSON:
         return "Persons";
-      case "movie":
-        return "Movie";
-      case "series":
+      case IseNames.AUTHOR:
+        return "Authors";
+      case IseNames.LANGUAGE:
+        return "Languages";
+      case IseNames.SERIES:
         return "Series";
 
       default:

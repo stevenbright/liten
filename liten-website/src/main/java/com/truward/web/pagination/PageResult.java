@@ -31,7 +31,7 @@ public interface PageResult<T> {
    * Default limit values, as integer and as string (the latter is to use in Spring MVC defaultValue annotation param).
    */
   int DEFAULT_LIMIT = 5;
-  String DEFAULT_LIMIT_STR = "5";
+  String DEFAULT_LIMIT_STR = "" + DEFAULT_LIMIT;
 
   int MAX_LIMIT = 100;
 

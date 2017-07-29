@@ -20,7 +20,6 @@ public class CatalogItem {
   private final List<CatalogSku> skus;
   private final List<CatalogItemRef> authors;
   private final List<CatalogItemRef> genres;
-  private final List<CatalogItemRef> origins;
   private final CatalogItemRef series;
   private final int seriesPos;
 
@@ -30,7 +29,6 @@ public class CatalogItem {
       List<CatalogSku> skus,
       List<CatalogItemRef> authors,
       List<CatalogItemRef> genres,
-      List<CatalogItemRef> origins,
       @Nullable CatalogItemRef series,
       int seriesPos) {
     this.id = requireNonNull(id, "id");
@@ -38,7 +36,6 @@ public class CatalogItem {
     this.skus = requireNonNull(skus, "skus");
     this.authors = requireNonNull(authors, "authors");
     this.genres = requireNonNull(genres, "genres");
-    this.origins = requireNonNull(origins, "origins");
     this.series = series;
     this.seriesPos = seriesPos;
   }
@@ -69,10 +66,6 @@ public class CatalogItem {
 
   public List<CatalogItemRef> getGenres() {
     return genres;
-  }
-
-  public List<CatalogItemRef> getOrigins() {
-    return origins;
   }
 
   @Nullable
@@ -128,12 +121,11 @@ public class CatalogItem {
     private List<CatalogSku> skus = ImmutableList.of();
     private List<CatalogItemRef> authors = ImmutableList.of();
     private List<CatalogItemRef> genres = ImmutableList.of();
-    private List<CatalogItemRef> origins = ImmutableList.of();
     private CatalogItemRef series;
     private int seriesPos = -1;
 
     public CatalogItem build() {
-      return new CatalogItem(id, type, skus, authors, genres, origins, series, seriesPos);
+      return new CatalogItem(id, type, skus, authors, genres, series, seriesPos);
     }
 
     public Builder setId(String id) {
@@ -158,11 +150,6 @@ public class CatalogItem {
 
     public Builder setGenres(List<CatalogItemRef> genres) {
       this.genres = ImmutableList.copyOf(genres);
-      return this;
-    }
-
-    public Builder setOrigins(List<CatalogItemRef> origins) {
-      this.origins = ImmutableList.copyOf(origins);
       return this;
     }
 

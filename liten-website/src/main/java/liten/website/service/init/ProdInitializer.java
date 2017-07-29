@@ -1,4 +1,4 @@
-package liten.website.service;
+package liten.website.service.init;
 
 import jetbrains.exodus.env.Transaction;
 import liten.catalog.dao.IseCatalogDao;

@@ -1,4 +1,4 @@
-package liten.website.service;
+package liten.website.service.init;
 
 import com.truward.time.UtcTime;
 import liten.catalog.dao.IseCatalogDao;

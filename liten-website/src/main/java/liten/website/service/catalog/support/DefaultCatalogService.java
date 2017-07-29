@@ -256,9 +256,10 @@ public final class DefaultCatalogService implements CatalogService {
     if (item.hasExtras()) {
       if (item.getExtras().hasBook()) {
         final Ise.BookItemExtras bookExtras = item.getExtras().getBook();
-        builder
+        return builder
             .setAuthors(getItemRefs(tx, bookExtras.getAuthorIdsList(), userLanguageCode))
-            .setGenres(getItemRefs(tx, bookExtras.getGenreIdsList(), userLanguageCode));
+            .setGenres(getItemRefs(tx, bookExtras.getGenreIdsList(), userLanguageCode))
+            .build();
       }
     }
 

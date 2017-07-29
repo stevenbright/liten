@@ -61,11 +61,6 @@
         <td><@inlineItems itemList=item.genres /></td>
       </tr>
 
-      <tr>
-        <td>Origins:</td>
-        <td><@inlineItems itemList=item.origins /></td>
-      </tr>
-
       <#-- TODO: use language from book-extras -->
       <#if item.defaultSkuPresent>
       <tr>
@@ -127,10 +122,12 @@
       Filter by Type <span class="caret"></span>
     </button>
     <ul class="dropdown-menu">
-      <li><a href="/g/cat/index?type=author">Authors</a></li>
-      <li><a href="/g/cat/index?type=genre">Genres</a></li>
       <li><a href="/g/cat/index?type=book">Book</a></li>
+      <li><a href="/g/cat/index?type=genre">Genres</a></li>
+      <li><a href="/g/cat/index?type=language">Languages</a></li>
       <li><a href="/g/cat/index?type=origin">Origins</a></li>
+      <li><a href="/g/cat/index?type=person">Persons</a></li>
+      <li><a href="/g/cat/index?type=series">Series</a></li>
       <li role="separator" class="divider"></li>
       <li><a href="/g/cat/index">No Type Filter</a></li>
     </ul>
