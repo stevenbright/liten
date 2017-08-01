@@ -14,6 +14,7 @@
 
   <!-- Aspects -->
   <bean class="liten.website.service.aspect.ExceptionTranslatorAspect" autowire="constructor"/>
+  <bean class="liten.website.service.aspect.PropagatingLogLapseAspect" autowire="constructor"/>
 
   <!-- Services -->
   <bean class="liten.website.service.catalog.support.DefaultCatalogService" autowire="constructor"/>

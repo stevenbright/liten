@@ -2,6 +2,7 @@ package liten.catalog.dao.support;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
+import com.truward.brikar.common.log.LogLapse;
 import com.truward.dao.exception.InvalidCursorException;
 import com.truward.semantic.id.IdCodec;
 import com.truward.semantic.id.SemanticIdCodec;
@@ -15,6 +16,7 @@ import liten.catalog.model.Ise;
 import liten.catalog.util.IseNames;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Repository;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -31,6 +33,7 @@ import static jetbrains.exodus.bindings.StringBinding.stringToEntry;
  * @author Alexander Shabanov
  */
 @ParametersAreNonnullByDefault
+@Repository
 public final class DefaultIseCatalogDao implements IseCatalogDao {
   private static final String ITEM_STORE_NAME = "item";
   private static final String EXTERNAL_ID_STORE_NAME = "external-id";
@@ -94,12 +97,14 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
     return environment;
   }
 
+  //@LogLapse("IseCatalogDao.getById") <-- too frequent
   @Override
   public Ise.Item getById(Transaction tx, String id) {
     final byte[] key = ITEM_CODEC.decodeBytes(id);
     return entryToProto(stores.item.get(tx, new ArrayByteIterable(key)), Ise.Item.getDefaultInstance());
   }
 
+  //@LogLapse("IseCatalogDao.getMappedIdByExternalId") <-- too frequent
   @Nullable
   @Override
   public String getMappedIdByExternalId(Transaction tx, Ise.ExternalId externalId) {
@@ -111,6 +116,7 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
     return entryToString(idKey);
   }
 
+  @LogLapse("IseCatalogDao.getNameHints")
   @Override
   public List<String> getNameHints(Transaction tx, @Nullable String type, String prefix) {
     try (final Cursor cursor = stores.item.openCursor(tx)) {
@@ -139,6 +145,7 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
     }
   }
 
+  @LogLapse("IseCatalogDao.getItems")
   @Override
   public Ise.ItemQueryResult getItems(Transaction tx, Ise.ItemQuery query) {
     if (query.getLimit() <= 0) {
@@ -192,6 +199,7 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
     }
   }
 
+  @LogLapse("IseCatalogDao.getRelations")
   @Override
   public Ise.ItemRelationQueryResult getRelations(Transaction tx, Ise.ItemRelationQuery query) {
     if (!ITEM_CODEC.canDecode(query.getFromItemId())) {
@@ -234,6 +242,7 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
     return resultBuilder.build();
   }
 
+  @LogLapse("IseCatalogDao.persist")
   @Override
   public String persist(Transaction tx, Ise.Item item) {
     validateItem(item);

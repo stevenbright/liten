@@ -1,6 +1,7 @@
 package liten.website.service.catalog.support;
 
 import com.google.common.collect.ImmutableList;
+import com.truward.brikar.common.log.LogLapse;
 import com.truward.web.pagination.AbstractPageResult;
 import com.truward.web.pagination.PageResult;
 import jetbrains.exodus.env.Transaction;
@@ -41,11 +42,13 @@ public final class DefaultCatalogService implements CatalogService {
     this.catalogDao = Objects.requireNonNull(catalogDao, "catalogDao");
   }
 
+  @LogLapse("CatalogService.getSkuNameHints")
   @Override
   public List<String> getSkuNameHints(String type, String namePrefix) {
     return catalogDao.getEnvironment().computeInTransaction(tx -> catalogDao.getNameHints(tx, type, namePrefix));
   }
 
+  @LogLapse("CatalogService.getDetailedEntry")
   @Override
   public CatalogItem getDetailedEntry(String itemId, @Nullable String skuId, String userLanguage) {
     return catalogDao.getEnvironment().computeInTransaction(tx -> {
@@ -54,11 +57,17 @@ public final class DefaultCatalogService implements CatalogService {
     });
   }
 
+  // TODO: fix, because this is unreliable, it should call CatalogService method from ItemPageResult
+  // TODO:      to retain relaiable logging
+  //@LogLapse("CatalogService.getItems")
   @Override
   public PageResult<CatalogItem> getItems(String userLanguage, String type, String namePrefix) {
     return new ItemPageResult(userLanguage, type, namePrefix);
   }
 
+  // TODO: fix, because this is unreliable, it should call CatalogService method from RightRelationItemPageResult
+  // TODO:      to retain relaiable logging
+  //@LogLapse("CatalogService.getRightRelationEntries")
   @Override
   public PageResult<CatalogItem> getRightRelationEntries(String itemId, String itemType, String userLanguage) {
     return new RightRelationItemPageResult(itemId, itemType, userLanguage);
