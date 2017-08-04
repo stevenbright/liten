@@ -184,7 +184,7 @@
 
     <profile>
       <id>assembly</id>
-      
+
       <distributionManagement>
         <site>
           <id>truward-builds-site</id>
