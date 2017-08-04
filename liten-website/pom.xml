@@ -8,6 +8,7 @@
     <version>1.0.0-SNAPSHOT</version>
   </parent>
 
+  <version>1.0.1-SNAPSHOT</version>
   <artifactId>liten-website</artifactId>
   <packaging>jar</packaging>
   <name>Liten Website</name>
@@ -49,7 +50,6 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>liten-static-content</artifactId>
-      <version>${project.version}</version>
     </dependency>
 
     <!-- User Service Model -->
@@ -80,7 +80,6 @@
     <dependency>
       <groupId>liten</groupId>
       <artifactId>liten-kvdao</artifactId>
-      <version>${project.version}</version>
     </dependency>
 
     <!-- Protobuf Message Converters -->
@@ -185,20 +184,25 @@
 
     <profile>
       <id>assembly</id>
-
+      
       <distributionManagement>
+        <site>
+          <id>truward-builds-site</id>
+          <url>s3://truward-builds/site</url>
+        </site>
         <snapshotRepository>
-          <id>truward-builds</id>
+          <id>truward-builds-snapshot</id>
           <url>s3://truward-builds/snapshot</url>
         </snapshotRepository>
         <repository>
-          <id>truward-builds</id>
+          <id>truward-builds-release</id>
           <url>s3://truward-builds/release</url>
         </repository>
       </distributionManagement>
+
       <repositories>
         <repository>
-          <id>truward-builds</id>
+          <id>truward-builds-release</id>
           <url>s3://truward-builds/release</url>
         </repository>
       </repositories>

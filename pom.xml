@@ -26,6 +26,8 @@
   </modules>
 
   <properties>
+    <liten.version>1.0.0-SNAPSHOT</liten.version>
+
     <!-- common libraries -->
     <awssdk.version>1.9.13</awssdk.version>
 
@@ -45,6 +47,18 @@
   <dependencyManagement>
 
     <dependencies>
+      <!-- Local projects -->
+      <dependency>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>liten-static-content</artifactId>
+        <version>${liten.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>liten-kvdao</artifactId>
+        <version>${liten.version}</version>
+      </dependency>
+
       <!-- User Service Model -->
       <dependency>
         <groupId>com.truward.orion</groupId>
