@@ -1,8 +1,8 @@
 package liten.catalog.dao.exception;
 
-import com.truward.dao.exception.DaoException;
 import liten.catalog.model.Ise;
 import org.jetbrains.annotations.NonNls;
+import org.springframework.dao.DataAccessException;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -12,7 +12,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
  * @author Alexander Shabanov
  */
 @ParametersAreNonnullByDefault
-public final class DuplicateExternalIdException extends DaoException {
+public final class DuplicateExternalIdException extends DataAccessException {
   private final Ise.ExternalId externalId;
   private final String failedItemId;
   private final String mappedItemId;

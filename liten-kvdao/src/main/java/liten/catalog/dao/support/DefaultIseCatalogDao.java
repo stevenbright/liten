@@ -3,10 +3,10 @@ package liten.catalog.dao.support;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.truward.brikar.common.log.LogLapse;
-import com.truward.dao.exception.InvalidCursorException;
+import com.truward.kvdao.exception.InvalidCursorException;
 import com.truward.semantic.id.IdCodec;
 import com.truward.semantic.id.SemanticIdCodec;
-import com.truward.xodus.util.KeyUtil;
+import com.truward.kvdao.xodus.KeyUtil;
 import jetbrains.exodus.ArrayByteIterable;
 import jetbrains.exodus.ByteIterable;
 import jetbrains.exodus.env.*;
@@ -23,8 +23,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.security.SecureRandom;
 import java.util.*;
 
-import static com.truward.xodus.util.ProtoEntity.entryToProto;
-import static com.truward.xodus.util.ProtoEntity.protoToEntry;
+import static com.truward.kvdao.xodus.ProtoEntity.entryToProto;
+import static com.truward.kvdao.xodus.ProtoEntity.protoToEntry;
 import static java.util.Objects.requireNonNull;
 import static jetbrains.exodus.bindings.StringBinding.entryToString;
 import static jetbrains.exodus.bindings.StringBinding.stringToEntry;
@@ -35,6 +35,11 @@ import static jetbrains.exodus.bindings.StringBinding.stringToEntry;
 @ParametersAreNonnullByDefault
 @Repository
 public final class DefaultIseCatalogDao implements IseCatalogDao {
+  /**
+   * Key size, used to generate smaller IDs in an environment that allows global contention control.
+   */
+  private static final int START_KEY_SIZE = 5;
+
   private static final String ITEM_STORE_NAME = "item";
   private static final String EXTERNAL_ID_STORE_NAME = "external-id";
   private static final String FORWARD_RELATIONS_STORE_NAME = "forward-relations";
@@ -84,7 +89,7 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
   }
 
   public DefaultIseCatalogDao(Environment environment) {
-    this(environment, new SecureRandom(), KeyUtil.START_KEY_SIZE);
+    this(environment, new SecureRandom(), START_KEY_SIZE);
   }
 
   @Override

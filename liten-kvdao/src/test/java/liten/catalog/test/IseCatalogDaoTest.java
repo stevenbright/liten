@@ -1,14 +1,13 @@
 package liten.catalog.test;
 
-import com.truward.dao.exception.ItemNotFoundException;
 import jetbrains.exodus.env.Transaction;
 import liten.catalog.dao.IseCatalogDao;
 import liten.catalog.dao.exception.DuplicateExternalIdException;
 import liten.catalog.dao.support.DefaultIseCatalogDao;
 import liten.catalog.model.Ise;
-import liten.catalog.util.IseNames;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.dao.EmptyResultDataAccessException;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -151,7 +150,7 @@ public final class IseCatalogDaoTest extends XodusTestBase {
       try {
         catalogDao.getById(tx, id);
         fail("Changes made in transaction that was rolled back shall not be visible outside");
-      } catch (ItemNotFoundException e) {
+      } catch (EmptyResultDataAccessException e) {
         assertTrue(e.getMessage().length() > 0);
       }
     });

@@ -39,6 +39,8 @@
 
     <xodus.version>1.0.4</xodus.version>
 
+    <kvdao-support.version>0.0.1</kvdao-support.version>
+
     <!--  compiler settings -->
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
@@ -57,6 +59,13 @@
         <groupId>${project.groupId}</groupId>
         <artifactId>liten-kvdao</artifactId>
         <version>${liten.version}</version>
+      </dependency>
+
+      <!-- KVDAO -->
+      <dependency>
+        <groupId>com.truward.kvdao</groupId>
+        <artifactId>kvdao-xodus</artifactId>
+        <version>${kvdao-support.version}</version>
       </dependency>
 
       <!-- User Service Model -->

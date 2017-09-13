@@ -30,6 +30,11 @@
       <version>${xodus.version}</version>
     </dependency>
 
+    <dependency>
+      <groupId>com.truward.kvdao</groupId>
+      <artifactId>kvdao-xodus</artifactId>
+    </dependency>
+
     <!-- Google Guava https://mvnrepository.com/artifact/com.google.guava/guava -->
     <dependency>
       <groupId>com.google.guava</groupId>
