@@ -10,12 +10,16 @@
   <http security="none" pattern="/favicon.ico"/>
   <http security="none" pattern="/g/login"/>
 
-  <http use-expressions="true" auto-config="true" disable-url-rewriting="true">
+  <http
+      use-expressions="true"
+      auto-config="true"
+      disable-url-rewriting="true">
+
+    <!-- TODO: Enable CSRF and Headers protection -->
     <csrf disabled="true"/>
     <headers disabled="true"/>
 
-    <access-denied-handler error-page="/assets/403.html"/>
-
+    <!-- Access Restriction Configuration -->
     <intercept-url pattern="/g/admin/**" access="hasRole('LITEN_ADMIN')" />
     <intercept-url pattern="/g/index" access="hasRole('GENERIC_USER')" />
     <intercept-url pattern="/g/about" access="hasRole('GENERIC_USER')" />
@@ -31,5 +35,7 @@
 
     <logout logout-url="/g/logout"
             logout-success-url="/g/login" />
+
+    <access-denied-handler error-page="/assets/403.html"/>
   </http>
 </beans:beans>
