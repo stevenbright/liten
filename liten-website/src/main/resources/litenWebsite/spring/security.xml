@@ -16,7 +16,12 @@
 
     <access-denied-handler error-page="/assets/403.html"/>
 
-    <intercept-url pattern="/g/**" access="hasRole('ROLE_GENERIC_USER')" />
+    <intercept-url pattern="/g/admin/**" access="hasRole('LITEN_ADMIN')" />
+    <intercept-url pattern="/g/index" access="hasRole('GENERIC_USER')" />
+    <intercept-url pattern="/g/about" access="hasRole('GENERIC_USER')" />
+    <intercept-url pattern="/g/profile" access="hasRole('GENERIC_USER')" />
+    <intercept-url pattern="/g/cat/**" access="hasRole('GENERIC_USER')" />
+    <intercept-url pattern="/g/download/**" access="hasRole('GENERIC_USER')" />
 
     <form-login login-page="/g/login"
                 login-processing-url="/g/execlogin"
