@@ -9,7 +9,7 @@
       <password-encoder hash="bcrypt"/>
       <user-service>
         <!--
-          Password - test
+          Password - "test"
           See also https://www.dailycred.com/article/bcrypt-calculator
         -->
         <user name="testonly" password="$2a$04$3pNyXlf0Zzk61Ybq8b8L4.LOgibMGVeLuO7Iil6L56RDnsd9NTSAu" authorities="ROLE_GENERIC_USER,ROLE_ID_1029" />
