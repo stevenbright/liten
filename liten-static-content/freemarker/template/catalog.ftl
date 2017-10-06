@@ -76,12 +76,6 @@
 
   <hr/>
 
-<#-- TODO: rework
-  <#if item.downloadUrl?has_content>
-  <h3><a href="${item.downloadUrl}">Download&nbsp;<span class="glyphicon glyphicon-download" aria-hidden="true"></span></a></h3>
-  </#if>
--->
-
   <#if item.defaultSkuPresent && (item.defaultSku.entries?size gt 0)>
     <h3>Download Items</h3>
     <table class="table-download-links">
@@ -92,7 +86,7 @@
           <td>${entry.createdTimestamp}</td>
           <#if entry.downloadInfoPresent>
             <td>${entry.fileSize} bytes</td>
-            <td><a href="${entry.downloadUrl}">Download (${entry.downloadType})&nbsp;<span class="glyphicon glyphicon-download" aria-hidden="true"></span></a></td>
+            <td><a href="${entry.downloadUrl}" target="_blank">Download (${entry.downloadType})&nbsp;<span class="glyphicon glyphicon-download" aria-hidden="true"></span></a></td>
           <#else>
             <td colspan="2">No Content Yet</td>
           </#if>
@@ -101,7 +95,6 @@
       </tbody>
     </table>
   </#if>
-
 
   <#if item.nonDefaultSkus?size gt 0>
     <h3>Other Editions</h3>
