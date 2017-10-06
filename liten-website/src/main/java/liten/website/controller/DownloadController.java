@@ -35,6 +35,11 @@ public final class DownloadController extends BaseHtmlController {
       throw new ResourceNotFoundException(e);
     }
 
+    if (downloadInfo.getDownloadId().equals("349760")) {
+      // available through http://127.0.0.1:8080/g/cat/item/ci1-000jbzg1
+      return "redirect:/assets/sample.fb2";
+    }
+
     final String id = "x-" + downloadInfo.getDownloadType() + "-" + downloadInfo.getDownloadId();
     return "redirect:/g/download/demo/text/" + id;
   }

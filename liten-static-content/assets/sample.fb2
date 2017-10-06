@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FictionBook xmlns="http://www.gribuser.ru/xml/fictionbook/2.0" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <description>
+        <title-info>
+            <genre>antique</genre>
+            <author><first-name>Lao</first-name><last-name>Tzu</last-name></author>
+            <book-title>Lao Tzu Quotes (Sample)</book-title>
+
+            <lang>en</lang>
+            <keywords>FB2</keywords>
+
+        </title-info>
+        <document-info>
+            <author><first-name>Alex</first-name><last-name>Shabanov</last-name></author>
+            <program-used>vim</program-used>
+            <date>10/06/2017</date>
+            <id>aff48610-8b2b-11e4-b4a9-0800200c9a77</id>
+            <version>1.0</version>
+        </document-info>
+        <publish-info>
+            <year>2017</year>
+            <publisher>Alexander Shabanov</publisher>
+        </publish-info>
+    </description>
+<body>
+<section>
+<title>Quotes</title>
+
+<p>Being deeply loved by someone gives you strength, while loving someone deeply gives you courage.</p>
+
+<p>Life is a series of natural and spontaneous changes. Don't resist them - that only creates sorrow. Let reality be reality. Let things flow naturally forward in whatever way they like.</p>
+
+<p>Do the difficult things while they are easy and do the great things while they are small. A journey of a thousand miles must begin with a single step.</p>
+
+<p>A leader is best when people barely know he exists, when his work is done, his aim fulfilled, they will say: we did it ourselves.</p>
+
+<p>If you do not change direction, you may end up where you are heading.</p>
+
+<p>Kindness in words creates confidence. Kindness in thinking creates profoundness. Kindness in giving creates love.</p>
+
+<p>To the mind that is still, the whole universe surrenders.</p>
+
+<p>I have just three things to teach: simplicity, patience, compassion. These three are your greatest treasures.</p>
+
+</section>
+
+</body>
+</FictionBook>

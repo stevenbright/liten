@@ -26,6 +26,7 @@
     <intercept-url pattern="/g/profile" access="hasRole('GENERIC_USER')" />
     <intercept-url pattern="/g/cat/**" access="hasRole('GENERIC_USER')" />
     <intercept-url pattern="/g/download/**" access="hasRole('GENERIC_USER')" />
+    <intercept-url pattern="/g/pub/**" access="isAnonymous()" />
 
     <form-login login-page="/g/login"
                 login-processing-url="/g/execlogin"
@@ -36,6 +37,6 @@
     <logout logout-url="/g/logout"
             logout-success-url="/g/login" />
 
-    <access-denied-handler error-page="/assets/403.html"/>
+    <access-denied-handler error-page="/g/pub/error/403"/>
   </http>
 </beans:beans>
