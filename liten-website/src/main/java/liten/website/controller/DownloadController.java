@@ -1,5 +1,10 @@
 package liten.website.controller;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.truward.semantic.id.exception.IdParsingException;
+import liten.catalog.model.Ise;
+import liten.website.exception.ResourceNotFoundException;
+import liten.website.model.catalog.CatalogEntry;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -19,17 +24,19 @@ import java.util.Date;
 @ParametersAreNonnullByDefault
 public final class DownloadController extends BaseHtmlController {
 
-  @RequestMapping("/origin/{originId}/item/{itemId}")
-  public String getDownloadUrl(@PathVariable("originId") long originId,
-                               @PathVariable("itemId") long itemId) {
-    final String id = "x-" + Long.toHexString(originId) + "-" + Long.toHexString(itemId);
-    return "redirect:/g/download/demo/text/" + id;
-  }
+  @RequestMapping("item/{downloadParameters}")
+  public String getDownloadUrl(
+      @PathVariable("downloadParameters") String parameters) {
+    // TODO: redirect to demo URL
+    final Ise.DownloadInfo downloadInfo;
+    try {
+      downloadInfo = Ise.DownloadInfo.parseFrom(CatalogEntry.DOWNLOAD_PARAMETERS_CODEC.decodeBytes(parameters));
+    } catch (IdParsingException | InvalidProtocolBufferException e) {
+      throw new ResourceNotFoundException(e);
+    }
 
-  @RequestMapping("/unavailable")
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  public String unavailableDownload() {
-    return "page/download/unavailable";
+    final String id = "x-" + downloadInfo.getDownloadType() + "-" + downloadInfo.getDownloadId();
+    return "redirect:/g/download/demo/text/" + id;
   }
 
   @RequestMapping("/demo/text/{id}")

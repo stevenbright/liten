@@ -173,9 +173,6 @@
       <plugin>
         <groupId>org.xolstice.maven.plugins</groupId>
         <artifactId>protobuf-maven-plugin</artifactId>
-        <!--<configuration>-->
-          <!--<protoSourceRoot>../proto</protoSourceRoot>-->
-        <!--</configuration>-->
       </plugin>
     </plugins>
   </build>

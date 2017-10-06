@@ -1,5 +1,7 @@
 package liten.website.model.catalog;
 
+import com.truward.semantic.id.IdCodec;
+import com.truward.semantic.id.SemanticIdCodec;
 import liten.catalog.model.Ise;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -15,6 +17,8 @@ import java.util.TimeZone;
 @SuppressWarnings({"WeakerAccess", "unused"})
 @ParametersAreNonnullByDefault
 public final class CatalogEntry {
+  public static final IdCodec DOWNLOAD_PARAMETERS_CODEC = SemanticIdCodec.forPrefixNames("dp1");
+
   private final Ise.Entry entry;
 
   public CatalogEntry(Ise.Entry entry) {
@@ -49,16 +53,10 @@ public final class CatalogEntry {
       return "";
     }
 
-    final Ise.DownloadInfo di = entry.getDownloadInfo();
-
     //noinspection StringBufferReplaceableByString
     return new StringBuilder(50)
-        .append("/g/cat/download/")
-        .append(di.getDownloadType())
-        .append("/")
-        .append(di.getOriginId())
-        .append("/")
-        .append(di.getDownloadId())
+        .append("/g/download/item/")
+        .append(DOWNLOAD_PARAMETERS_CODEC.encodeBytes(entry.getDownloadInfo().toByteArray()))
         .toString();
   }
 }

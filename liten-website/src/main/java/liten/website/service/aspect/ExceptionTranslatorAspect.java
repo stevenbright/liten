@@ -1,12 +1,12 @@
 package liten.website.service.aspect;
 
-import com.truward.kvdao.exception.EmptyResultDataAccessException;
 import com.truward.semantic.id.exception.IdParsingException;
 import liten.website.exception.ResourceNotFoundException;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.springframework.dao.EmptyResultDataAccessException;
 
 /**
  * An aspect, that translates business logic-level exceptions into HTTP exceptions.
