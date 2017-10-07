@@ -14,7 +14,8 @@
         factory-bean="litenWebsite.dao.catalogEnvironmentInitializer"
         factory-method="getEnvironment"/>
 
-  <bean class="liten.catalog.dao.support.DefaultIseCatalogDao">
+  <bean id="litenWebsite.dao.catalogDao"
+        class="liten.catalog.dao.support.DefaultIseCatalogDao">
     <constructor-arg ref="litenWebsite.dao.catalogEnvironment"/>
   </bean>
 </beans>

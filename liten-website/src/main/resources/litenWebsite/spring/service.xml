@@ -10,4 +10,5 @@
   <import resource="remote-beans.xml"/>
   <import resource="init/init-${litenWebsite.init.mode}.xml"/>
   <import resource="${litenWebsite.security.configUrl}"/>
+  <import resource="download/download-${litenWebsite.download.mode}.xml"/>
 </beans>

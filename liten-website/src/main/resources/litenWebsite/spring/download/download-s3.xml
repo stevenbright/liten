@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <!-- Production configuration for download service -->
+
+  <bean id="litenWebsite.download.s3Client" class="com.amazonaws.services.s3.AmazonS3Client">
+    <constructor-arg>
+      <bean class="com.amazonaws.auth.BasicAWSCredentials">
+        <constructor-arg value="${litenWebsite.download.s3.accessKey}" />
+        <constructor-arg value="${litenWebsite.download.s3.secretKey}" />
+      </bean>
+    </constructor-arg>
+  </bean>
+
+  <bean class="liten.website.service.catalog.support.S3DownloadService">
+    <constructor-arg ref="litenWebsite.dao.catalogDao" />
+    <constructor-arg ref="litenWebsite.download.s3Client" />
+    <property name="bucketName"           value="${litenWebsite.download.s3.bucket}"/>
+    <property name="bucketKeyPrefix"      value="${litenWebsite.download.s3.bucketKeyPrefix}"/>
+    <property name="bucketKeySuffix"      value="${litenWebsite.download.s3.bucketKeySuffix}"/>
+    <property name="urlExpirationMillis"  value="${litenWebsite.download.s3.urlExpirationTimeoutMillis}"/>
+  </bean>
+</beans>
