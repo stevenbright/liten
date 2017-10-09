@@ -4,7 +4,7 @@
        xsi:schemaLocation="
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-  <bean id="tool.kvdao.xodusInitializer" class="com.truward.xodus.util.init.XodusInitializer">
+  <bean id="tool.kvdao.xodusInitializer" class="com.truward.kvdao.xodus.init.XodusInitializer">
     <property name="temp" value="${liten.tool.bm.kvdao.isTemp}"/>
     <property name="dirName" value="${liten.tool.bm.kvdao.dirName}"/>
   </bean>

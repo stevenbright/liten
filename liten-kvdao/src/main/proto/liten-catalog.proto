@@ -9,6 +9,9 @@ package liten.catalog.model;
 option java_package = "liten.catalog.model";
 option java_outer_classname = "Ise";
 
+// There should also be a structure in the special table with the name "meta" and it should be associated with the
+// key "version"
+
 message Item {
   string id = 1;
 

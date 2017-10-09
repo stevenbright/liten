@@ -10,10 +10,10 @@
   </parent>
 
   <groupId>liten.tools</groupId>
-  <artifactId>booklib-migration</artifactId>
+  <artifactId>liten-dbtool</artifactId>
   <version>1.0-SNAPSHOT</version>
   <packaging>jar</packaging>
-  <name>Booklib->Liten Migration Tool</name>
+  <name>Liten DB Tool</name>
 
   <properties>
     <utc-time.version>1.0.6</utc-time.version>
@@ -27,7 +27,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
     <!-- app launcher -->
-    <launcher.mainClass>liten.tool.bm.BooklibMigrationApp</launcher.mainClass>
+    <launcher.mainClass>liten.tool.DbToolApp</launcher.mainClass>
   </properties>
 
 
@@ -36,13 +36,6 @@
       <groupId>liten</groupId>
       <artifactId>liten-kvdao</artifactId>
       <version>1.0.0-SNAPSHOT</version>
-    </dependency>
-
-    <!-- DB -->
-    <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2</artifactId>
-      <version>1.4.190</version>
     </dependency>
 
     <!-- UTC time -->
@@ -74,25 +67,6 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>jcl-over-slf4j</artifactId>
-    </dependency>
-
-    <!-- Spring Persistence -->
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-tx</artifactId>
-      <version>${spring.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-jdbc</artifactId>
-      <version>${spring.version}</version>
-    </dependency>
-
-    <!-- Connection Pooling -->
-    <dependency>
-      <groupId>com.mchange</groupId>
-      <artifactId>c3p0</artifactId>
-      <version>0.9.5</version>
     </dependency>
 
     <!-- FindBugs -->

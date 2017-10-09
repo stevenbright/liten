@@ -5,7 +5,7 @@
         http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
   <!-- Xodus DAO -->
-  <bean id="litenWebsite.dao.catalogEnvironmentInitializer" class="com.truward.xodus.util.init.XodusInitializer">
+  <bean id="litenWebsite.dao.catalogEnvironmentInitializer" class="com.truward.kvdao.xodus.init.XodusInitializer">
     <property name="temp" value="${litenWebsite.db.catalog.isTemp}"/>
     <property name="dirName" value="${litenWebsite.db.catalog.dirName}"/>
   </bean>
