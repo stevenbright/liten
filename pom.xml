@@ -20,7 +20,7 @@
 
   <modules>
     <module>liten-kvdao</module>
-    <module>liten-dao</module>
+    <!--<module>liten-dao</module>-->
     <module>liten-static-content</module>
     <module>liten-website</module>
   </modules>
@@ -39,7 +39,7 @@
 
     <xodus.version>1.0.4</xodus.version>
 
-    <kvdao-support.version>0.0.1</kvdao-support.version>
+    <kvdao-support.version>0.0.2</kvdao-support.version>
 
     <!--  compiler settings -->
     <maven.compiler.source>1.8</maven.compiler.source>
