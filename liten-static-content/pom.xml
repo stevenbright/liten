@@ -20,50 +20,40 @@
     </resources>
 
     <plugins>
-      <!-- Compiles static website content -->
       <plugin>
-        <artifactId>maven-antrun-plugin</artifactId>
+        <groupId>com.github.eirslett</groupId>
+        <artifactId>frontend-maven-plugin</artifactId>
+        <version>1.6</version>
+
         <executions>
           <execution>
-            <id>build-static-web-resources</id>
-            <phase>generate-sources</phase>
-            <configuration>
-              <target>
-                <taskdef resource="net/sf/antcontrib/antcontrib.properties"
-                         classpathref="maven.plugin.classpath" />
-
-                <if>
-                  <available file="node_modules" type="dir"/>
-                  <then>
-                    <echo message="node_modules exists; skipping installation" />
-                  </then>
-                  <else>
-                    <exec executable="npm">
-                      <arg value="install"/>
-                      <arg value="--save-dev"/>
-                    </exec>
-                  </else>
-                </if>
-
-                <!-- Prepare and build everything -->
-                <exec executable="npm">
-                  <arg value="run"/>
-                  <arg value="build"/>
-                </exec>
-              </target>
-            </configuration>
+            <id>install node and npm</id>
             <goals>
-              <goal>run</goal>
+              <goal>install-node-and-npm</goal>
             </goals>
           </execution>
+          <execution>
+            <id>npm install</id>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>npm test</id>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+            <configuration>
+              <arguments>test</arguments>
+            </configuration>
+            <phase>test</phase>
+          </execution>
         </executions>
-        <dependencies>
-          <dependency>
-            <groupId>ant-contrib</groupId>
-            <artifactId>ant-contrib</artifactId>
-            <version>20020829</version>
-          </dependency>
-        </dependencies>
+
+        <configuration>
+          <nodeVersion>v8.7.0</nodeVersion>
+          <npmVersion>5.4.2</npmVersion>
+        </configuration>
       </plugin>
     </plugins>
   </build>

@@ -2,27 +2,27 @@
   "private": true,
   "main": "js/main.js",
   "dependencies": {
-    "jquery": "^3.1.1",
-    "bootstrap": "^3.0.0",
-    "query-string": "^4.1.0"
+    "jquery": "3.2.1",
+    "bootstrap": "3.3.7",
+    "query-string": "5.0.0"
   },
   "devDependencies": {
-    "babelify": "^7.3.0",
-    "babel-preset-es2015": "^6.18.0",
-    "babel-preset-stage-0": "^6.16.0",
-    "watchify": "^3.7.0",
-    "browserify": "^13.1.1",
-    "uglifyjs": "2.4.10",
-    "babel-jest": "^17.0.2",
-    "jest-cli": "^17.0.2",
-    "node-sass": "^3.13.0",
-    "http-server": "^0.9.0"
+    "http-server": "0.10.0",
+    "babelify": "7.3.0",
+    "babel-preset-es2015": "6.24.1",
+    "babel-preset-stage-0": "6.24.1",
+    "babel-jest": "21.2.0",
+    "jest-cli": "21.2.1",
+    "node-sass": "4.5.3",
+    "watchify": "3.9.0",
+    "browserify": "14.5.0",
+    "uglify-js": "3.1.4"
   },
   "config": {
-    "static_root": "target/release/litenWebsite/web/static",
-    "assets": "target/release/litenWebsite/web/static/assets",
-    "libs": "target/release/litenWebsite/web/static/assets/libs",
-    "freemarker": "target/release/litenWebsite/web/freemarker"
+    "freemarker": "target/release/litenWebsite/web/freemarker",
+    "libs": "target/release/nodeMavenJavaWebsite/web/static/assets/libs",
+    "static_root": "target/release/nodeMavenJavaWebsite/web/static",
+    "assets": "target/release/nodeMavenJavaWebsite/web/static/assets"
   },
   "scripts": {
     "build-js-dev": "browserify js/main.js -t babelify -o $npm_package_config_assets/js/bundle.js",
@@ -45,10 +45,10 @@
     "modulePathIgnorePatterns": [
       "/node_modules/"
     ],
-    "preprocessorIgnorePatterns": [
+    "transformIgnorePatterns": [
       "/node_modules/"
     ],
-    "testPathDirs": [
+    "roots": [
       "<rootDir>/js"
     ]
   }
