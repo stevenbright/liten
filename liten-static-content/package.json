@@ -20,9 +20,9 @@
   },
   "config": {
     "freemarker": "target/release/litenWebsite/web/freemarker",
-    "libs": "target/release/nodeMavenJavaWebsite/web/static/assets/libs",
-    "static_root": "target/release/nodeMavenJavaWebsite/web/static",
-    "assets": "target/release/nodeMavenJavaWebsite/web/static/assets"
+    "libs": "target/release/litenWebsite/web/static/assets/libs",
+    "static_root": "target/release/litenWebsite/web/static",
+    "assets": "target/release/litenWebsite/web/static/assets"
   },
   "scripts": {
     "build-js-dev": "browserify js/main.js -t babelify -o $npm_package_config_assets/js/bundle.js",
@@ -39,6 +39,7 @@
     "copy-bootstrap": "cp -r ./node_modules/bootstrap/dist/ $npm_package_config_libs/bootstrap",
     "copy-all": "npm run copy-freemarker && npm run copy-assets && npm run copy-root && npm run copy-bootstrap",
     "build": "npm run prepare && npm run build-js && npm run build-css && npm run copy-all",
+    "postinstall": "npm run build",
     "test": "jest"
   },
   "jest": {
