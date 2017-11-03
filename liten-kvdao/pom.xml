@@ -46,12 +46,6 @@
       <artifactId>semantic-id</artifactId>
     </dependency>
 
-    <!-- UTC time -->
-    <dependency>
-      <groupId>com.truward.time</groupId>
-      <artifactId>utc-time</artifactId>
-    </dependency>
-
     <!-- Nonnull annotations -->
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
