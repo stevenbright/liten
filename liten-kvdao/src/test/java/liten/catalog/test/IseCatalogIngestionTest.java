@@ -58,7 +58,7 @@ public final class IseCatalogIngestionTest extends XodusTestBase {
   @Test
   public void shouldRestoreDump() throws IOException {
     try (final InputStream inputStream = getClass().getClassLoader()
-        .getResourceAsStream("sampleItems/catalog-fixture.json")) {
+        .getResourceAsStream("catalog-fixture-v0.json")) {
       ingestionHelper.importData(inputStream);
     }
 
