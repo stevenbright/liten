@@ -87,6 +87,10 @@ public final class CatalogMigration {
   // Private
   //
 
+  private void upgrade(String fromVersion) {
+
+  }
+
   private static class StoresV0 {
     final Store item;
     final Store externalId;
