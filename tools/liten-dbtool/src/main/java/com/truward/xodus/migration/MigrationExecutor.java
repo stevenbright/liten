@@ -14,7 +14,6 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Function;
 
@@ -85,8 +84,16 @@ public class MigrationExecutor {
     }
 
     if (!targetDirectory.mkdir()) {
-      throw new MigrationException("Can't create target directory=" + targetDirectory.getAbsolutePath() +
-          " it either exists or can't be created");
+      if (targetDirectory.exists()) {
+        final File[] targetDirectoryFiles = targetDirectory.listFiles();
+        if (targetDirectoryFiles != null && targetDirectoryFiles.length > 0) {
+          throw new MigrationException("Target directory=" + targetDirectory.getAbsolutePath() +
+              " exists and it is not empty");
+        }
+      } else {
+        throw new MigrationException("Can't create target directory=" + targetDirectory.getAbsolutePath() +
+            " it either exists or can't be created");
+      }
     }
 
     try {
@@ -111,17 +118,17 @@ public class MigrationExecutor {
             return false;
           }
 
-          log.info("Last version had been migrated, copy migrated files to the target directory");
-          if (!fromPath.renameTo(targetDirectory)) {
-            throw new IOException("Can't rename temporary directory to " + targetDirectory.getAbsolutePath());
-          }
+          // flush all the transactions
+          fromEnvironment.close();
+          fromEnvironment = null;
+
+          // move files from intermediate location to the target directory
+          FileSystemUtils.copyRecursively(fromPath, targetDirectory);
+          FileSystemUtils.deleteRecursively(fromPath);
           break;
         }
 
         final File toPath = Files.createTempDirectory("xodus-migration").toFile();
-        if (!toPath.mkdir()) {
-          throw new IOException("Can't create temporary directory");
-        }
 
         final MigrationCallback migrationCallback = this.migrationCallbackMap.get(version);
         if (migrationCallback == null) {
@@ -150,13 +157,20 @@ public class MigrationExecutor {
         log.info("Migrated from version={} to version={}", version, nextVersion);
 
         if (fromPath != sourceDirectory) {
+          // close environment first to flush transactions
+          fromEnvironment.close();
+          fromEnvironment = null;
+
           // we no longer need intermediate versions and last migration had not been run yet, so
           // delete it and work with the just migrated version
           FileSystemUtils.deleteRecursively(fromPath);
         }
+
         fromPath = toPath;
       } finally {
-        fromEnvironment.close();
+        if (fromEnvironment != null) {
+          fromEnvironment.close();
+        }
       }
     }
 
@@ -208,13 +222,18 @@ public class MigrationExecutor {
       return this;
     }
 
-    public Builder setInitialVersionSupplier(Function<Environment, String> initialVersionProvider) {
+    public Builder setVersionReader(Function<Environment, String> versionReader) {
+      this.versionReader = requireNonNull(versionReader);
+      return this;
+    }
+
+    public Builder setInitialVersionProvider(Function<Environment, String> initialVersionProvider) {
       this.initialVersionProvider = requireNonNull(initialVersionProvider);
       return this;
     }
 
     public Builder setInitialVersion(String initialVersion) {
-      return this.setInitialVersionSupplier(e -> initialVersion);
+      return this.setInitialVersionProvider(e -> initialVersion);
     }
 
     public MigrationExecutor build() {
@@ -255,7 +274,7 @@ public class MigrationExecutor {
         versionReader = sourceEnv -> {
           final MetadataDao metadataDao = new MetadataDao(sourceEnv);
           final Optional<String> version = sourceEnv.computeInTransaction(metadataDao::getVersion);
-          return version.orElse(initialVersionProvider.apply(sourceEnv));
+          return version.orElseGet(() -> initialVersionProvider.apply(sourceEnv));
         };
       }
       return versionReader;
