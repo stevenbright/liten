@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static jetbrains.exodus.bindings.StringBinding.entryToString;
@@ -74,7 +75,7 @@ public final class MigrationExecutorTest {
     }
   }
 
-  @Test
+  @Test(timeout = 20000L/* 20 sec */)
   public void shouldMigrateToLastVersion() {
     // Given:
     final String ver10 = "1.0";
@@ -83,18 +84,9 @@ public final class MigrationExecutorTest {
     final String ver30 = "3.0";
 
     final MigrationExecutor executor = MigrationExecutor.newBuilder()
-        .add(ver10, ctx -> {
-          MetadataDao metadataDao = new MetadataDao(ctx.getTargetEnvironment());
-          ctx.getTargetEnvironment().executeInTransaction(tx -> metadataDao.create(tx, ver11));
-        })
-        .add(ver11, ctx -> {
-          MetadataDao metadataDao = new MetadataDao(ctx.getTargetEnvironment());
-          ctx.getTargetEnvironment().executeInTransaction(tx -> metadataDao.create(tx, ver20));
-        })
-        .add(ver20, ctx -> {
-          MetadataDao metadataDao = new MetadataDao(ctx.getTargetEnvironment());
-          ctx.getTargetEnvironment().executeInTransaction(tx -> metadataDao.create(tx, ver30));
-        })
+        .add(ver10, ctx -> {})
+        .add(ver11, ctx -> {})
+        .add(ver20, ctx -> {})
         .addLast(ver30)
         .setSourceDirectory(sourceDirectory)
         .setTargetDirectory(targetDirectory)
@@ -135,6 +127,7 @@ public final class MigrationExecutorTest {
         .addLast(ver20)
         .setSourceDirectory(sourceDirectory)
         .setTargetDirectory(targetDirectory)
+        .setVersionUpdateStrategy(MigrationExecutor.VersionUpdateStrategy.CALLBACK)
         .setVersionReader(e -> e.computeInTransaction(tx -> {
           final Store versions = e.openStore(customVersions, StoreConfig.WITHOUT_DUPLICATES, tx);
           final ByteIterable ver = versions.get(tx, currentVersionKey);

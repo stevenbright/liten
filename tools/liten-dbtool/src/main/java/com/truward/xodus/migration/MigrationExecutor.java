@@ -2,10 +2,13 @@ package com.truward.xodus.migration;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.truward.kvdao.xodus.XodusMetadata;
 import com.truward.kvdao.xodus.metadata.MetadataDao;
 import com.truward.xodus.migration.exception.MigrationException;
 import jetbrains.exodus.env.Environment;
 import jetbrains.exodus.env.Environments;
+import jetbrains.exodus.env.Store;
+import jetbrains.exodus.env.StoreConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.FileSystemUtils;
@@ -51,15 +54,21 @@ public class MigrationExecutor {
   private final File sourceDirectory;
   private final File targetDirectory;
   private final Function<Environment, String> versionReader;
+  private final VersionUpdateStrategy versionUpdateStrategy;
 
   private MigrationExecutor(
       File sourceDirectory,
       File targetDirectory,
       List<String> versionChain,
       Map<String, MigrationCallback> migrationCallbackMap,
-      Function<Environment, String> versionReader) {
+      Function<Environment, String> versionReader,
+      VersionUpdateStrategy versionUpdateStrategy) {
     if (versionChain.isEmpty()) {
       throw new IllegalStateException("versionChain is empty"); // should never happen
+    }
+
+    if (requireNonNull(versionUpdateStrategy) == VersionUpdateStrategy.NOT_SET) {
+      throw new IllegalArgumentException("versionUpdateStrategy"); // should never happen
     }
 
     this.versionChain = ImmutableList.copyOf(versionChain);
@@ -67,6 +76,7 @@ public class MigrationExecutor {
     this.versionReader = requireNonNull(versionReader);
     this.sourceDirectory = requireNonNull(sourceDirectory, "sourceDirectory");
     this.targetDirectory = requireNonNull(targetDirectory, "targetDirectory");
+    this.versionUpdateStrategy = versionUpdateStrategy;
   }
 
   /**
@@ -145,11 +155,42 @@ public class MigrationExecutor {
         // execute migration itself
         Environment toEnvironment = Environments.newInstance(toPath);
         try {
+          final Environment srcEnv = fromEnvironment;
+          if (versionUpdateStrategy == VersionUpdateStrategy.DEFAULT) {
+            // copy metadata
+            final Store fromMetadataStore = fromEnvironment.computeInTransaction(tx ->
+                srcEnv.openStore(XodusMetadata.METADATA_STORE_NAME, StoreConfig.WITHOUT_DUPLICATES, tx));
+            final Store toMetadataStore = toEnvironment.computeInTransaction(tx ->
+              toEnvironment.openStore(XodusMetadata.METADATA_STORE_NAME, StoreConfig.WITHOUT_DUPLICATES, tx));
+            MigrationUtil.copyStores(fromMetadataStore, toMetadataStore);
+          }
+
           migrationCallback.migrate(new MigrationContext(
               fromEnvironment,
               version,
               toEnvironment,
               nextVersion));
+
+          if (versionUpdateStrategy == VersionUpdateStrategy.DEFAULT) {
+            // update version in the metadata table
+            MetadataDao metadataDao = new MetadataDao(toEnvironment);
+            toEnvironment.executeInTransaction(tx -> {
+              final Optional<String> oldVersion = metadataDao.getVersion(tx);
+              if (oldVersion.isPresent()) {
+                metadataDao.update(tx, oldVersion.get(), nextVersion);
+              } else {
+                metadataDao.create(tx, nextVersion);
+              }
+            });
+          }
+
+          // regardless who updated version in the metadata store, make sure that to-environment contains right
+          // version afterwards
+          final String newVersion = this.versionReader.apply(toEnvironment);
+          if (!nextVersion.equals(newVersion)) {
+            throw new MigrationException("Migration failure: updated data store does not contain expected " +
+                "version=" + nextVersion + ", instead it has version=" + newVersion);
+          }
         } finally {
           toEnvironment.close();
         }
@@ -184,6 +225,23 @@ public class MigrationExecutor {
     return new Builder();
   }
 
+  public enum VersionUpdateStrategy {
+    /**
+     * Initial state of version updater. This tells migration executor to use {@link #DEFAULT} if possible.
+     */
+    NOT_SET,
+
+    /** Tells migration executor to rely on migration callback to put proper version */
+    CALLBACK,
+
+    /**
+     * Tells migration executor to do version updates automatically.
+     * This option is mutually exclusive with {@link #CALLBACK}. Also it can't be used if
+     * version is stored in non-metadata store, see also {@link MetadataDao}.
+     */
+    DEFAULT
+  }
+
   /**
    * Builder for the parent class.
    */
@@ -197,6 +255,7 @@ public class MigrationExecutor {
     private Function<Environment, String> initialVersionProvider = sourceEnv -> {
       throw new IllegalStateException("Cannot read version from the store");
     };
+    private VersionUpdateStrategy versionUpdateStrategy = VersionUpdateStrategy.NOT_SET;
 
     private Builder() {}
 
@@ -223,7 +282,12 @@ public class MigrationExecutor {
     }
 
     public Builder setVersionReader(Function<Environment, String> versionReader) {
+      if (this.versionUpdateStrategy == VersionUpdateStrategy.DEFAULT) {
+        throw new IllegalStateException("Custom version reader can not be used with " + this.versionUpdateStrategy);
+      }
+
       this.versionReader = requireNonNull(versionReader);
+      this.versionUpdateStrategy = VersionUpdateStrategy.CALLBACK;
       return this;
     }
 
@@ -236,13 +300,32 @@ public class MigrationExecutor {
       return this.setInitialVersionProvider(e -> initialVersion);
     }
 
+    public Builder setVersionUpdateStrategy(VersionUpdateStrategy versionUpdateStrategy) {
+      if (this.versionUpdateStrategy == VersionUpdateStrategy.NOT_SET ||
+          this.versionUpdateStrategy == versionUpdateStrategy) {
+        this.versionUpdateStrategy = versionUpdateStrategy;
+        return this;
+      }
+
+      throw new IllegalStateException("Version update strategy can not be changed once it is set " +
+          "explicitly or implicitly. Stored strategy=" + this.versionUpdateStrategy +
+          ", suggested strategy=" + versionUpdateStrategy);
+    }
+
     public MigrationExecutor build() {
+      // if version update strategy has not been set, it means we can resort to default one as we use known
+      // method of reading and updating database version based on metadata table
+      if (versionUpdateStrategy == VersionUpdateStrategy.NOT_SET) {
+        this.versionUpdateStrategy = VersionUpdateStrategy.DEFAULT;
+      }
+
       return new MigrationExecutor(
           sourceDirectory,
           targetDirectory,
           versionChain,
           migrationCallbackMap,
-          getVersionReader());
+          getVersionReader(),
+          versionUpdateStrategy);
     }
 
     //
