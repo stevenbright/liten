@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.truward.brikar.common.log.LogLapse;
 import com.truward.web.pagination.AbstractPageResult;
 import com.truward.web.pagination.PageResult;
+import jetbrains.exodus.env.Environment;
 import jetbrains.exodus.env.Transaction;
 import liten.catalog.dao.IseCatalogDao;
 import liten.catalog.model.Ise;
@@ -24,6 +25,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * Default implementation of {@link CatalogService}.
  */
@@ -31,6 +34,7 @@ import java.util.stream.Collectors;
 @ParametersAreNonnullByDefault
 public final class DefaultCatalogService implements CatalogService {
   private final IseCatalogDao catalogDao;
+  private final Environment environment;
 
   // TODO: cache
   //private final Map<Ise.ExternalId, CatalogItem> cache = new ConcurrentHashMap<>(10000);
@@ -39,19 +43,20 @@ public final class DefaultCatalogService implements CatalogService {
   //private final Map<String, Optional<Ise.Item>> languageAliasItems = new ConcurrentHashMap<>(100);
 
   public DefaultCatalogService(IseCatalogDao catalogDao) {
-    this.catalogDao = Objects.requireNonNull(catalogDao, "catalogDao");
+    this.catalogDao = requireNonNull(catalogDao, "catalogDao");
+    this.environment = requireNonNull(catalogDao.getEnvironment());
   }
 
   @LogLapse("CatalogService.getSkuNameHints")
   @Override
   public List<String> getSkuNameHints(String type, String namePrefix) {
-    return catalogDao.getEnvironment().computeInTransaction(tx -> catalogDao.getNameHints(tx, type, namePrefix));
+    return this.environment.computeInTransaction(tx -> catalogDao.getNameHints(tx, type, namePrefix));
   }
 
   @LogLapse("CatalogService.getDetailedEntry")
   @Override
   public CatalogItem getDetailedEntry(String itemId, @Nullable String skuId, String userLanguage) {
-    return catalogDao.getEnvironment().computeInTransaction(tx -> {
+    return this.environment.computeInTransaction(tx -> {
       final Ise.Item item = catalogDao.getById(tx, itemId);
       return getCatalogItem(tx, item, userLanguage, skuId);
     });
@@ -95,7 +100,7 @@ public final class DefaultCatalogService implements CatalogService {
 
     @Override
     protected List<CatalogItem> getItemList(Ise.ItemRelationQueryResult itemRelationQueryResult) {
-      return catalogDao.getEnvironment().computeInTransaction(tx ->
+      return environment.computeInTransaction(tx ->
           itemRelationQueryResult.getToItemIdsList()
               .stream()
               .map(id -> getCatalogItem(tx, catalogDao.getById(tx, id), userLanguage, null))
@@ -104,7 +109,7 @@ public final class DefaultCatalogService implements CatalogService {
 
     @Override
     protected Ise.ItemRelationQueryResult query(String cursor, int limit) {
-      return catalogDao.getEnvironment().computeInTransaction(tx -> catalogDao.getRelations(tx,
+      return environment.computeInTransaction(tx -> catalogDao.getRelations(tx,
           Ise.ItemRelationQuery.newBuilder()
               .setFromItemId(itemId)
               .setType(type)
@@ -134,7 +139,7 @@ public final class DefaultCatalogService implements CatalogService {
 
     @Override
     protected List<CatalogItem> getItemList(Ise.ItemQueryResult itemQueryResult) {
-      return catalogDao.getEnvironment().computeInTransaction(tx -> itemQueryResult.getItemsList()
+      return environment.computeInTransaction(tx -> itemQueryResult.getItemsList()
           .stream()
           .map(item -> getCatalogItem(tx, item, userLanguage, null))
           .collect(Collectors.toList()));
@@ -142,7 +147,7 @@ public final class DefaultCatalogService implements CatalogService {
 
     @Override
     protected Ise.ItemQueryResult query(String cursor, int limit) {
-      return catalogDao.getEnvironment().computeInTransaction(tx -> catalogDao.getItems(tx, Ise.ItemQuery.newBuilder()
+      return environment.computeInTransaction(tx -> catalogDao.getItems(tx, Ise.ItemQuery.newBuilder()
           .setCursor(cursor)
           .setNamePrefix(StringUtils.hasLength(namePrefix) ? namePrefix : "")
           .setType(type)
