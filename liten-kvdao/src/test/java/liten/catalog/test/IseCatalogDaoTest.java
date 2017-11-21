@@ -363,12 +363,12 @@ public final class IseCatalogDaoTest extends XodusTestBase {
       assertEquals(Ise.Item.newBuilder(item2).setId(ids[1]).build(), catalogDao.getById(tx, ids[1]));
 
       assertEquals(Arrays.asList("C", "D", "F", "O", "T", "U"), catalogDao.getNameHints(tx, "numbers", ""));
-      assertEquals(Arrays.asList("Th", "Tr", "Tw"), catalogDao.getNameHints(tx, "numbers", "T"));
-      assertEquals(Arrays.asList("Th", "Ti", "Tr", "Tw"), catalogDao.getNameHints(tx, "", "T"));
-      assertEquals(Collections.singletonList("Ti"), catalogDao.getNameHints(tx, "newspaper", "T"));
+      assertEquals(Arrays.asList("TH", "TR", "TW"), catalogDao.getNameHints(tx, "numbers", "T"));
+      assertEquals(Arrays.asList("TH", "TI", "TR", "TW"), catalogDao.getNameHints(tx, "", "T"));
+      assertEquals(Collections.singletonList("TI"), catalogDao.getNameHints(tx, "newspaper", "T"));
       assertEquals(Collections.emptyList(), catalogDao.getNameHints(tx, BOOK, "T"));
-      assertEquals(Collections.emptyList(), catalogDao.getNameHints(tx, "", "One"));
-      assertEquals(Collections.singletonList("Cuat"), catalogDao.getNameHints(tx, "numbers", "Cua"));
+      assertEquals(Collections.emptyList(), catalogDao.getNameHints(tx, "", "ONE"));
+      assertEquals(Collections.singletonList("CUA"), catalogDao.getNameHints(tx, "numbers", "Cu"));
     });
   }
 

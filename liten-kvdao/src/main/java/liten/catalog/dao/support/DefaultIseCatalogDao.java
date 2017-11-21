@@ -1,6 +1,7 @@
 package liten.catalog.dao.support;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.truward.brikar.common.log.LogLapse;
 import com.truward.kvdao.exception.InvalidCursorException;
@@ -43,6 +44,7 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
   private static final String ITEM_STORE_NAME = "item";
   private static final String EXTERNAL_ID_STORE_NAME = "external-id";
   private static final String FORWARD_RELATIONS_STORE_NAME = "forward-relations";
+  private static final String NAME_HINT_STORE_NAME = "name-hint";
 
   /**
    * Item encoder, "ci1" stands for Catalog Item ver. 1
@@ -62,6 +64,7 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
     final Store item;
     final Store externalId;
     final Store forwardRelations;
+    final Store nameHint;
 
     Stores(Environment environment, Transaction tx) {
       // bytesFromSemanticId(item.id) -> item
@@ -74,6 +77,8 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
       // e.g.:
       //      fromItemId=SomeAuthorId, type=author -> bookId
       this.forwardRelations = environment.openStore(FORWARD_RELATIONS_STORE_NAME, StoreConfig.WITH_DUPLICATES, tx);
+
+      this.nameHint = environment.openStore(NAME_HINT_STORE_NAME, StoreConfig.WITHOUT_DUPLICATES, tx);
     }
   }
 
@@ -124,6 +129,30 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
   @LogLapse("IseCatalogDao.getNameHints")
   @Override
   public List<String> getNameHints(Transaction tx, @Nullable String type, String prefix) {
+    prefix = prefix.toUpperCase();
+
+    if (prefix.length() > 0) {
+      // use indices
+      final ByteIterable nameHintValue = this.stores.nameHint.get(tx, stringToEntry(prefix));
+      if (nameHintValue == null) {
+        return ImmutableList.of();
+      }
+
+      final Ise.NameHint nameHint = entryToProto(nameHintValue, Ise.NameHint.getDefaultInstance());
+      final List<String> prefixes = new ArrayList<>(nameHint.getNameReferences().getPrefixesCount());
+
+      for (final Ise.TypedNameReference nameReference : nameHint.getNameReferences().getPrefixesList()) {
+        if (!Strings.isNullOrEmpty(type) && !nameReference.getTypesList().contains(type)) {
+          continue;
+        }
+
+        prefixes.add(nameReference.getPrefix());
+      }
+
+      return prefixes;
+    }
+
+    // TODO: use root index
     try (final Cursor cursor = stores.item.openCursor(tx)) {
       final Set<String> prefixes = new TreeSet<>(); // use for built-in sorting capabilities
       final int len = prefix.length() + 1;
@@ -138,7 +167,7 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
         }
 
         for (final Ise.Sku sku : item.getSkusList()) {
-          final String title = sku.getTitle();
+          final String title = sku.getTitle().toUpperCase();
 
           if (title.length() >= len && title.startsWith(prefix)) {
             prefixes.add(title.substring(0, len));
@@ -277,6 +306,7 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
     }
 
     setupItemRelations(tx, item);
+    setupItemNameHints(tx, item);
 
     return item.getId();
   }
@@ -284,6 +314,88 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
   //
   // Private
   //
+
+  private void setupItemNameHints(Transaction tx, Ise.Item item) {
+    for (final Ise.Sku sku : item.getSkusList()) {
+      setupSkuNameHints(tx, item.getType(), item.getId(), sku);
+    }
+  }
+
+  private void setupSkuNameHints(Transaction tx, String type, String itemId, Ise.Sku sku) {
+    final String title = sku.getTitle();
+
+    final StringBuilder prefixBuilder = new StringBuilder(3);
+    final int count = Math.min(3, title.length());
+
+    for (int i = 0; i < count; ++i) {
+      prefixBuilder.append(Character.toUpperCase(title.charAt(i)));
+      final ByteIterable nameKey = stringToEntry(prefixBuilder.toString());
+      final ByteIterable nameValue = this.stores.nameHint.get(tx, nameKey);
+      final Ise.NameHint.Builder nameHint = Ise.NameHint.newBuilder();
+      if (nameValue != null) {
+        nameHint.mergeFrom(entryToProto(nameValue, Ise.NameHint.getDefaultInstance()));
+      }
+
+      // insert either next name prefix or item link
+      if (i < (count - 1)) {
+        final Ise.TypedNameReference typedNameReference = Ise.TypedNameReference.newBuilder()
+            .setPrefix(title.substring(0, i + 2).toUpperCase())
+            .addTypes(type)
+            .build();
+
+        final int insertIndex = Collections.binarySearch(
+            nameHint.getNameReferences().getPrefixesList(),
+            typedNameReference,
+            Comparator.comparing(Ise.TypedNameReference::getPrefix)
+        );
+
+        final List<Ise.TypedNameReference> namePrefixes = new ArrayList<>(
+            nameHint.getNameReferences().getPrefixesList());
+        if (insertIndex < 0) {
+          namePrefixes.add(-1 - insertIndex, typedNameReference);
+        } else {
+          namePrefixes.set(
+              insertIndex,
+              Ise.TypedNameReference.newBuilder()
+                  .setPrefix(typedNameReference.getPrefix())
+                  .addAllTypes(ImmutableSet.<String>builder()
+                      .addAll(namePrefixes.get(insertIndex).getTypesList())
+                      .add(type)
+                      .build())
+                  .build());
+        }
+
+        nameHint.setNameReferences(Ise.NameReferences.newBuilder().addAllPrefixes(namePrefixes));
+      } else {
+        // last entry, so insert link
+        final Ise.ItemLink newItemLink = Ise.ItemLink.newBuilder()
+            .setItemId(itemId)
+            .setItemType(type)
+            .setSkuId(sku.getId())
+            .setSkuTitle(title)
+            .build();
+
+        final int insertIndex = Collections.binarySearch(
+            nameHint.getItemLinks().getLinksList(),
+            newItemLink,
+            (l, r) -> {
+              final int cmp = l.getSkuTitle().compareTo(r.getSkuTitle());
+              if (cmp != 0) {
+                return 0;
+              }
+              return l.getItemId().compareTo(r.getItemId());
+            });
+
+        if (insertIndex < 0) {
+          final List<Ise.ItemLink> links = new ArrayList<>(nameHint.getItemLinks().getLinksList());
+          links.add(-1 - insertIndex, newItemLink);
+          nameHint.setItemLinks(Ise.ItemLinks.newBuilder().addAllLinks(links));
+        }
+      }
+
+      this.stores.nameHint.put(tx, nameKey, protoToEntry(nameHint.build()));
+    }
+  }
 
   private void setupItemRelations(Transaction tx, Ise.Item item) {
     final String id = item.getId();

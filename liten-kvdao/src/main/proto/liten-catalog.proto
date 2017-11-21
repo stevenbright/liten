@@ -63,6 +63,33 @@ message ForwardRelationId {
   string relationType = 2;
 }
 
+// Name indices
+
+message TypedNameReference {
+  string prefix = 1;
+  repeated string types = 2;
+}
+
+message NameReferences {
+  repeated TypedNameReference prefixes = 1;
+}
+
+message ItemLink {
+  string itemId = 1;
+  string itemType = 2;
+  string skuId = 3;
+  string skuTitle = 4;
+}
+
+message ItemLinks {
+  repeated ItemLink links = 1;
+}
+
+message NameHint {
+  NameReferences nameReferences = 1;
+  ItemLinks itemLinks = 2;
+}
+
 //
 // Extras
 //
