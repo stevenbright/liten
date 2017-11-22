@@ -131,52 +131,23 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
   public List<String> getNameHints(Transaction tx, @Nullable String type, String prefix) {
     prefix = prefix.toUpperCase();
 
-    if (prefix.length() > 0) {
-      // use indices
-      final ByteIterable nameHintValue = this.stores.nameHint.get(tx, stringToEntry(prefix));
-      if (nameHintValue == null) {
-        return ImmutableList.of();
-      }
-
-      final Ise.NameHint nameHint = entryToProto(nameHintValue, Ise.NameHint.getDefaultInstance());
-      final List<String> prefixes = new ArrayList<>(nameHint.getNameReferences().getPrefixesCount());
-
-      for (final Ise.TypedNameReference nameReference : nameHint.getNameReferences().getPrefixesList()) {
-        if (!Strings.isNullOrEmpty(type) && !nameReference.getTypesList().contains(type)) {
-          continue;
-        }
-
-        prefixes.add(nameReference.getPrefix());
-      }
-
-      return prefixes;
+    final ByteIterable nameHintValue = this.stores.nameHint.get(tx, stringToEntry(prefix));
+    if (nameHintValue == null) {
+      return ImmutableList.of();
     }
 
-    // TODO: use root index
-    try (final Cursor cursor = stores.item.openCursor(tx)) {
-      final Set<String> prefixes = new TreeSet<>(); // use for built-in sorting capabilities
-      final int len = prefix.length() + 1;
-      final boolean hasType = !Strings.isNullOrEmpty(type);
+    final Ise.NameHint nameHint = entryToProto(nameHintValue, Ise.NameHint.getDefaultInstance());
+    final List<String> prefixes = new ArrayList<>(nameHint.getNameReferences().getPrefixesCount());
 
-      // Bruteforce traverse (really bad performance)
-      // TODO: indexes
-      while (cursor.getNext()) {
-        final Ise.Item item = entryToProto(cursor.getValue(), Ise.Item.getDefaultInstance());
-        if (hasType && !type.equals(item.getType())) {
-          continue;
-        }
-
-        for (final Ise.Sku sku : item.getSkusList()) {
-          final String title = sku.getTitle().toUpperCase();
-
-          if (title.length() >= len && title.startsWith(prefix)) {
-            prefixes.add(title.substring(0, len));
-          }
-        }
+    for (final Ise.TypedNameReference nameReference : nameHint.getNameReferences().getPrefixesList()) {
+      if (!Strings.isNullOrEmpty(type) && !nameReference.getTypesList().contains(type)) {
+        continue;
       }
 
-      return new ArrayList<>(prefixes);
+      prefixes.add(nameReference.getPrefix());
     }
+
+    return prefixes;
   }
 
   @LogLapse("IseCatalogDao.getItems")
@@ -326,9 +297,11 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
 
     final StringBuilder prefixBuilder = new StringBuilder(3);
     final int count = Math.min(3, title.length());
+    //final int last = Math.max(0, count - 1);
 
-    for (int i = 0; i < count; ++i) {
-      prefixBuilder.append(Character.toUpperCase(title.charAt(i)));
+    // insert hints, for a given string "Abcd" the following entries will be generated:
+    // "":A --> "A":Ab --> "Ab":Abc --> "Abc":{title: Abcd}
+    for (int i = 0;; ++i) {
       final ByteIterable nameKey = stringToEntry(prefixBuilder.toString());
       final ByteIterable nameValue = this.stores.nameHint.get(tx, nameKey);
       final Ise.NameHint.Builder nameHint = Ise.NameHint.newBuilder();
@@ -336,10 +309,10 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
         nameHint.mergeFrom(entryToProto(nameValue, Ise.NameHint.getDefaultInstance()));
       }
 
-      // insert either next name prefix or item link
-      if (i < (count - 1)) {
+      if (i < count) {
+        // non-last character, in this case we need to insert "pointer-to-next"
         final Ise.TypedNameReference typedNameReference = Ise.TypedNameReference.newBuilder()
-            .setPrefix(title.substring(0, i + 2).toUpperCase())
+            .setPrefix(title.substring(0, i + 1).toUpperCase())
             .addTypes(type)
             .build();
 
@@ -367,6 +340,7 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
 
         nameHint.setNameReferences(Ise.NameReferences.newBuilder().addAllPrefixes(namePrefixes));
       } else {
+        // this is the last character, so insert complete title
         // last entry, so insert link
         final Ise.ItemLink newItemLink = Ise.ItemLink.newBuilder()
             .setItemId(itemId)
@@ -394,6 +368,12 @@ public final class DefaultIseCatalogDao implements IseCatalogDao {
       }
 
       this.stores.nameHint.put(tx, nameKey, protoToEntry(nameHint.build()));
+
+      if (i >= count) {
+        break;
+      }
+
+      prefixBuilder.append(Character.toUpperCase(title.charAt(i)));
     }
   }
 
