@@ -22,7 +22,6 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.requireNonNull;
@@ -119,6 +118,7 @@ public final class DefaultCatalogService implements CatalogService {
     }
   } // end of RightRelationItemPageResult
 
+  @ParametersAreNonnullByDefault
   private final class ItemPageResult extends AbstractPageResult<CatalogItem, Ise.ItemQueryResult> {
     private final String userLanguage;
     private final String type;

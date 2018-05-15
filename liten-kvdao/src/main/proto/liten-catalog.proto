@@ -25,6 +25,9 @@ message Item {
 
   // extra data, associated with an item
   ItemExtras extras = 5;
+
+  // free-form text associated with an item
+  repeated string notes = 6;
 }
 
 message ExternalId {

@@ -10,13 +10,9 @@
 
   <bean id="tool.app" class="liten.tool.bm.MigrationRunner" autowire="constructor"/>
 
-  <import resource="dao/kvdao-context.xml"/>
   <import resource="dao/datasource-context.xml"/>
   <import resource="dao/dao-context.xml"/>
   <import resource="dao/tx-context.xml"/>
 
-  <bean id="tool.transferService" class="liten.tool.bm.transfer.support.BooklibTransferService">
-    <constructor-arg ref="tool.jdbcTemplate"/>
-    <constructor-arg ref="tool.kvdao.iseCatalogDao"/>
-  </bean>
+  <import resource="transfer/transfer-${liten.tool.bm.mode}.xml"/>
 </beans>
