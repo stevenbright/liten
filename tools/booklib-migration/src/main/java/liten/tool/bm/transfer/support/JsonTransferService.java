@@ -136,7 +136,7 @@ public final class JsonTransferService implements TransferService {
     final List<Long> authorIds = db.queryForList("SELECT author_id FROM book_author WHERE book_id=?",
         Long.class, book.id);
     for (final Long flibAuthorId : authorIds) {
-      bookExtrasBuilder.addAuthorIds(getInlineFlibExternalId("author", flibAuthorId));
+      bookExtrasBuilder.addAuthorIds(getInlineFlibExternalId(IseNames.PERSON, flibAuthorId));
     }
 
     // save series relations
@@ -177,16 +177,13 @@ public final class JsonTransferService implements TransferService {
 
       // match locale and detect other values
       final Locale curLocale;
-      final String localeAlias;
       final int dashIndex = lang.name.indexOf('-');
       if (dashIndex > 0) {
         final String languageCode = lang.name.substring(0, dashIndex).toLowerCase();
         final String country = lang.name.substring(dashIndex + 1).toUpperCase();
         curLocale = new Locale(languageCode, country);
-        localeAlias = languageCode + '-' + country;
       } else {
         curLocale = new Locale(lang.name);
-        localeAlias = lang.name.toLowerCase();
       }
 
       Ise.LangItemExtras.Builder langItemExtraBuilder = Ise.LangItemExtras.newBuilder();
@@ -196,8 +193,6 @@ public final class JsonTransferService implements TransferService {
       if (!StringUtils.isEmpty(curLocale.getCountry())) {
         langItemExtraBuilder.setCountryCode(curLocale.getCountry());
       }
-
-      final Ise.ExternalId langAliasId = IseNames.newAlias(localeAlias);
 
       String iso3Language = null;
       try {
@@ -210,6 +205,7 @@ public final class JsonTransferService implements TransferService {
       // insert a new one
       final Ise.Item.Builder langItemBuilder = Ise.Item.newBuilder()
           .setExtras(Ise.ItemExtras.newBuilder().setLang(langItemExtraBuilder.build()))
+          .setType(IseNames.LANGUAGE)
           .addExternalIds(flibustaId);
       if (!StringUtils.isEmpty(iso3Language)) {
         for (int i = 0; i < FlibustaLanguages.KNOWN_LANG_ALIASES.size(); ++i) {
@@ -221,7 +217,6 @@ public final class JsonTransferService implements TransferService {
       } else {
         // unknown language
         langItemBuilder
-            .addExternalIds(langAliasId)
             .addSkus(Ise.Sku.newBuilder().setId("1").setTitle(lang.name));
       }
 
